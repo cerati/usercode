@@ -97,6 +97,8 @@ void NtuplizerZAnalysis7TeVPAT::analyze(const edm::Event& iEvent, const edm::Eve
   branch.lumi=iEvent.luminosityBlock();
   cout << "event=" << iEvent.id().event() << " run=" << iEvent.run() << " lumi=" << iEvent.luminosityBlock() << endl;
 
+  bool prints = false;
+
   std::vector<bool> trigBits;
   edm::Handle<edm::TriggerResults> hltresults;
   InputTag tag("TriggerResults","","HLT");//InputTag tag("TriggerResults");
@@ -106,16 +108,16 @@ void NtuplizerZAnalysis7TeVPAT::analyze(const edm::Event& iEvent, const edm::Eve
   vector<string> triggernames = triggerNames_.triggerNames();
   //int trigjolly = 0;
   for (int itrig = 0; itrig != ntrigs; ++itrig){
-     string trigName=triggerNames_.triggerName(itrig);
-     bool accept = hltresults->accept(itrig);
-     cout << trigName << " " << accept << endl;
-     trigBits.push_back(accept);
-     //      if (accept) {
-     //        if (trigName=="HLT1MuonIso") trigjolly+=1;
-     //        else if (trigName=="HLT1MuonNonIso") trigjolly+=10;
-     //        else if (trigName=="HLT1Electron") trigjolly+=100;
-     //        else if (trigName=="HLT1ElectronRelaxed") trigjolly+=1000;
-     //     }
+    string trigName=triggerNames_.triggerName(itrig);
+    bool accept = hltresults->accept(itrig);
+    cout << trigName << " " << accept << endl;
+    trigBits.push_back(accept);
+    //      if (accept) {
+    //        if (trigName=="HLT1MuonIso") trigjolly+=1;
+    //        else if (trigName=="HLT1MuonNonIso") trigjolly+=10;
+    //        else if (trigName=="HLT1Electron") trigjolly+=100;
+    //        else if (trigName=="HLT1ElectronRelaxed") trigjolly+=1000;
+    //     }
   }
   branch.trigBits=trigBits;
 
@@ -125,9 +127,9 @@ void NtuplizerZAnalysis7TeVPAT::analyze(const edm::Event& iEvent, const edm::Eve
   std::vector<int> vtxNdof,vtxNtks;
   Handle<reco::VertexCollection> vertexHandle;
   iEvent.getByLabel("offlinePrimaryVertices", vertexHandle);
-  cout << "nVertices=" << vertexHandle->size() << endl;
+  if (prints) cout << "nVertices=" << vertexHandle->size() << endl;
   for (reco::VertexCollection::const_iterator vtx=vertexHandle->begin();vtx!=vertexHandle->end();++vtx){
-    cout << "vtx isFake=" << vtx->isFake() <<" pos=" << vtx->position() << " ndof=" << vtx->ndof() << " nTks=" << vtx->tracksSize() << endl; 
+    if (prints) cout << "vtx isFake=" << vtx->isFake() <<" pos=" << vtx->position() << " ndof=" << vtx->ndof() << " nTks=" << vtx->tracksSize() << endl; 
     vtxFake.push_back(vtx->isFake());
     vtxX.push_back(vtx->position().x());
     vtxY.push_back(vtx->position().y());
@@ -154,15 +156,15 @@ void NtuplizerZAnalysis7TeVPAT::analyze(const edm::Event& iEvent, const edm::Eve
   std::vector<int> muQ;
   Handle<MuonCollection> muonHandle;
   iEvent.getByLabel("cleanPatMuons", muonHandle);
-  cout << "nMuons=" << muonHandle->size() << endl;
+  if (prints) cout << "nMuons=" << muonHandle->size() << endl;
   for (MuonCollection::const_iterator mu=muonHandle->begin();mu!=muonHandle->end();++mu){
-    cout << "mu global=" << mu->isGlobalMuon() << " tracker=" << mu->isTrackerMuon() 
-	 << " pt=" << mu->pt() << " eta=" << mu->eta() << " phi=" << mu->phi() << " q=" << mu->charge()
-	 << " iso03.sumPt=" << mu->isolationR03().sumPt << " iso03.emEt=" << mu->isolationR03().emEt 
-	 << " iso03.hadEt=" << mu->isolationR03().hadEt << " iso03.hoEt=" << mu->isolationR03().hoEt 
-	 << " iso05.sumPt=" << mu->isolationR05().sumPt << " iso05.emEt=" << mu->isolationR05().emEt 
-	 << " iso05.hadEt=" << mu->isolationR05().hadEt << " iso05.hoEt=" << mu->isolationR05().hoEt 
-	 << endl;
+    if (prints) cout << "mu global=" << mu->isGlobalMuon() << " tracker=" << mu->isTrackerMuon() 
+		     << " pt=" << mu->pt() << " eta=" << mu->eta() << " phi=" << mu->phi() << " q=" << mu->charge()
+		     << " iso03.sumPt=" << mu->isolationR03().sumPt << " iso03.emEt=" << mu->isolationR03().emEt 
+		     << " iso03.hadEt=" << mu->isolationR03().hadEt << " iso03.hoEt=" << mu->isolationR03().hoEt 
+		     << " iso05.sumPt=" << mu->isolationR05().sumPt << " iso05.emEt=" << mu->isolationR05().emEt 
+		     << " iso05.hadEt=" << mu->isolationR05().hadEt << " iso05.hoEt=" << mu->isolationR05().hoEt 
+		     << endl;
     muGLB.push_back(mu->isGlobalMuon());
     muTRK.push_back(mu->isTrackerMuon());
     muPt.push_back(mu->pt());
@@ -217,23 +219,23 @@ void NtuplizerZAnalysis7TeVPAT::analyze(const edm::Event& iEvent, const edm::Eve
   std::vector<int> elQ, elClass;
   Handle<ElectronCollection> electronHandle;
   iEvent.getByLabel("cleanPatElectrons", electronHandle);
-  cout << "nElectrons=" << electronHandle->size() << endl;
+  if (prints) cout << "nElectrons=" << electronHandle->size() << endl;
   for (ElectronCollection::const_iterator el=electronHandle->begin();el!=electronHandle->end();++el) {
-    cout << "el e=" << el->superCluster()->energy() << " e/p=" << el->eSuperClusterOverP() 
-	 << " fbrem=" << el->fbrem() << " class=" << el->classification()
-	 << " pt=" << el->pt() << " eta=" << el->eta() << " phi=" << el->phi() << " q=" << el->charge()
-	 << " iso03_tk=" << el->dr03TkSumPt() 
-	 << " iso03_ecal=" << el->dr03EcalRecHitSumEt() 
-	 << " iso03_hcal=" << el->dr03HcalTowerSumEt()
-	 << " iso04_tk=" << el->dr04TkSumPt() 
-	 << " iso04_ecal=" << el->dr04EcalRecHitSumEt() 
-	 << " iso04_hcal=" << el->dr04HcalTowerSumEt()
-	 << " idLoose=" << el->electronID("eidLoose")
-	 << " idTight=" << el->electronID("eidTight")
-	 << " idRobLo=" << el->electronID("eidRobustLoose")
-	 << " idRobTi=" << el->electronID("eidRobustTight")
-	 << " idRobHE=" << el->electronID("eidRobustHighEnergy")
-	 << endl;
+    if (prints) cout << "el e=" << el->superCluster()->energy() << " e/p=" << el->eSuperClusterOverP() 
+		     << " fbrem=" << el->fbrem() << " class=" << el->classification()
+		     << " pt=" << el->pt() << " eta=" << el->eta() << " phi=" << el->phi() << " q=" << el->charge()
+		     << " iso03_tk=" << el->dr03TkSumPt() 
+		     << " iso03_ecal=" << el->dr03EcalRecHitSumEt() 
+		     << " iso03_hcal=" << el->dr03HcalTowerSumEt()
+		     << " iso04_tk=" << el->dr04TkSumPt() 
+		     << " iso04_ecal=" << el->dr04EcalRecHitSumEt() 
+		     << " iso04_hcal=" << el->dr04HcalTowerSumEt()
+		     << " idLoose=" << el->electronID("eidLoose")
+		     << " idTight=" << el->electronID("eidTight")
+		     << " idRobLo=" << el->electronID("eidRobustLoose")
+		     << " idRobTi=" << el->electronID("eidRobustTight")
+		     << " idRobHE=" << el->electronID("eidRobustHighEnergy")
+		     << endl;
     elIdLoose.push_back(el->electronID("eidLoose"));
     elIdTight.push_back(el->electronID("eidTight"));
     elIdRobLo.push_back(el->electronID("eidRobustLoose"));
@@ -294,18 +296,18 @@ void NtuplizerZAnalysis7TeVPAT::analyze(const edm::Event& iEvent, const edm::Eve
 
   Handle<METCollection> metHandle;
   iEvent.getByLabel("patMETs", metHandle);
-  cout << "nMETs=" << metHandle->size() << endl;
+  if (prints) cout << "nMETs=" << metHandle->size() << endl;
   float genMetPhi = 0, genMetPt = 0;
   if (metHandle->begin()->genMET()) {
     genMetPhi = metHandle->begin()->genMET()->phi();
     genMetPt = metHandle->begin()->genMET()->pt();
   }
-  cout << "met=" << metHandle->begin()->sumEt() << " phi=" << metHandle->begin()->phi() 
-       << " EtSig=" << metHandle->begin()->mEtSig() << " sig=" << metHandle->begin()->significance()
-       << " uncorr=" << metHandle->begin()->uncorrectedPt()
-       << " genPt=" << genMetPt << " genPhi=" << genMetPhi
-       << endl;
-  branch.metEt=metHandle->begin()->sumEt();
+  if (prints) cout << "met=" << metHandle->begin()->pt() << " phi=" << metHandle->begin()->phi() 
+		   << " EtSig=" << metHandle->begin()->mEtSig() << " sig=" << metHandle->begin()->significance()
+		   << " uncorr=" << metHandle->begin()->uncorrectedPt()
+		   << " genPt=" << genMetPt << " genPhi=" << genMetPhi
+		   << endl;
+  branch.metEt=metHandle->begin()->pt();
   branch.metPhi=metHandle->begin()->phi();
   branch.metEtSig=metHandle->begin()->mEtSig();
   branch.metSig=metHandle->begin()->significance();
@@ -315,13 +317,13 @@ void NtuplizerZAnalysis7TeVPAT::analyze(const edm::Event& iEvent, const edm::Eve
 
   Handle<METCollection> pfmetHandle;
   iEvent.getByLabel("patMETsPF", pfmetHandle);
-  cout << "nPFMETs=" << pfmetHandle->size() << endl;
-  cout << "met=" << pfmetHandle->begin()->sumEt() << " phi=" << pfmetHandle->begin()->phi() 
-       << " EtSig=" << pfmetHandle->begin()->mEtSig() << " sig=" << pfmetHandle->begin()->significance() 
-       << " uncorr=" << pfmetHandle->begin()->uncorrectedPt()
-       << " genPt=" << genMetPt << " genPhi=" << genMetPhi
-       << endl;
-  branch.pfMetEt=pfmetHandle->begin()->sumEt();
+  if (prints) cout << "nPFMETs=" << pfmetHandle->size() << endl;
+  if (prints) cout << "met=" << pfmetHandle->begin()->pt() << " phi=" << pfmetHandle->begin()->phi() 
+		   << " EtSig=" << pfmetHandle->begin()->mEtSig() << " sig=" << pfmetHandle->begin()->significance() 
+		   << " uncorr=" << pfmetHandle->begin()->uncorrectedPt()
+		   << " genPt=" << genMetPt << " genPhi=" << genMetPhi
+		   << endl;
+  branch.pfMetEt=pfmetHandle->begin()->pt();
   branch.pfMetPhi=pfmetHandle->begin()->phi();
   branch.pfMetEtSig=pfmetHandle->begin()->mEtSig();
   branch.pfMetSig=pfmetHandle->begin()->significance();
@@ -335,27 +337,27 @@ void NtuplizerZAnalysis7TeVPAT::analyze(const edm::Event& iEvent, const edm::Eve
   std::vector<int> jetGenId, jetGenPt, jetTks;
   Handle<JetCollection> jetHandle;
   iEvent.getByLabel("selectedPatJets", jetHandle);
-  cout << "nJets=" << jetHandle->size() << endl;
+  if (prints) cout << "nJets=" << jetHandle->size() << endl;
   for (JetCollection::const_iterator jet=jetHandle->begin();jet!=jetHandle->end();++jet) {
     int id=0;
     if (jet->genParton()) id = jet->genParton()->pdgId();
     float genPt=0;
     if (jet->genJet()) genPt = jet->genJet()->pt();
-    cout << "jet pt=" << jet->pt() << " eta=" << jet->eta() << " phi=" << jet->phi()
-	 << " corrFact=" << jet->corrFactor("raw")
-	 << " disc_tcHE=" << jet->bDiscriminator("trackCountingHighEffBJetTags")
-	 << " disc_tcHP=" << jet->bDiscriminator("trackCountingHighPurBJetTags")
-	 << " disc_sftM=" << jet->bDiscriminator("softMuonBJetTags")
-	 << " disc_sftMPt=" << jet->bDiscriminator("softMuonByPtBJetTags")
-	 << " disc_sftMIP3=" << jet->bDiscriminator("softMuonByIP3dBJetTags")
-	 << " disc_sftE=" << jet->bDiscriminator("softElectronBJetTags")
-	 << " disc_jetP=" << jet->bDiscriminator("jetProbabilityBJetTags")
-	 << " disc_jetBP=" << jet->bDiscriminator("jetBProbabilityBJetTags")
-	 << " disc_ssv=" << jet->bDiscriminator("simpleSecondaryVertexBJetTags")
-	 << " disc_csv=" << jet->bDiscriminator("combinedSecondaryVertexBJetTags")
-	 << " disc_cvsMVA=" << jet->bDiscriminator("combinedSecondaryVertexMVABJetTags")
-	 << " genId=" << id << " genPt=" << genPt
-	 << endl;
+    if (prints) cout << "jet pt=" << jet->pt() << " eta=" << jet->eta() << " phi=" << jet->phi()
+		     << " corrFact=" << jet->corrFactor("raw")
+		     << " disc_tcHE=" << jet->bDiscriminator("trackCountingHighEffBJetTags")
+		     << " disc_tcHP=" << jet->bDiscriminator("trackCountingHighPurBJetTags")
+		     << " disc_sftM=" << jet->bDiscriminator("softMuonBJetTags")
+		     << " disc_sftMPt=" << jet->bDiscriminator("softMuonByPtBJetTags")
+		     << " disc_sftMIP3=" << jet->bDiscriminator("softMuonByIP3dBJetTags")
+		     << " disc_sftE=" << jet->bDiscriminator("softElectronBJetTags")
+		     << " disc_jetP=" << jet->bDiscriminator("jetProbabilityBJetTags")
+		     << " disc_jetBP=" << jet->bDiscriminator("jetBProbabilityBJetTags")
+		     << " disc_ssv=" << jet->bDiscriminator("simpleSecondaryVertexBJetTags")
+		     << " disc_csv=" << jet->bDiscriminator("combinedSecondaryVertexBJetTags")
+		     << " disc_cvsMVA=" << jet->bDiscriminator("combinedSecondaryVertexMVABJetTags")
+		     << " genId=" << id << " genPt=" << genPt
+		     << endl;
     jetPt.push_back(jet->pt());
     jetEta.push_back(jet->eta());
     jetPhi.push_back(jet->phi());
