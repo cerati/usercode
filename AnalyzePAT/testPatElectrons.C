@@ -23,6 +23,8 @@ void testPatElectrons() {
   TFile  * outfile = new TFile("patElectrons.root","RECREATE");
 
   TH1D * h_pt = new TH1D("pt", "Electron p_{T}", 20, 0, 100 );
+  TH1D * h_IsoEcal04 = new TH1D("IsoEcal04", "IsoEcal04", 100, 0, 10 );
+  TH1D * h_IsoEcal04User = new TH1D("IsoEcal04User", "IsoEcal04User", 100, 0, 10 );
   fwlite::Event ev(file);
 
   //loop through each event
@@ -36,6 +38,8 @@ void testPatElectrons() {
     //loop through each Electron
     for (unsigned int i=0; i!=electrons.size(); ++i) {
       h_pt->Fill( electrons[i].pt() );
+      h_IsoEcal04->Fill( electrons[i].ecalIso() );
+      h_IsoEcal04User->Fill( electrons[i].userIsolation(1) );
     }   //end Electron loop   
 
   }   //end event loop
