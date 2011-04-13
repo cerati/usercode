@@ -1,5 +1,5 @@
-#ifndef scanchain_h
-#define scanchain_h
+#ifndef looper_h
+#define looper_h
 
 #include "TFile.h"
 #include "TTree.h"
