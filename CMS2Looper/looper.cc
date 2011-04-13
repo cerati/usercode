@@ -83,7 +83,7 @@ int looper::ScanChain( TChain* chain, const char* prefix, bool isData, int nEven
       weight_ = isData ? 1. : evt_scale1fb();
 
       //fill histos
-      h_dummy->Fill(1);
+      if (makehist) h_dummy->Fill(1);
 
 
       if (makebaby) FillBabyNtuple();
