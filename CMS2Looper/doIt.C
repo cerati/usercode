@@ -4,6 +4,7 @@
   gSystem->Load("libPhysics.so");
   gSystem->Load("libEG.so");
   gSystem->Load("libMathCore.so");
+  gSystem->Load("libGenVector.so");
   gSystem->Load("libCMS2NtupleMacrosCORE.so");
   gSystem->Load("liblooper.so");
  
