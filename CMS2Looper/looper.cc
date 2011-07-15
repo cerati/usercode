@@ -82,11 +82,16 @@ int looper::ScanChain( TChain* chain, const char* prefix, bool isData, int nEven
       evt_   = evt_event();
       weight_ = isData ? 1. : evt_scale1fb();
 
+      for (unsigned int i_hyp = 0; i_hyp<hyp_p4().size(); i_hyp++) {
+
+	p4_ = hyp_p4().at(i_hyp);
+	if (makebaby) FillBabyNtuple();
+	
+      }
+
       //fill histos
       if (makehist) h_dummy->Fill(1);
 
-
-      if (makebaby) FillBabyNtuple();
     }
 
     delete tree;
