@@ -29,8 +29,8 @@ using namespace std;
 
 int looper::ScanChain( TChain* chain, const char* prefix, bool isData, int nEvents) {
 
-  makebaby       = true;
-  makehist       = true;
+  makebaby       = false;
+  makehist       = false;
   maketext       = false;
   
   if (makebaby) MakeBabyNtuple( Form( "%s_baby.root", prefix ) );
@@ -119,6 +119,8 @@ void looper::MakeBabyNtuple(const char *babyFilename) {
   babyTree_->Branch("ls", &ls_, "ls/I");
   babyTree_->Branch("evt", &evt_, "evt/I");
   babyTree_->Branch("weight", &weight_, "weight/F");
+
+  babyTree_->Branch("p4", &p4_, "p4/F");
 }
 
 // Init the baby
@@ -127,6 +129,7 @@ void looper::InitBabyNtuple() {
   ls_ = -9999;
   evt_ = -9999;
   weight_ = -9999.;
+  p4_ = LorentzVector(0,0,0,0);
 }
 
 void looper::fillUnderOverFlow(TH1F *h1, float value, float weight){
