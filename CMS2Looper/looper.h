@@ -67,8 +67,8 @@ class looper
   int run_,ls_,evt_;
   float weight_;
 
-  LorentzVector p4_;
-  
+  LorentzVector* p4_;
+
   //histos
   TH1F* h_dummy;
   
