@@ -29,7 +29,7 @@ using namespace std;
 
 int looper::ScanChain( TChain* chain, const char* prefix, bool isData, int nEvents) {
 
-  makebaby       = true;
+  makebaby       = false;
   makehist       = false;
   maketext       = false;
   
