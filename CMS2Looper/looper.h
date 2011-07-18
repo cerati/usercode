@@ -21,7 +21,10 @@ class looper
 {
  public:
   typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector; 
-  looper() {};
+
+  looper() {
+    p4_ = new LorentzVector();
+  };
   ~looper() {
     delete babyFile_;
     delete babyTree_;

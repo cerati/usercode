@@ -70,16 +70,15 @@ LinkDef_out.cxx: LinkDef.h
 	cat LinkDef.h LinkDef_out.cc > LinkDef_out.cxx; rm LinkDef_out.cc
 
 # General rule for making object files
-# General rule for making object files
 %.d:	%.cc
 	$(QUIET) echo "Checking dependencies for $<"; \
 	$(CC) -MM -MT $@ -MT ${@:.d=.o} $(CFLAGS) $< > $@; \
                      [ -s $@ ] || rm -f $@
-%.o: 	%.cc 
+%.o: 	%.cc %.h
 	$(QUIET) echo "Compiling $<"; \
 	$(CC) $(CFLAGS) $< -c -o $@
 
-%.o: 	%.cxx 
+%.o: 	%.cxx looper.h
 	$(QUIET) echo "Compiling $<"; \
 	$(CC) $(CFLAGS) $< -c -o $@
 
@@ -89,7 +88,6 @@ LinkDef_out.cxx: LinkDef.h
 build: $(LIBS) # compile code
 	@#root -b -q ".L MyScanChain.C++"
 b: build
-
 
 clean:
 	rm -f *.o \
