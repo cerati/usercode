@@ -159,8 +159,8 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
   //   cout << "topVeto eff 0j: " << tagEff0j.first << "+/-" << tagEff0j.second << endl;
   //   cout << "topVeto eff 1j: " << tagEff1j.first << "+/-" << tagEff1j.second << endl;
 
-  int masses[] = {115,120,130,140,150,160,170,180,190,200};
-  //int masses[] = {115,120,130,140,150};
+  //int masses[] = {115,120,130,140,150,160,170,180,190,200};
+  int masses[] = {115,120,130,140,150};
   //int masses[] = {160,170,180,190,200};
   //int masses[] = {160};
   int nmasses = sizeof(masses)/sizeof(int);
