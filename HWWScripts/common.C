@@ -403,7 +403,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( (region.Contains("leppts")||region.Contains("sideband")||region.Contains("mtside")||region.Contains("dphiside")||region.Contains("massreg")||
 	  region.Contains("mtreg")||region.Contains("dphireg")) && (dataEvent->lep1_.pt()<lep1pt || dataEvent->lep2_.pt()<lep2pt) ) continue;
     if ( (region.Contains("sideband")||region.Contains("mtside")||region.Contains("dphiside")) && (dataEvent->dilep_.mass()<himass) ) continue;
-    if ( (region.Contains("massreg")||region.Contains("mtreg")||region.Contains("dphireg")) && (dataEvent->dilep_.mass()>mll) ) continue;
+    if ( (region.Contains("massreg")||region.Contains("masscut")||region.Contains("mtreg")||region.Contains("dphireg")) && (dataEvent->dilep_.mass()>mll) ) continue;
     if ( (region.Contains("mtside")||region.Contains("dphiside")||region.Contains("mtreg")||region.Contains("mtcut")||region.Contains("dphireg")) 
 	 && (dataEvent->mt_<mtL || dataEvent->mt_>mtH) ) continue;
     if ( (region.Contains("dphiside")||region.Contains("dphireg")||region.Contains("dphicut")) && (dataEvent->dPhi_>dPhi*TMath::Pi()/180.) ) continue;
@@ -427,6 +427,8 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( region.Contains("btagJet2")  && dataEvent->jet2Btag_<2.1 ) continue;
     if ( region.Contains("nobJet1")   && dataEvent->jet1Btag_>2.1 ) continue;
     if ( region.Contains("nobJet2")   && dataEvent->jet2Btag_>2.1 ) continue;
+    //check peaking at MC level
+    if ( region.Contains("fromZ") && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) continue;
 
     if (!doFake) {
       float effSF=1.;
