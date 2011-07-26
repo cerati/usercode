@@ -112,34 +112,45 @@ pair<float, float> getZYieldInData(TString sample, unsigned int cut, unsigned in
   float kee = sqrt(zeeNoMet/zmmNoMet);//the error is negligible
 
   //get Z yields after full met
-  float zmm = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,mmfs,mm40allfs,"+regionIn, lumiSample, useJson, applyEff, doFake).first;//,dpjallfs,mm40allfs
-  float zme = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,mefs,mm40allfs,"+regionIn, lumiSample, useJson, applyEff, doFake).first;
-  float zem = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,emfs,mm40allfs,"+regionIn, lumiSample, useJson, applyEff, doFake).first;
-  float zee = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,eefs,mm40allfs,"+regionIn, lumiSample, useJson, applyEff, doFake).first;
+  float zmm = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,mmfs,mm40allfs,mtcut,"+regionIn, lumiSample, useJson, applyEff, doFake).first;
+  float zme = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,mefs,mm40allfs,mtcut,"+regionIn, lumiSample, useJson, applyEff, doFake).first;
+  float zem = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,emfs,mm40allfs,mtcut,"+regionIn, lumiSample, useJson, applyEff, doFake).first;
+  float zee = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,eefs,mm40allfs,mtcut,"+regionIn, lumiSample, useJson, applyEff, doFake).first;
   float zmmofs = zmm - 0.5*(zme+zem)/kee;
   float zmmofs_err = sqrt( zmm + 0.25*(zme+zem)/pow(kee,2) );
   float zeeofs = zee - 0.5*(zme+zem)*kee;
   float zeeofs_err = sqrt( zee + 0.25*(zme+zem)*pow(kee,2) );
   float zofs = zmmofs+zeeofs;
   float zofs_err = sqrt( zmm + zee + 0.25*(zme+zem)*pow(kee+1./kee,2) );
-  pair<float, float> wzmm_p = getYield(dir_mc_mit+"wz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmet40,"+regionIn, lumi, useJson, applyEff, doFake);
-  pair<float, float> zzmm_p = getYield(dir_mc_mit+"zz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmet40,"+regionIn, lumi, useJson, applyEff, doFake);
-  pair<float, float> wzee_p = getYield(dir_mc_mit+"wz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmet40,"+regionIn, lumi, useJson, applyEff, doFake);
-  pair<float, float> zzee_p = getYield(dir_mc_mit+"zz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmet40,"+regionIn, lumi, useJson, applyEff, doFake);
+  pair<float, float> wzmm_p = getYield(dir_mc_mit+"wz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake);
+  pair<float, float> zzmm_p = getYield(dir_mc_mit+"zz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake);
+  pair<float, float> wzee_p = getYield(dir_mc_mit+"wz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake);
+  pair<float, float> zzee_p = getYield(dir_mc_mit+"zz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake);
   float wzmm = wzmm_p.first;
-  float wzmm_err = sqrt( pow(wzmm_p.second,2) + pow(0.1*wzmm,2) );//assume 10% syst
+  float wzmm_stat_err = wzmm_p.second;
+  float wzmm_syst_err = 0.1*(wzmm);//assume 10% syst
+  float wzmm_err = sqrt( pow(wzmm_stat_err,2) + pow(wzmm_syst_err,2) );
   float zzmm = zzmm_p.first;
-  float zzmm_err = sqrt( pow(zzmm_p.second,2) + pow(0.1*zzmm,2) );//assume 10% syst
+  float zzmm_stat_err = zzmm_p.second;
+  float zzmm_syst_err = 0.1*(zzmm);//assume 10% syst
+  float zzmm_err = sqrt( pow(zzmm_stat_err,2) + pow(zzmm_syst_err,2) );
   float wzee = wzee_p.first;
-  float wzee_err = sqrt( pow(wzee_p.second,2) + pow(0.1*wzee,2) );//assume 10% syst
+  float wzee_stat_err = wzee_p.second;
+  float wzee_syst_err = 0.1*(wzee);//assume 10% syst
+  float wzee_err = sqrt( pow(wzee_stat_err,2) + pow(wzee_syst_err,2) );
   float zzee = zzee_p.first;
-  float zzee_err = sqrt( pow(zzee_p.second,2) + pow(0.1*zzee,2) );//assume 10% syst
+  float zzee_stat_err = zzee_p.second;
+  float zzee_syst_err = 0.1*(zzee);//assume 10% syst
+  float zzee_err = sqrt( pow(zzee_stat_err,2) + pow(zzee_syst_err,2) );
+  float vzmm_syst_err = 0.1*(wzmm+zzmm);//assume 10% syst
+  float vzee_syst_err = 0.1*(wzee+zzee);//assume 10% syst
+  float vz_syst_err = 0.1*(wzmm+zzmm+wzee+zzee);//assume 10% syst
   float zmmofs_corr = zmmofs-wzmm-zzmm;
-  float zmmofs_corr_err = sqrt( pow(zmmofs_err,2) + pow(wzmm_err,2) + pow(zzmm_err,2) );
+  float zmmofs_corr_err = sqrt( pow(zmmofs_err,2) + pow(wzmm_stat_err,2) + pow(zzmm_stat_err,2) + pow(vzmm_syst_err,2) );
   float zeeofs_corr = zeeofs-wzee-zzee;
-  float zeeofs_corr_err = sqrt( pow(zeeofs_err,2) + pow(wzee_err,2) + pow(zzee_err,2) );
-  float zofs_corr = zmmofs_corr+zeeofs_corr;
-  float zofs_corr_err = sqrt( pow(zmmofs_corr_err,2) + pow(zeeofs_corr_err,2) );
+  float zeeofs_corr_err = sqrt( pow(zeeofs_err,2) + pow(wzee_stat_err,2) + pow(zzee_stat_err,2) + pow(vzee_syst_err,2) );
+  float zofs_corr = zofs-wzmm-zzmm-wzee-zzee;
+  float zofs_corr_err = sqrt( pow(zofs_err,2) + pow(wzmm_stat_err,2) + pow(zzmm_stat_err,2) + pow(wzee_stat_err,2) + pow(zzee_stat_err,2) + pow(vz_syst_err,2) );
   if (printAll){
     cout << "k: " << kee << endl;
     cout << "Z(after full met): " << zmm << " " << zme  << " " << zem  << " " << zee << endl;
@@ -156,7 +167,7 @@ pair<float, float> dyBkgEstimation(TString sample, unsigned int cut, unsigned in
 				   float lumi, float r_all=0, float r_all_err=0., float zofs_corr=0., float zofs_corr_err=0., bool useJson=0, bool applyEff=0, bool doFake=0)  {
 
   //warning: cut and veto are common for in and out and 
-  //should not contain met cut nor Z veto 
+  //should not contain met, mT nor Z veto cuts
   //(they are properly applied in this method) 
   //also regions should not contain MET cuts
   //the regionIn cut has to be symmetric for all fs
@@ -196,12 +207,16 @@ void makeDYTable(float lumi) {
   bool applyTnPSF = false;
   bool doFake     = false;
 
-  int mass = 0;
-  TString regionIn  = "dpjallfs,leppts,dphicut,mtcut";
-  TString regionOut = "dphijet,dphireg";
+  TString regionIn  = "dpjallfs,leppts,dphicut";
+  TString regionOut = "dphijet,leppts,dphicut, masscut";
 
-  int jetbins[] = {0,1};
+  int jetbins[] = {1};
+  //int jetbins[] = {0,1};
   int njetbins = sizeof(jetbins)/sizeof(int);
+
+  //int masses[] = {0};
+  int masses[] = {0,120,160};
+  int nmasses = sizeof(masses)/sizeof(int);
 
   for (int j=0;j<njetbins;++j) {
 
@@ -209,36 +224,40 @@ void makeDYTable(float lumi) {
     cout << "---------------------------------- " << njets << "-jet bin -----------------------------------------" << endl;
     cout << Form("| %10s | %-15s | %-15s | %-15s | %-15s |","mass","Nin(data)","R_out/in","Nout(data)","Nout(MC)") << endl;
 
-    pair<float, float> dymmMC   = getYield(dir_mc+"dymm",  wwSelection, noVeto, mass, njets, "mmfs,minmet40"+regionOut, lumi, useJson, applyTnPSF, doFake);
-    pair<float, float> dyeeMC   = getYield(dir_mc+"dyee",  wwSelection, noVeto, mass, njets, "eefs,minmet40"+regionOut, lumi, useJson, applyTnPSF, doFake);
+    for (int jj=0;jj<nmasses;++jj) {
 
-    pair<float, float> r = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyTnPSF, doFake);
-    //pair<float, float> r = make_pair<float, float>(0.252045, 0.0743647);//this is 0-jet bin WW level, just to speed everything up
+      int mass = masses[jj];
 
-    pair<float, float> z = getZYieldInData(data_file, wwSelNoZVNoMet, noVeto, mass, njets, regionIn, lumi, useJson, applyTnPSF, doFake);
-
-    //Z veto, full met and SF cuts are already applied in the method
-    pair<float, float> dyData = dyBkgEstimation(data_file, wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, r.first, r.second, z.first, z.second, useJson, applyTnPSF, doFake);
-
-    if (mass==0) {
-      cout << Form("| %10s | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
-		   "WW",
-		   round(100.*z.first)/100.,round(100.*z.second)/100.,
-		   round(100.*r.first)/100.,round(100.*r.second)/100.,
-		   round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
-		   round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.) 
-	   << endl;
-    } else {
-      cout << Form("| %6i GeV | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
-		   mass,
-		   round(100.*z.first)/100.,round(100.*z.second)/100.,
-		   round(100.*r.first)/100.,round(100.*r.second)/100.,
-		   round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
-		   round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.) 
-	   << endl;
+      pair<float, float> dymmMC   = getYield(dir_mc+"dymm",  wwSelection, noVeto, mass, njets, "mmfs,minmet40,mtcut"+regionOut, lumi, useJson, applyTnPSF, doFake);
+      pair<float, float> dyeeMC   = getYield(dir_mc+"dyee",  wwSelection, noVeto, mass, njets, "eefs,minmet40,mtcut"+regionOut, lumi, useJson, applyTnPSF, doFake);
+      
+      pair<float, float> r = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyTnPSF, doFake);
+      //pair<float, float> r = make_pair<float, float>(0.252045, 0.0743647);//this is 0-jet bin WW level, just to speed everything up
+      
+      pair<float, float> z = getZYieldInData(data_file, wwSelNoZVNoMet, noVeto, mass, njets, regionIn, lumi, useJson, applyTnPSF, doFake);
+      
+      //Z veto, full met and SF cuts are already applied in the method
+      pair<float, float> dyData = dyBkgEstimation(data_file, wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, r.first, r.second, z.first, z.second, useJson, applyTnPSF, doFake);
+      
+      if (mass==0) {
+	cout << Form("| %10s | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
+		     "WW",
+		     round(100.*z.first)/100.,round(100.*z.second)/100.,
+		     round(100.*r.first)/100.,round(100.*r.second)/100.,
+		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
+		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.) 
+	     << endl;
+      } else {
+	cout << Form("| %6i GeV | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
+		     mass,
+		     round(100.*z.first)/100.,round(100.*z.second)/100.,
+		     round(100.*r.first)/100.,round(100.*r.second)/100.,
+		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
+		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.) 
+	     << endl;
+      }
     }
     cout << "--------------------------------------------------------------------------------------" << endl;
-
   }
 
 }
