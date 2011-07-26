@@ -127,19 +127,30 @@ pair<float, float> getZYieldInData(TString sample, unsigned int cut, unsigned in
   pair<float, float> wzee_p = getYield(dir_mc_mit+"wz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake);
   pair<float, float> zzee_p = getYield(dir_mc_mit+"zz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake);
   float wzmm = wzmm_p.first;
-  float wzmm_err = sqrt( pow(wzmm_p.second,2) + pow(0.1*wzmm,2) );//assume 10% syst
+  float wzmm_stat_err = wzmm_p.second;
+  float wzmm_syst_err = 0.1*(wzmm);//assume 10% syst
+  float wzmm_err = sqrt( pow(wzmm_stat_err,2) + pow(wzmm_syst_err,2) );
   float zzmm = zzmm_p.first;
-  float zzmm_err = sqrt( pow(zzmm_p.second,2) + pow(0.1*zzmm,2) );//assume 10% syst
+  float zzmm_stat_err = zzmm_p.second;
+  float zzmm_syst_err = 0.1*(zzmm);//assume 10% syst
+  float zzmm_err = sqrt( pow(zzmm_stat_err,2) + pow(zzmm_syst_err,2) );
   float wzee = wzee_p.first;
-  float wzee_err = sqrt( pow(wzee_p.second,2) + pow(0.1*wzee,2) );//assume 10% syst
+  float wzee_stat_err = wzee_p.second;
+  float wzee_syst_err = 0.1*(wzee);//assume 10% syst
+  float wzee_err = sqrt( pow(wzee_stat_err,2) + pow(wzee_syst_err,2) );
   float zzee = zzee_p.first;
-  float zzee_err = sqrt( pow(zzee_p.second,2) + pow(0.1*zzee,2) );//assume 10% syst
+  float zzee_stat_err = zzee_p.second;
+  float zzee_syst_err = 0.1*(zzee);//assume 10% syst
+  float zzee_err = sqrt( pow(zzee_stat_err,2) + pow(zzee_syst_err,2) );
+  float vzmm_syst_err = 0.1*(wzmm+zzmm);//assume 10% syst
+  float vzee_syst_err = 0.1*(wzee+zzee);//assume 10% syst
+  float vz_syst_err = 0.1*(wzmm+zzmm+wzee+zzee);//assume 10% syst
   float zmmofs_corr = zmmofs-wzmm-zzmm;
-  float zmmofs_corr_err = sqrt( pow(zmmofs_err,2) + pow(wzmm_err,2) + pow(zzmm_err,2) );
+  float zmmofs_corr_err = sqrt( pow(zmmofs_err,2) + pow(wzmm_stat_err,2) + pow(zzmm_stat_err,2) + pow(vzmm_syst_err,2) );
   float zeeofs_corr = zeeofs-wzee-zzee;
-  float zeeofs_corr_err = sqrt( pow(zeeofs_err,2) + pow(wzee_err,2) + pow(zzee_err,2) );
-  float zofs_corr = zmmofs_corr+zeeofs_corr;
-  float zofs_corr_err = sqrt( pow(zmmofs_corr_err,2) + pow(zeeofs_corr_err,2) );
+  float zeeofs_corr_err = sqrt( pow(zeeofs_err,2) + pow(wzee_stat_err,2) + pow(zzee_stat_err,2) + pow(vzee_syst_err,2) );
+  float zofs_corr = zofs-wzmm-zzmm-wzee-zzee;
+  float zofs_corr_err = sqrt( pow(zofs_err,2) + pow(wzmm_stat_err,2) + pow(zzmm_stat_err,2) + pow(wzee_stat_err,2) + pow(zzee_stat_err,2) + pow(vz_syst_err,2) );
   if (printAll){
     cout << "k: " << kee << endl;
     cout << "Z(after full met): " << zmm << " " << zme  << " " << zem  << " " << zee << endl;
@@ -196,16 +207,16 @@ void makeDYTable(float lumi) {
   bool applyTnPSF = false;
   bool doFake     = false;
 
-  int masses[] = {0,120,160};
-  int nmasses = sizeof(masses)/sizeof(int);
-
-  //TString regionIn  = "dpjallfs,leppts,dphicut,mtcut";
   TString regionIn  = "dpjallfs,leppts,dphicut";
   TString regionOut = "dphijet,leppts,dphicut, masscut";
 
   int jetbins[] = {1};
   //int jetbins[] = {0,1};
   int njetbins = sizeof(jetbins)/sizeof(int);
+
+  //int masses[] = {0};
+  int masses[] = {0,120,160};
+  int nmasses = sizeof(masses)/sizeof(int);
 
   for (int j=0;j<njetbins;++j) {
 
