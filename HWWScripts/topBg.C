@@ -1,7 +1,7 @@
 #include "common.C"
 
 float expectedPurity(TString dir, unsigned int baseline_toptag, unsigned int veto, int mass, int njets, TString myRegion, float lumi, bool useJson=0, 
-		     bool applyEff=true, bool doFake=false){
+		     bool applyEff=true, bool doFake=false, bool doPUw=false){
 
   //assume these scale factors for DY and W+jets
   float dySF = 1.;
@@ -14,24 +14,24 @@ float expectedPurity(TString dir, unsigned int baseline_toptag, unsigned int vet
     wjSF=2.71;
   }
 
-  float sb_mc_top_tag = getYield(dir+"ttbar", baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first+
-                        getYield(dir+"tw",    baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first+
-                        getYield(dir_mc_mit+"stop",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first+
-                        getYield(dir_mc_mit+"ttop",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first;
-  float sb_mc_other_tag = getYield(dir+"qqww",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first + 
-                          getYield(dir+"ggww",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first +
-                          wjSF*getYield(dir+"wjets", baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first + 
-                          dySF*getYield(dir+"dymm",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first +
-                          dySF*getYield(dir+"dyee",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first + 
-                          getYield(dir+"dytt",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first +
-                          getYield(dir+"zz",    baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first + 
-                          getYield(dir+"wz",    baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake).first;
+  float sb_mc_top_tag = getYield(dir+"ttbar", baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first+
+                        getYield(dir+"tw",    baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first+
+                        getYield(dir_mc_mit+"stop",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first+
+                        getYield(dir_mc_mit+"ttop",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float sb_mc_other_tag = getYield(dir+"qqww",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
+                          getYield(dir+"ggww",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first +
+                          wjSF*getYield(dir+"wjets", baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
+                          dySF*getYield(dir+"dymm",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first +
+                          dySF*getYield(dir+"dyee",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
+                          getYield(dir+"dytt",  baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first +
+                          getYield(dir+"zz",    baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
+                          getYield(dir+"wz",    baseline_toptag, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
   float sb_tag_purity = sb_mc_top_tag/(sb_mc_top_tag+sb_mc_other_tag);
   return sb_tag_purity;
 }
 
 pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, float lumi=0., TString region = "dphijet,minmet40", 
-					bool useJson=0, bool applyEff=true, bool doFake=false) {
+					bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false) {
   //mass is not used
   bool debug = 0;
   unsigned int baseline_toptag=0, control_top=0, control_toptag=0, veto=0, nj_top=0;
@@ -49,12 +49,12 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   }
 
   //get data yields
-  float sideband_data_nj_top     = getYield(data_file, control_top,    veto, mass, nj_top, region_top, 0, useJson, applyEff, doFake).first;
-  float sideband_data_nj_top_tag = getYield(data_file, control_toptag, veto, mass, nj_top, region_toptag, 0, useJson, applyEff, doFake).first;
+  float sideband_data_nj_top     = getYield(data_file, control_top,    veto, mass, nj_top, region_top, 0, useJson, 0, 0, 0).first;
+  float sideband_data_nj_top_tag = getYield(data_file, control_toptag, veto, mass, nj_top, region_toptag, 0, useJson, 0, 0, 0).first;
 
   //compute purity fraction
-  float sb_nj_top_frac     = expectedPurity(dir_mc, control_top, veto, mass, nj_top, region_top, lumi, useJson, applyEff, doFake);
-  float sb_nj_top_tag_frac = expectedPurity(dir_mc, control_toptag, veto, mass, nj_top, region_toptag, lumi, useJson, applyEff, doFake);
+  float sb_nj_top_frac     = expectedPurity(dir_mc, control_top, veto, mass, nj_top, region_top, lumi, useJson, applyEff, doFake, doPUw);
+  float sb_nj_top_tag_frac = expectedPurity(dir_mc, control_toptag, veto, mass, nj_top, region_toptag, lumi, useJson, applyEff, doFake, doPUw);
   //FIXME: add uncertainty on purity
 
   //correct for expected purity
@@ -67,8 +67,8 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   float eff_veto_data = 0;
   float eff_err_veto_data = 0;
   if (njets==0) {
-    float sideband_ttbar  = getYield(dir_mc+"ttbar", wwSelection, veto, mass, njets, region, lumi, useJson, applyEff, doFake).first;
-    float sideband_tw     = getYield(dir_mc+"tw",    wwSelection, veto, mass, njets, region, lumi, useJson, applyEff, doFake).first;
+    float sideband_ttbar  = getYield(dir_mc+"ttbar", wwSelection, veto, mass, njets, region, lumi, useJson, applyEff, doFake, doPUw).first;
+    float sideband_tw     = getYield(dir_mc+"tw",    wwSelection, veto, mass, njets, region, lumi, useJson, applyEff, doFake, doPUw).first;
     float fttbar = sideband_ttbar/(sideband_ttbar+sideband_tw);
     float fttbar_err = fttbar*0.17;//from CS uncertainty
     eff_veto_data = fttbar*(1 - (1-eff_tag_data)*(1-eff_tag_data)) + (1.-fttbar)*eff_tag_data;
@@ -93,7 +93,7 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
 
 pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lumi=0., TString region = "dphijet,minmet40", 
 				   float eff_veto_data=0, float eff_err_veto_data=0, bool useJson=0, 
-				   bool applyEff=true, bool doFake=false)  {
+				   bool applyEff=true, bool doFake=false, bool doPUw=false)  {
   bool debug = 0;
   unsigned int baseline_toptag=0, control_top=0, control_toptag=0, veto=0, nj_top=0;
   getCutMasks(njets, baseline_toptag, control_top, control_toptag, veto, nj_top);
@@ -101,17 +101,17 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
   TString toptagreg = "";
   if (njets==1) toptagreg = ",btagJet1";
 
-  float sideband_data_tag  = getYield(data_file, baseline_toptag, veto, mass, njets,  region+toptagreg, 0, useJson, applyEff, doFake).first;
+  float sideband_data_tag  = getYield(data_file, baseline_toptag, veto, mass, njets,  region+toptagreg, 0, useJson, 0, 0, 0).first;
 
   //compute expected purity
-  float sb_tag_purity = expectedPurity(dir_mc, baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake);
+  float sb_tag_purity = expectedPurity(dir_mc, baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw);
 
   //apply purity correction
   sideband_data_tag*=sb_tag_purity;
   float sideband_data_tag_err  = sqrt( pow(sb_tag_purity,2)*sideband_data_tag );//fixme: should account for purity error
   //get the efficiency (if needed)
   if (eff_veto_data<1E-5) {
-    pair<float, float> tagEff = topVetoEffEstimation(mass,njets,lumi, useJson, applyEff, doFake);
+    pair<float, float> tagEff = topVetoEffEstimation(mass,njets,lumi, useJson, applyEff, doFake, doPUw);
     eff_veto_data = tagEff.first;
     eff_err_veto_data = tagEff.second;
   }
@@ -119,16 +119,16 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
   float num_top_data = sideband_data_tag*(1.-eff_veto_data)/eff_veto_data;
   float num_top_err_data = sqrt( pow((1.-eff_veto_data)/eff_veto_data,2)*pow(sideband_data_tag_err,2) + pow(sideband_data_tag,2)*pow(eff_err_veto_data,2)/pow(eff_veto_data,4) );
   if (debug) {
-    float sb_mc_top_tag = getYield(dir_mc+"ttbar", baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first+
-                          getYield(dir_mc+"tw",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first;
-    float sb_mc_other_tag = getYield(dir_mc+"qqww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first + 
-                            getYield(dir_mc+"ggww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first +
-                            getYield(dir_mc+"wjets", baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first + 
-                            getYield(dir_mc+"dymm",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first +
-                            getYield(dir_mc+"dyee",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first + 
-                            getYield(dir_mc+"dytt",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first +
-                            getYield(dir_mc+"zz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first + 
-                            getYield(dir_mc+"wz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake).first;
+    float sb_mc_top_tag = getYield(dir_mc+"ttbar", baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first+
+                          getYield(dir_mc+"tw",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first;
+    float sb_mc_other_tag = getYield(dir_mc+"qqww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+                            getYield(dir_mc+"ggww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
+                            getYield(dir_mc+"wjets", baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+                            getYield(dir_mc+"dymm",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
+                            getYield(dir_mc+"dyee",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+                            getYield(dir_mc+"dytt",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
+                            getYield(dir_mc+"zz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+                            getYield(dir_mc+"wz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first;
     cout << "sb tag mc top, mc other: " << sb_mc_top_tag << " " << sb_mc_other_tag << endl;
     cout << "sb_tag_purity: " << sb_tag_purity << endl;
     cout << "sb tag data unc, exp bkg, data corr: " << sideband_data_tag/sb_tag_purity << " " << (sideband_data_tag/sb_tag_purity)*(1.-sb_tag_purity) << " " << sideband_data_tag << endl;
@@ -142,45 +142,46 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
 void makeTopTable(float lumi) {
 
   bool useJson    = false;
-  bool applyTnPSF = false;
+  bool applyTnPSF = true;
   bool doFake     = false;
+  bool doPUw      = true;
 
   TString anaRegion = "dphijet,minmet40";
 
   int mass = 0;
 
-  pair<float, float> sigreg_ttbar_0j = getYield(dir_mc+"ttbar",    wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake);
-  pair<float, float> sigreg_tw_0j    = getYield(dir_mc+"tw",       wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake);
-  pair<float, float> sigreg_stop_0j  = getYield(dir_mc_mit+"stop", wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake);
-  pair<float, float> sigreg_ttop_0j  = getYield(dir_mc_mit+"ttop", wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake);
+  pair<float, float> sigreg_ttbar_0j = getYield(dir_mc+"ttbar",    wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake, doPUw);
+  pair<float, float> sigreg_tw_0j    = getYield(dir_mc+"tw",       wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake, doPUw);
+  pair<float, float> sigreg_stop_0j  = getYield(dir_mc_mit+"stop", wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake, doPUw);
+  pair<float, float> sigreg_ttop_0j  = getYield(dir_mc_mit+"ttop", wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake, doPUw);
   //   ********* this does not work because of soft muons:
   //   pair<float, float> sigreg_ttbar_0j  = getYield(dir_mc+"ttbar", wwSelection, noVeto, mass, 0, "dphijet,minmet40", lumi, useJson, applyTnPSF, doFake);
   //   pair<float, float> sigreg_tw_0j     = getYield(dir_mc+"tw",    wwSelection, noVeto, mass, 0, "dphijet,minmet40", lumi, useJson, applyTnPSF, doFake);
   //   ********* so we need to do this to compare with the data prediction:
-  pair<float, float> sigreg_ttbar_1j = getYield(dir_mc+"ttbar",    wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"nobJet1", lumi, useJson, applyTnPSF, doFake);
-  pair<float, float> sigreg_tw_1j    = getYield(dir_mc+"tw",       wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"nobJet1", lumi, useJson, applyTnPSF, doFake);
-  pair<float, float> sigreg_stop_1j  = getYield(dir_mc_mit+"stop", wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"nobJet1", lumi, useJson, applyTnPSF, doFake);
-  pair<float, float> sigreg_ttop_1j  = getYield(dir_mc_mit+"ttop", wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"nobJet1", lumi, useJson, applyTnPSF, doFake);
+  pair<float, float> sigreg_ttbar_1j = getYield(dir_mc+"ttbar",    wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"nobJet1", lumi, useJson, applyTnPSF, doFake, doPUw);
+  pair<float, float> sigreg_tw_1j    = getYield(dir_mc+"tw",       wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"nobJet1", lumi, useJson, applyTnPSF, doFake, doPUw);
+  pair<float, float> sigreg_stop_1j  = getYield(dir_mc_mit+"stop", wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"nobJet1", lumi, useJson, applyTnPSF, doFake, doPUw);
+  pair<float, float> sigreg_ttop_1j  = getYield(dir_mc_mit+"ttop", wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"nobJet1", lumi, useJson, applyTnPSF, doFake, doPUw);
 
   pair<float, float> sigreg_top_0j = make_pair<float, float>(sigreg_ttbar_0j.first+sigreg_tw_0j.first+sigreg_stop_0j.first+sigreg_ttop_0j.first,
 							     sqrt(pow(sigreg_ttbar_0j.second,2)+pow(sigreg_tw_0j.second,2)+pow(sigreg_stop_0j.second,2)+pow(sigreg_ttop_0j.second,2)));
   pair<float, float> sigreg_top_1j = make_pair<float, float>(sigreg_ttbar_1j.first+sigreg_tw_1j.first+sigreg_stop_1j.first+sigreg_ttop_1j.first,
 							     sqrt(pow(sigreg_ttbar_1j.second,2)+pow(sigreg_tw_1j.second,2)+pow(sigreg_stop_1j.second,2)+pow(sigreg_ttop_1j.second,2)));
 
-  pair<float, float> vetoEff0j = topVetoEffEstimation(mass, 0, lumi, anaRegion, useJson, applyTnPSF, doFake);
-  pair<float, float> vetoEff1j = topVetoEffEstimation(mass, 1, lumi, anaRegion, useJson, applyTnPSF, doFake);
+  pair<float, float> vetoEff0j = topVetoEffEstimation(mass, 0, lumi, anaRegion, useJson, applyTnPSF, doFake, doPUw);
+  pair<float, float> vetoEff1j = topVetoEffEstimation(mass, 1, lumi, anaRegion, useJson, applyTnPSF, doFake, doPUw);
 
-  pair<float, float> top_tag_data_0j = getYield(data_file, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, 0, useJson, applyTnPSF, doFake);
-  pair<float, float> top_tag_data_1j = getYield(data_file, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, 0, useJson, applyTnPSF, doFake);
+  pair<float, float> top_tag_data_0j = getYield(data_file, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, 0, useJson, 0, 0, 0);
+  pair<float, float> top_tag_data_1j = getYield(data_file, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, 0, useJson, 0, 0, 0);
 
-  float cr_purity_0j = expectedPurity(dir_mc, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake);
-  float cr_purity_1j = expectedPurity(dir_mc, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, lumi, useJson, applyTnPSF, doFake);
+  float cr_purity_0j = expectedPurity(dir_mc, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, lumi, useJson, applyTnPSF, doFake, doPUw);
+  float cr_purity_1j = expectedPurity(dir_mc, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, lumi, useJson, applyTnPSF, doFake, doPUw);
   pair<float, float> bkg_exp_cr_0j = make_pair<float, float>(top_tag_data_0j.first*(1.-cr_purity_0j),top_tag_data_0j.second*(1.-cr_purity_0j));
   pair<float, float> bkg_exp_cr_1j = make_pair<float, float>(top_tag_data_1j.first*(1.-cr_purity_1j),top_tag_data_1j.second*(1.-cr_purity_1j));
 
   //this can be replaced with a simple count
-  pair<float, float> topData0j = topBgEstimation(mass, 0, lumi, anaRegion, vetoEff0j.first, vetoEff0j.second, useJson, applyTnPSF, doFake);
-  pair<float, float> topData1j = topBgEstimation(mass, 1, lumi, anaRegion, vetoEff1j.first, vetoEff1j.second, useJson, applyTnPSF, doFake);
+  pair<float, float> topData0j = topBgEstimation(mass, 0, lumi, anaRegion, vetoEff0j.first, vetoEff0j.second, useJson, applyTnPSF, doFake, doPUw);
+  pair<float, float> topData1j = topBgEstimation(mass, 1, lumi, anaRegion, vetoEff1j.first, vetoEff1j.second, useJson, applyTnPSF, doFake, doPUw);
 
   cout << "--------------------------------------------------------------------------------" << endl;
   cout << Form("| %40s | %-15s | %-15s |","Sample","0-jet","1-jet") << endl;
