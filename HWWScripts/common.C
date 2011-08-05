@@ -112,7 +112,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     mll    = 9999.;
     mtL    = 0.;
     mtH    = 9999.;
-    himass = 0.;
+    himass = 100.;
   } else if (mass==115) {
     lep1pt = 20.;
     lep2pt = 10.;
@@ -357,8 +357,8 @@ float getPileupReweightFactor(int nvtx) {
   return weight;
 }
 
-pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, bool useJson=0, 
-			    bool applyEff=true, bool doFake=false, bool doPUw=false) {
+pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, 
+			    bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false) {
 
   float lep1pt=0.,lep2pt=0.,dPhi=0.,mll=0.,mtL=0.,mtH=0.,himass=0.;
   getCutValues(mass,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass);
