@@ -331,8 +331,34 @@ void getCutMasks(unsigned int njets, unsigned int& baseline_toptag, unsigned int
   control_toptag  = control_top|ttag;
 }
 
+//from /UserCode/Smurf/Analysis/HZZllvv/PileupReweighting.h
+float getPileupReweightFactor(int nvtx) {
+  float weight = 1.0;
+  if     (nvtx == 0) weight = 0.00000;
+  else if(nvtx == 1) weight = 0.23111;
+  else if(nvtx == 2) weight = 0.82486;
+  else if(nvtx == 3) weight = 1.47045;
+  else if(nvtx == 4) weight = 1.83450;
+  else if(nvtx == 5) weight = 1.79663;
+  else if(nvtx == 6) weight = 1.46496;
+  else if(nvtx == 7) weight = 1.05682;
+  else if(nvtx == 8) weight = 0.70823;
+  else if(nvtx == 9) weight = 0.47386;
+  else if(nvtx ==10) weight = 0.32382;
+  else if(nvtx ==11) weight = 0.22383;
+  else if(nvtx ==12) weight = 0.17413;
+  else if(nvtx ==13) weight = 0.10930;
+  else if(nvtx ==14) weight = 0.09563;
+  else if(nvtx ==15) weight = 0.08367;
+  else if(nvtx ==16) weight = 0.05418;
+  else if(nvtx ==17) weight = 0.04891;
+  else if(nvtx ==18) weight = 0.03515;
+  else if(nvtx >=19) weight = 0.01000;  
+  return weight;
+}
+
 pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, bool useJson=0, 
-			    bool applyEff=true, bool doFake=false) {
+			    bool applyEff=true, bool doFake=false, bool doPUw=false) {
 
   float lep1pt=0.,lep2pt=0.,dPhi=0.,mll=0.,mtL=0.,mtH=0.,himass=0.;
   getCutValues(mass,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass);
@@ -430,6 +456,9 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     //check peaking at MC level
     if ( region.Contains("fromZ") && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) continue;
 
+    float puw = 1.;
+    if (doPUw) puw = getPileupReweightFactor(dataEvent->nvtx_);
+
     if (!doFake) {
       float effSF=1.;
       if (isMC&&applyEff) {
@@ -460,11 +489,11 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 	float effTrgSF = dblLep1*dblLep2+sglLep1*(1-dblLep1)+sglLep2*(1-dblLep2);
 	effSF = effSelSF*effTrgSF;
       }
-      yield = yield + weight*effSF;
+      yield = yield + weight*effSF*puw;
       //fixme: should consider the error of effSF
-      error = error + pow(weight*effSF,2);
+      error = error + pow(weight*effSF*puw,2);
     } 
-    else {//DO FAKES!!!
+    else {//DO FAKES!!!      
       if ( (dataEvent->cuts_ & Lep1LooseEleV4)    == Lep1LooseEleV4    &&
 	   (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection && 
 	   (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) {
@@ -472,7 +501,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 	float eta = fabs(dataEvent->lep1_.eta());
 	if (pt>maxPt) pt=maxPt;
 	if (eta>maxEta) eta=maxEta;
-	useMit ? elPFY->Fill(pt,eta,weight) : elPFY->Fill(eta,pt,weight);
+	useMit ? elPFY->Fill(pt,eta,weight*puw) : elPFY->Fill(eta,pt,weight*puw);
       }
       if ( (dataEvent->cuts_ & Lep2LooseEleV4)    == Lep2LooseEleV4    &&
 	   (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
@@ -481,7 +510,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 	float eta = fabs(dataEvent->lep2_.eta());
 	if (pt>maxPt) pt=maxPt;
 	if (eta>maxEta) eta=maxEta;
-	useMit ? elPFY->Fill(pt,eta,weight) : elPFY->Fill(eta,pt,weight);
+	useMit ? elPFY->Fill(pt,eta,weight*puw) : elPFY->Fill(eta,pt,weight*puw);
       }
       if ( (dataEvent->cuts_ & Lep1LooseMuV2)     == Lep1LooseMuV2     &&
 	   (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection &&
@@ -490,7 +519,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 	float eta = fabs(dataEvent->lep1_.eta());
 	if (pt>maxPt) pt=maxPt;
 	if (eta>maxEta) eta=maxEta;
-	useMit ? muPFY->Fill(pt,eta,weight) : muPFY->Fill(eta,pt,weight);
+	useMit ? muPFY->Fill(pt,eta,weight*puw) : muPFY->Fill(eta,pt,weight*puw);
       }
       if ( (dataEvent->cuts_ & Lep2LooseMuV2)     == Lep2LooseMuV2     &&
 	   (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
@@ -499,7 +528,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 	float eta = fabs(dataEvent->lep2_.eta());
 	if (pt>maxPt) pt=maxPt;
 	if (eta>maxEta) eta=maxEta;
-	useMit ? muPFY->Fill(pt,eta,weight) : muPFY->Fill(eta,pt,weight);
+	useMit ? muPFY->Fill(pt,eta,weight*puw) : muPFY->Fill(eta,pt,weight*puw);
       }
     }
   }
@@ -530,6 +559,14 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     error = sqrt(elPFError+muPFError);
   } else error = sqrt(error);
   if (isMC&&applyEff) effs->Close();
+  if (doFake) {
+    delete eFR;
+    delete mFR;
+    delete muPFY;
+    delete elPFY;
+    fE->Close();
+    fM->Close();
+  }
   delete dataEvent;
   //cout << yield << " " << error << endl;
   return make_pair<float, float>(yield,error);
