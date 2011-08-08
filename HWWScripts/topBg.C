@@ -7,10 +7,10 @@ float expectedPurity(TString dir, unsigned int baseline_toptag, unsigned int vet
   float dySF = 1.;
   float wjSF = 1.;
   if (njets==0){
-    dySF=3.23;
+    dySF=4.19;
     wjSF=1.52;
   } else if (njets==1) {
-    dySF=2.28;
+    dySF=3.17;
     wjSF=2.71;
   }
 
@@ -67,8 +67,8 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   float eff_veto_data = 0;
   float eff_err_veto_data = 0;
   if (njets==0) {
-    float sideband_ttbar  = getYield(dir_mc+"ttbar", wwSelection, veto, mass, njets, region, lumi, false, applyEff, false, doPUw).first;
-    float sideband_tw     = getYield(dir_mc+"tw",    wwSelection, veto, mass, njets, region, lumi, false, applyEff, false, doPUw).first;
+    float sideband_ttbar  = getYield(dir_mc+"ttbar", control_top, veto, mass, nj_top, region_top, lumi, false, applyEff, false, doPUw).first;
+    float sideband_tw     = getYield(dir_mc+"tw",    control_top, veto, mass, nj_top, region_top, lumi, false, applyEff, false, doPUw).first;
     float fttbar = sideband_ttbar/(sideband_ttbar+sideband_tw);
     float fttbar_err = fttbar*0.17;//from CS uncertainty
     eff_veto_data = fttbar*(1 - (1-eff_tag_data)*(1-eff_tag_data)) + (1.-fttbar)*eff_tag_data;
