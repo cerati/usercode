@@ -27,8 +27,8 @@ pair<float, float> fakeBgEstimation(int mass=160, unsigned int njets=0, TString 
   bool debug = false;
   pair<float, float> dataFake  = getYield(data_file, wwSelectionNoLep, noVeto, mass, njets, region, 0, useJson, false, true, false);
   //correct for spillage...
-  pair<float, float> wwFake    = getYield(dir_mc+"qqww",  wwSelectionNoLep, noVeto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> ttbarFake = getYield(dir_mc+"ttbar", wwSelectionNoLep, noVeto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> wwFake    = getYield(dir_mc+"qqww",  wwSelectionNoLep, noVeto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
+  pair<float, float> ttbarFake = getYield(dir_mc+"ttbar", wwSelectionNoLep, noVeto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
   float fakeYield = dataFake.first-wwFake.first-ttbarFake.first;
   //assume 35% syst uncertainty
   float fakeError = sqrt(pow(dataFake.second,2)+pow(wwFake.second,2)+pow(ttbarFake.second,2)+pow(0.35*fakeYield,2));
@@ -96,7 +96,8 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   float sideband_dyee          = sb_dyee.first;
   float sideband_dymm_err      = sb_dymm.second;
   float sideband_dyee_err      = sb_dyee.second;
-  float dySF = 2.28;
+  float dySF = 4.19;
+  if (njets==1) dySF = 3.17;
   float num_dy_data = (sideband_dyee+sideband_dymm)*dySF;
   float num_dy_err_data = num_dy_data;
   //********* get DY **********
@@ -170,7 +171,7 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
   //int masses[] = {115};
   int nmasses = sizeof(masses)/sizeof(int);
 
-  if (!doLatex) cout << "| mH  |   0-j meas    |   0-j exp     |  SF  |   1-j meas    |   1-j exp     |  SF  |" << endl;
+  if (!doLatex) cout << "| m_H |   0-j meas    |   0-j exp     |      SF       |   1-j meas    |   1-j exp     |      SF       |" << endl;
   for (int j=0;j<nmasses;++j) {
 
     int mass = masses[j];
@@ -187,13 +188,15 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
 		   round(j1mc.first*10.)/10.,round(j1mc.second*10.)/10.) 
 	   << endl;
     } else {
-      cout << Form("| %i | %4.1f +/- %4.1f | %4.1f +/- %4.1f | %4.2f | %4.1f +/- %4.1f | %4.1f +/- %4.1f | %4.2f |",mass,
+      cout << Form("| %i | %4.1f +/- %4.1f | %4.1f +/- %4.1f | %4.2f +/- %4.2f | %4.1f +/- %4.1f | %4.1f +/- %4.1f | %4.2f +/- %4.2f |",mass,
 		   round(j0dd.first*10.)/10.,round(j0dd.second*10.)/10.,
 		   round(j0mc.first*10.)/10.,round(j0mc.second*10.)/10.,
 		   round(j0dd.first/j0mc.first*100)/100.,
+		   round(sqrt(pow(j0dd.second/j0mc.first,2)+pow(j0dd.first*j0mc.second/pow(j0mc.first,2),2))*100)/100.,
 		   round(j1dd.first*10.)/10.,round(j1dd.second*10.)/10.,
 		   round(j1mc.first*10.)/10.,round(j1mc.second*10.)/10.,
-		   round(j1dd.first/j1mc.first*100)/100.) 
+		   round(j1dd.first/j1mc.first*100)/100.,
+		   round(sqrt(pow(j1dd.second/j1mc.first,2)+pow(j1dd.first*j1mc.second/pow(j1mc.first,2),2))*100)/100.) 
 	   << endl;
     }
     
