@@ -65,10 +65,14 @@ unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSe
 unsigned int noVeto          = 1UL<<30;
 unsigned int noCut           = 1UL<<0;
 
-TString dir_mc         = "/smurf/data/EPS/tas/";
-//TString dir_mc         = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/";
-TString dir_mc_mit     = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/";
-TString data_file      = "/smurf/data/EPS/tas/data-met20-1092ipb";
+//TString dir_mc         = "/smurf/data/EPS/tas/";
+TString dir_mc         = "/smurf/data/EPS/mitf/";
+TString dir_mc_mit     = "/smurf/data/EPS/mitf/";
+TString dir_mc_tas     = "/smurf/data/EPS/tas/";
+//TString dir_mc_mit     = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/";
+TString data_file      = "/smurf/data/LP2011/mitf/data";
+//TString data_file      = "/smurf/data/EPS/tas/data-met20-1092ipb";
+
 TString fr_file_mit    = "/smurf/data/EPS/auxiliar/FakeRates_SmurfV6.root";
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
@@ -104,6 +108,8 @@ float getScale1fb(TString sample) {
 }
 
 void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,float& mtL,float& mtH,float& himass, bool doMVA=false){
+
+  //doMVA=true;
 
   if (mass==0) {
     lep1pt = 20.;
@@ -214,7 +220,15 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
   }
 
   if (doMVA){
-    if (mass==115) {
+    if (mass==0) {
+      lep1pt = 20.;
+      lep2pt = 10.;
+      dPhi   = 180.;
+      mll    = 9999.;
+      mtL    = 0.;
+      mtH    = 9999.;
+      himass = 100.;
+    } else if (mass==115) {
       lep1pt = 20.;
       lep2pt = 10.;
       dPhi   = 180.;
@@ -455,6 +469,8 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( region.Contains("nobJet2")   && dataEvent->jet2Btag_>2.1 ) continue;
     //check peaking at MC level
     if ( region.Contains("fromZ") && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) continue;
+    //spillage
+    if ( region.Contains("spill") && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) continue;
 
     float puw = 1.;
     if (doPUw) puw = getPileupReweightFactor(dataEvent->nvtx_);
