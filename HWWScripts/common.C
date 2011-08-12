@@ -81,7 +81,7 @@ TString dir_mc_tas     = "/smurf/data/LP2011/tas/";
 TString data_file      = "/smurf/data/LP2011/tas/data";
 //TString data_file      = "/smurf/data/EPS/tas/data-met20-1092ipb";
 
-TString fr_file_mit    = "/smurf/data/EPS/auxiliar/FakeRates_SmurfV6.root";
+TString fr_file_mit    = "/smurf/data/LP2011/auxiliar/FakeRates_SmurfV6.V4HasNod0Cut.root";
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
 TString eff_file       = "/smurf/data/EPS/auxiliar/efficiency_results_v6.root";
@@ -118,7 +118,7 @@ float getScale1fb(TString sample) {
 
 void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,float& mtL,float& mtH,float& himass, bool doMVA=false){
 
-  doMVA=true;
+  //doMVA=true;
 
   if (mass==0) {
     lep1pt = 20.;
