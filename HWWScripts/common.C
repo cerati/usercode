@@ -46,7 +46,15 @@ enum Selection {
   TopVeto           = 1UL<<19, // soft muon and b-jet tagging for the whole event regardless of n-jets (zero means tagged)
   OneBJet           = 1UL<<20, // 1-jet events, where the jet is b-tagged (top control sample with one b-quark missing)
   TopTagNotInJets   = 1UL<<21, // soft muon and b-jet tagging for areas outside primary jets (non-zero means tagged)
-  ExtraLeptonVeto   = 1UL<<22  // extra lepton veto, DR(muon-electron)>=0.3
+  ExtraLeptonVeto   = 1UL<<22, // extra lepton veto, DR(muon-electron)>=0.3
+  Lep3FullSelection = 1UL<<23,  // full id, isolation, d0, dz etc
+  Lep3LooseEleV1    = 1UL<<24, // electron fakeable object selection is passed V1
+  Lep3LooseEleV2    = 1UL<<25, // electron fakeable object selection is passed V2
+  Lep3LooseEleV3    = 1UL<<26, // electron fakeable object selection is passed V3
+  Lep3LooseEleV4    = 1UL<<27, // electron fakeable object selection is passed V4
+  Lep3LooseMuV1     = 1UL<<28, // muon fakeable object selection (relIso<1.0)
+  Lep3LooseMuV2     = 1UL<<29, // muon fakeable object selection (relIso<0.4)
+  Trigger           = 1UL<<30  // passed a set of triggers
 };
 unsigned int wwSelection     = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|ExtraLeptonVeto|TopVeto;
 unsigned int wwSelNoELV      = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|TopVeto;
@@ -62,21 +70,22 @@ unsigned int wwSelectionFOm2 = BaseLine|ChargeMatch|Lep1FullSelection|Lep2LooseM
 unsigned int wwSelectionNoLep= BaseLine|ChargeMatch|FullMET|ZVeto|ExtraLeptonVeto|TopVeto;
 unsigned int wwSelNoLepNoTV  = BaseLine|ChargeMatch|FullMET|ZVeto|ExtraLeptonVeto;
 unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|ExtraLeptonVeto;
-unsigned int noVeto          = 1UL<<30;
+unsigned int noVeto          = 1UL<<31;
 unsigned int noCut           = 1UL<<0;
 
 //TString dir_mc         = "/smurf/data/EPS/tas/";
-TString dir_mc         = "/smurf/data/EPS/mitf/";
-TString dir_mc_mit     = "/smurf/data/EPS/mitf/";
-TString dir_mc_tas     = "/smurf/data/EPS/tas/";
+TString dir_mc         = "/smurf/data/LP2011/mitf/";
+TString dir_mc_mit     = "/smurf/data/LP2011/mitf/";
+TString dir_mc_tas     = "/smurf/data/LP2011/tas/";
 //TString dir_mc_mit     = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/";
-TString data_file      = "/smurf/data/LP2011/mitf/data";
+TString data_file      = "/smurf/data/LP2011/tas/data";
 //TString data_file      = "/smurf/data/EPS/tas/data-met20-1092ipb";
 
 TString fr_file_mit    = "/smurf/data/EPS/auxiliar/FakeRates_SmurfV6.root";
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
 TString eff_file       = "/smurf/data/EPS/auxiliar/efficiency_results_v6.root";
+TString puw_file       = "/smurf/data/LP2011/auxiliar/puReweighting.root";
 
 bool passJson(int run, int lumi) {
   ifstream ifs( "goodruns.txt" );
@@ -109,7 +118,7 @@ float getScale1fb(TString sample) {
 
 void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,float& mtL,float& mtH,float& himass, bool doMVA=false){
 
-  //doMVA=true;
+  doMVA=true;
 
   if (mass==0) {
     lep1pt = 20.;
@@ -346,29 +355,33 @@ void getCutMasks(unsigned int njets, unsigned int& baseline_toptag, unsigned int
 }
 
 //from /UserCode/Smurf/Analysis/HZZllvv/PileupReweighting.h
-float getPileupReweightFactor(int nvtx) {
-  float weight = 1.0;
-  if     (nvtx == 0) weight = 0.00000;
-  else if(nvtx == 1) weight = 0.23111;
-  else if(nvtx == 2) weight = 0.82486;
-  else if(nvtx == 3) weight = 1.47045;
-  else if(nvtx == 4) weight = 1.83450;
-  else if(nvtx == 5) weight = 1.79663;
-  else if(nvtx == 6) weight = 1.46496;
-  else if(nvtx == 7) weight = 1.05682;
-  else if(nvtx == 8) weight = 0.70823;
-  else if(nvtx == 9) weight = 0.47386;
-  else if(nvtx ==10) weight = 0.32382;
-  else if(nvtx ==11) weight = 0.22383;
-  else if(nvtx ==12) weight = 0.17413;
-  else if(nvtx ==13) weight = 0.10930;
-  else if(nvtx ==14) weight = 0.09563;
-  else if(nvtx ==15) weight = 0.08367;
-  else if(nvtx ==16) weight = 0.05418;
-  else if(nvtx ==17) weight = 0.04891;
-  else if(nvtx ==18) weight = 0.03515;
-  else if(nvtx >=19) weight = 0.01000;  
-  return weight;
+float getPileupReweightFactor(int nvtx, TH1F* puweights=0) {
+  if (puweights) {
+    return puweights->GetBinContent(puweights->FindBin(nvtx));
+  } else {
+    float weight = 1.0;
+    if     (nvtx == 0) weight = 0.00000;
+    else if(nvtx == 1) weight = 0.23111;
+    else if(nvtx == 2) weight = 0.82486;
+    else if(nvtx == 3) weight = 1.47045;
+    else if(nvtx == 4) weight = 1.83450;
+    else if(nvtx == 5) weight = 1.79663;
+    else if(nvtx == 6) weight = 1.46496;
+    else if(nvtx == 7) weight = 1.05682;
+    else if(nvtx == 8) weight = 0.70823;
+    else if(nvtx == 9) weight = 0.47386;
+    else if(nvtx ==10) weight = 0.32382;
+    else if(nvtx ==11) weight = 0.22383;
+    else if(nvtx ==12) weight = 0.17413;
+    else if(nvtx ==13) weight = 0.10930;
+    else if(nvtx ==14) weight = 0.09563;
+    else if(nvtx ==15) weight = 0.08367;
+    else if(nvtx ==16) weight = 0.05418;
+    else if(nvtx ==17) weight = 0.04891;
+    else if(nvtx ==18) weight = 0.03515;
+    else if(nvtx >=19) weight = 0.01000;  
+    return weight;
+  }
 }
 
 pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, 
@@ -396,6 +409,14 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     effElSgl = (TH2F*) effs->Get("h2_results_electron_single");
     effMuDbl = (TH2F*) effs->Get("h2_results_muon_double");
     effMuSgl = (TH2F*) effs->Get("h2_results_muon_single");
+  }
+
+  //PU reweighting
+  TFile* puwf=0;
+  TH1F* puweights=0;
+  if (isMC&&doPUw) {
+    puwf = TFile::Open(puw_file);
+    puweights = (TH1F*) puwf->Get("puWeights");
   }
 
   //fake stuff
@@ -429,6 +450,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
   for(UInt_t n=0; n < dataEvent->tree_->GetEntries() ; ++n) {
     dataEvent->tree_->GetEntry(n);
     if (isMC) weight = lumi*dataEvent->scale1fb_;
+    if (!isMC && (dataEvent->cuts_ & Trigger) != Trigger ) continue;
     if (useJson && !passJson(dataEvent->run_,dataEvent->lumi_)) continue;    
     if ( dataEvent->njets_!=njets) continue;
     if ( (dataEvent->cuts_ & cut) != cut ) continue;
@@ -473,7 +495,9 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( region.Contains("spill") && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) continue;
 
     float puw = 1.;
-    if (doPUw) puw = getPileupReweightFactor(dataEvent->nvtx_);
+    //if (isMC&&doPUw) puw = getPileupReweightFactor(dataEvent->npu_,puweights);
+    if (isMC&&doPUw) puw = getPileupReweightFactor(dataEvent->nvtx_,puweights);
+    //if (isMC&&doPUw) puw = dataEvent->sfWeightPU_;
 
     if (!doFake) {
       float effSF=1.;
@@ -575,6 +599,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     error = sqrt(elPFError+muPFError);
   } else error = sqrt(error);
   if (isMC&&applyEff) effs->Close();
+  if (isMC&&doPUw) puwf->Close();
   if (doFake) {
     delete eFR;
     delete mFR;
@@ -583,7 +608,8 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     fE->Close();
     fM->Close();
   }
-  delete dataEvent;
+  dataEvent->tree_->Delete();
+  //delete dataEvent;
   //cout << yield << " " << error << endl;
   return make_pair<float, float>(yield,error);
 }
