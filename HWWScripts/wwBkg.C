@@ -41,6 +41,14 @@ pair<float, float> fakeBgEstimation(int mass=160, unsigned int njets=0, TString 
   return make_pair<float, float>(fakeYield,fakeError);
 }
 
+float ratioPoissErr(float nval, float nerr, float dval, float derr) {
+  return sqrt( pow(nerr/dval,2) + pow(nval*derr/pow(dval,2),2) );
+}
+
+float efficiencyErr(float eff, float den) {
+  return sqrt( eff*(1-eff)/den );
+}
+
 pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lumi = 1./*fb-1*/, float eff_veto_data=0, float eff_err_veto_data=0, 
 				   bool useJson=false, bool applyEff=true, bool doPUw=false) {
 
@@ -49,28 +57,36 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   unsigned int baseline_toptag=0, control_top=0, control_toptag=0, veto=0, nj_top=0;
   getCutMasks(njets, baseline_toptag, control_top, control_toptag, veto, nj_top);
 
-  float sideband_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "sideband,dphijet,minmet40", 0., false, applyEff, false, doPUw).first;
-  float sideband_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "sideband,dphijet,minmet40", 0., false, applyEff, false, doPUw).first;
+  pair<float, float> sideband_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sideband_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
 
-  float massreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "massreg,dphijet,minmet40", 0., false, applyEff, false, doPUw).first;
-  float massreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "massreg,dphijet,minmet40", 0., false, applyEff, false, doPUw).first;
+  pair<float, float> massreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "massreg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> massreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "massreg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
 
-  float mtreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "mtreg,dphijet,minmet40", 0., false, applyEff, false, doPUw).first;
-  float mtreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "mtreg,dphijet,minmet40", 0., false, applyEff, false, doPUw).first;
+  pair<float, float> mtreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "mtreg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> mtreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "mtreg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
 
-  float sigreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmet40", 0., false, applyEff, false, doPUw).first;
-  float sigreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmet40", 0., false, applyEff, false, doPUw).first;
+  pair<float, float> sigreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sigreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
 
-  float scale_qq = getScale1fb(dir_mc+"qqww")*lumi;
-  float scale_gg = getScale1fb(dir_mc+"ggww")*lumi;
-  float weight_gg = scale_gg/scale_qq;
+  float scale_qq  = getScale1fb(dir_mc+"qqww")*lumi;
+  //float scale_gg  = getScale1fb(dir_mc+"ggww")*lumi;
+  //float weight_gg = scale_gg/scale_qq;
 
-  float rio_mg = (massreg_qqww+massreg_ggww*weight_gg)/(sideband_qqww+sideband_ggww*weight_gg);
-  float rio_err_mg = rio_mg*sqrt(1./(massreg_qqww+massreg_ggww*weight_gg)+1./(sideband_qqww+sideband_ggww*weight_gg));
-  float eff_mt_mr_mg = (mtreg_qqww+mtreg_ggww*weight_gg)/(massreg_qqww+massreg_ggww*weight_gg);
-  float eff_err_mt_mr_mg = eff_mt_mr_mg*sqrt(1./(mtreg_qqww+mtreg_ggww*weight_gg)+1./(massreg_qqww+massreg_ggww*weight_gg));
-  float eff_dp_mr_mg = (sigreg_qqww+sigreg_ggww*weight_gg)/(mtreg_qqww+mtreg_ggww*weight_gg);
-  float eff_err_dp_mr_mg = eff_dp_mr_mg*sqrt(1./(sigreg_qqww+sigreg_ggww*weight_gg)+1./(mtreg_qqww+mtreg_ggww*weight_gg));
+  float rio_mg = (massreg_qqww.first+massreg_ggww.first)/(sideband_qqww.first+sideband_ggww.first);
+  //ok, this is poissonian (not an eff)
+  float rio_err_mg = ratioPoissErr( massreg_qqww.first+massreg_ggww.first, sqrt(pow(massreg_qqww.second,2)+pow(massreg_ggww.second,2)),
+				    sideband_qqww.first+sideband_ggww.first, sqrt(pow(sideband_qqww.second,2)+pow(sideband_ggww.second,2)) );
+  float eff_mt_mr_mg = (mtreg_qqww.first+mtreg_ggww.first)/(massreg_qqww.first+massreg_ggww.first);
+  //use binomial, it's an efficiency
+  float eff_err_mt_mr_mg = efficiencyErr( eff_mt_mr_mg, (massreg_qqww.first+massreg_ggww.first)/scale_qq  );//assume sample size is qqww
+  //float eff_err_mt_mr_mg = ratioPoissErr( mtreg_qqww.first+mtreg_ggww.first, sqrt(pow(mtreg_qqww.second,2)+pow(mtreg_ggww.second,2)),
+  //                                        massreg_qqww.first+massreg_ggww.first, sqrt(pow(massreg_qqww.second,2)+pow(massreg_ggww.second,2)) );
+  float eff_dp_mr_mg = (sigreg_qqww.first+sigreg_ggww.first)/(mtreg_qqww.first+mtreg_ggww.first);
+  //use binomial, it's an efficiency
+  float eff_err_dp_mr_mg = efficiencyErr( eff_dp_mr_mg, (mtreg_qqww.first+mtreg_ggww.first)/scale_qq  );//assume sample size is qqww
+  //float eff_err_dp_mr_mg = ratioPoissErr( sigreg_qqww.first+sigreg_ggww.first, sqrt(pow(sigreg_qqww.second,2)+pow(sigreg_ggww.second,2)),
+  //                                        mtreg_qqww.first+mtreg_ggww.first, sqrt(pow(mtreg_qqww.second,2)+pow(mtreg_ggww.second,2)) );
 
   float sideband_data = getYield(data_file, wwSelection, veto, mass, njets,  "sideband,dphijet,minmet40", 0., useJson, false, false, false).first;
 
@@ -103,10 +119,10 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   //********* get DY **********
 
   //********* get others **********
-  float sideband_dytt          = getYield(dir_mc+"dytt",  wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
-  float sideband_zz            = getYield(dir_mc+"zz",    wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
-  float sideband_wz            = getYield(dir_mc+"wz",    wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
-  float num_other_mc = sideband_zz+sideband_wz+sideband_dytt;
+  pair<float, float> sideband_dytt = getYield(dir_mc+"dytt",  wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sideband_zz   = getYield(dir_mc+"zz",    wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sideband_wz   = getYield(dir_mc+"wz",    wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  float num_other_mc  = sideband_zz.first+sideband_wz.first+sideband_dytt.first;
   float num_other_err_mc = num_other_mc;//100% for now
   //********* get others **********
 
@@ -121,31 +137,23 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   float sr_ww_meas_err_data = sqrt( e1+e2+e3+e4 );
 
   if (printAll) {
-
-    float scale_ttbar = getScale1fb(dir_mc+"ttbar")*lumi;
-    float scale_tw    = getScale1fb(dir_mc+"tw")*lumi;
-    float scale_wjets = getScale1fb(dir_mc+"wjets")*lumi;
-    float scale_dytt  = getScale1fb(dir_mc+"dytt")*lumi;
-    float scale_wz    = getScale1fb(dir_mc+"wz")*lumi;
-    float scale_zz    = getScale1fb(dir_mc+"zz")*lumi;
-
-    float sideband_ttbar = getYield(dir_mc+"ttbar", wwSelection, veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
-    float sideband_tw    = getYield(dir_mc+"tw",    wwSelection, veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
-    cout << "sb top data, mc: " << num_top_data << "+/-" << num_top_err_data << " " << sideband_ttbar+sideband_tw << "+/-" << sqrt(scale_ttbar*sideband_ttbar+scale_tw*sideband_tw) << endl;
-    float sideband_wjets = getYield(dir_mc+"wjets", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
-    cout << "sb w+jets data, mc: " << num_wjets_data << "+/-" << num_wjets_err_data << " " << sideband_wjets << "+/-" << sqrt(scale_wjets*sideband_wjets) << endl;
+    pair<float,float>  sideband_ttbar = getYield(dir_mc+"ttbar", wwSelection, veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+    pair<float,float>  sideband_tw    = getYield(dir_mc+"tw",    wwSelection, veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+    cout << "sb top data, mc: " << num_top_data << "+/-" << num_top_err_data << " " << sideband_ttbar.first+sideband_tw.first << "+/-" << sqrt(pow(sideband_ttbar.second,2)+pow(sideband_tw.second,2)) << endl;
+    pair<float,float>  sideband_wjets = getYield(dir_mc+"wjets", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+    cout << "sb w+jets data, mc: " << num_wjets_data << "+/-" << num_wjets_err_data << " " << sideband_wjets.first << "+/-" << sideband_wjets.second << endl;
     cout << "sb mc dymm, dyee, dytt, wz, zz: " << sideband_dymm << "+/-" << sideband_dymm_err << " " 
 	                                       << sideband_dyee << "+/-" << sideband_dyee_err << " " 
-	                                       << sideband_dytt << "+/-" << sqrt(scale_dytt*sideband_dytt) << " " 
-	                                       << sideband_wz << "+/-" << sqrt(scale_wz*sideband_wz) << " " 
-	                                       << sideband_zz << "+/-" << sqrt(scale_zz*sideband_zz) << endl;    
-    float sideband_qqww_l        = getYield(dir_mc+"qqww", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
-    float sideband_ggww_l        = getYield(dir_mc+"ggww", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
+	                                       << sideband_dytt.first << "+/-" << sideband_dytt.second << " " 
+	                                       << sideband_wz.first << "+/-" << sideband_wz.second << " " 
+	                                       << sideband_zz.first << "+/-" << sideband_zz.second << endl;    
+    pair<float,float>  sideband_qqww_l        = getYield(dir_mc+"qqww", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+    pair<float,float>  sideband_ggww_l        = getYield(dir_mc+"ggww", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
     cout << "sb data, all mc: " << sideband_data << " " 
-	 << sideband_qqww_l+sideband_ggww_l+sideband_ttbar+sideband_tw+sideband_wjets+sideband_dyee+sideband_dymm+sideband_zz+sideband_wz+sideband_dytt 
+	 << sideband_qqww_l.first+sideband_ggww_l.first+sideband_ttbar.first+sideband_tw.first+sideband_wjets.first+sideband_dyee+sideband_dymm+sideband_zz.first+sideband_wz.first+sideband_dytt.first 
 	 << endl;
     cout << "sb ww data, mc: " << sb_ww_meas_data << "+/-" << sb_ww_meas_err_data << " " 
-	 << sideband_qqww_l+sideband_ggww_l << "+/-" << sqrt(scale_qq*sideband_qqww_l+scale_gg*sideband_ggww_l) << endl;
+	 << sideband_qqww_l.first+sideband_ggww_l.first << "+/-" << sqrt(pow(sideband_qqww_l.second,2)+pow(sideband_ggww_l.second,2)) << endl;
     pair<float,float> wwmc = wwEstimationMC(mass, njets, lumi, applyEff, doPUw);
     cout << "hr ww data, mc: " << sr_ww_meas_data << "+/-" << sr_ww_meas_err_data << " " << wwmc.first << "+/-" << wwmc.second << endl;
   }
@@ -167,7 +175,7 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
 
   int masses[] = {115,120,130,140,150,160,170,180,190,200};
   //int masses[] = {115,120,130,140,150};
-  //int masses[] = {160,170,180,190,200};
+  //int masses[] = {/*160,170,*/180,190,200};
   //int masses[] = {115};
   int nmasses = sizeof(masses)/sizeof(int);
 
