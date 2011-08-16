@@ -121,18 +121,22 @@ void makeTable(int mass=0, bool dodata=false){
   TCut base(Form("(cuts & %i)==%i",wwSelection,wwSelection));
   TCut baseNTV(Form("(cuts & %i)==%i",wwSelectionNoTV,wwSelectionNoTV));
   TCut notTagNotInJets(Form("(cuts & %i)!=%i",TopTagNotInJets,TopTagNotInJets));
-
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
-
   TCut newcuts = "type==1 || type==2 || ( min(pmet,pTrackMet)>40 && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
 
   TCut cut = base&&"njets==0"&&newcuts&&sigreg&&trig;
   cut.SetName("hm"+hm+"");
 
-  //TString mcs[] = {/*"hww"+hm,*/"ttbar","tw","qqww","ggww","wjets","zz","wz","dyee","dymm","dytt"};
-  TString mcs[] = {"wjets","wz","zz","ttbar","tw","dyee","dymm","dytt","qqww","ggww","wgamma"};
-  float   sfs[] = {1.1,     1.0, 1.0, 1.5,    1.5, 3.0,   3.0,   1.0,   1.0,   1.0,   1.0    };//0-jet 
-  //float   sfs[] = {2.5,     1.0, 1.0, 1.2,    1.2, 2.8,   2.8,   1.0,   1.0,   1.0,   1.0    };//1-jet
+  TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma"};
+  int  colors[] = {kCyan,kCyan,kGreen,kGreen,kGreen,kYellow,kYellow,kBlue,kBlue,kGray,kGray};
+  float sfs0j[] = { 1.0,   1.0,   3.0,   3.0,   1.0,   1.5,    1.5, 1.0, 1.0, 1.1,    1.0};
+  float sfs1j[] = { 1.0,   1.0,   2.8,   2.8,   1.0,   1.2,    1.2, 1.0, 1.0, 2.5,    1.0};
+  float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0};
+  float* sfs;
+  if (njets==0) sfs = sfs0j;
+  else if (njets==1) sfs = sfs1j;
+  else sfs = nosfs;
+
   TString dir = "/smurf/data/LP2011/mitf/";
   TString data_file = "/smurf/data/LP2011/tas/data.root";
   int nMC = sizeof(mcs)/sizeof(TString);
@@ -148,10 +152,6 @@ void makeTable(int mass=0, bool dodata=false){
   for (int i=0;i<nMC;++i){    
     TFile *_mc = TFile::Open(dir+mcs[i]+".root");
     TTree * mc = (TTree*) _mc->Get("tree");
-    Float_t  scale1fb_;
-    TBranch  *b_scale1fb_;   
-    mc->SetBranchAddress("scale1fb", &scale1fb_, &b_scale1fb_);
-    mc->GetEntry(0);
     float correction = sfs[i];
     if (lumi>0.) mc->SetWeight(lumi*correction);
     //cout << scale1fb_ << endl;
