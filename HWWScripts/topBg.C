@@ -61,14 +61,16 @@ float expectedPurity(TString dir, unsigned int cut, unsigned int veto, int mass,
 float evaluateBackground(TString dir, unsigned int cut, unsigned int veto, int mass, int njets, TString myRegion, float lumi, bool useJson=0, 
 			 bool applyEff=true, bool doFake=false, bool doPUw=false){
 
+  bool debug = 0;
+
   //assume these scale factors for DY 
   float dySF = 1.;
   if (njets==0){
-    dySF=4.19;
+    dySF=3.02;
   } else if (njets==1) {
-    dySF=3.17;
+    dySF=2.81;
   }else if (njets==2) {
-    dySF=4.76;
+    dySF=4.84;
   }
 
   float mc_other = getYield(dir+"qqww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
@@ -83,6 +85,7 @@ float evaluateBackground(TString dir, unsigned int cut, unsigned int veto, int m
   //cout << nwj << endl;
 
   float background = mc_other+nwj;
+  if (debug) cout << "bkg total, fake, other: " << background << " " << nwj << " " << mc_other << endl;
   return background;
 }
 
@@ -129,10 +132,11 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   float eff_veto_data = 0;
   float eff_err_veto_data = 0;
   if (njets==0) {
-    float sideband_ttbar  = getYield(dir_mc+"ttbar", control_top, veto, mass, nj_top, region_top, lumi, false, applyEff, false, doPUw).first;
-    float sideband_tw     = getYield(dir_mc+"tw",    control_top, veto, mass, nj_top, region_top, lumi, false, applyEff, false, doPUw).first;
+    float sideband_ttbar  = getYield(dir_mc+"ttbar", wwSelectionNoTV, veto, mass, njets, region, lumi, false, applyEff, false, doPUw).first;
+    float sideband_tw     = getYield(dir_mc+"tw",    wwSelectionNoTV, veto, mass, njets, region, lumi, false, applyEff, false, doPUw).first;
     float fttbar = sideband_ttbar/(sideband_ttbar+sideband_tw);
     float fttbar_err = fttbar*0.17;//from CS uncertainty
+    //cout << "nttbar, ntw, ftt: " << sideband_ttbar << " " << sideband_tw << " " << fttbar << endl;
     eff_veto_data = fttbar*(1 - (1-eff_tag_data)*(1-eff_tag_data)) + (1.-fttbar)*eff_tag_data;
     eff_err_veto_data = pow(eff_tag_data-pow(eff_tag_data,2),2)*pow(fttbar_err,2) + pow(fttbar-2*fttbar*eff_tag_data+1,2)*pow(eff_err_tag_data,2);
     eff_err_veto_data = sqrt(eff_err_veto_data);
