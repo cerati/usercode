@@ -210,13 +210,13 @@ void makeDYTable(float lumi) {
   bool doPUw    = true;
 
   TString regionIn  = "dpjallfs,leppts,dphicut";
-  TString regionOut = "dphijet,leppts,dphicut, masscut";
+  TString regionOut = "dphijet,leppts,dphicut,masscut";
 
   //int jetbins[] = {0};
   int jetbins[] = {0,1};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
-  //int masses[] = {0};
+  //int masses[] = {120};
   int masses[] = {0,120,160};
   int nmasses = sizeof(masses)/sizeof(int);
 
@@ -230,8 +230,8 @@ void makeDYTable(float lumi) {
 
       int mass = masses[jj];
 
-      pair<float, float> dymmMC   = getYield(dir_mc+"dymm",  wwSelection, noVeto, mass, njets, "mmfs,minmet40,mtcut"+regionOut, lumi, useJson, applyEff, doFake, doPUw);
-      pair<float, float> dyeeMC   = getYield(dir_mc+"dyee",  wwSelection, noVeto, mass, njets, "eefs,minmet40,mtcut"+regionOut, lumi, useJson, applyEff, doFake, doPUw);
+      pair<float, float> dymmMC   = getYield(dir_mc+"dymm",  wwSelection, noVeto, mass, njets, "mmfs,minmet40,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
+      pair<float, float> dyeeMC   = getYield(dir_mc+"dyee",  wwSelection, noVeto, mass, njets, "eefs,minmet40,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
       
       pair<float, float> r = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
       //pair<float, float> r = make_pair<float, float>(0.252045, 0.0743647);//this is 0-jet bin WW level, just to speed everything up
