@@ -1,10 +1,8 @@
-void makeTable(int mass=0, bool dodata=false){
+void makeTable(int njets=0, int mass=0, bool dodata=false){
 
   gROOT->Reset();
 
   Float_t lumi = 1.545;//fb-1
-
-  TString hm = Form("%i",mass); 
 
   TCut lep1pt,lep2pt,dPhi,mll,mt,himass;
   if (mass==0) {
@@ -125,7 +123,6 @@ void makeTable(int mass=0, bool dodata=false){
   TCut newcuts = "type==1 || type==2 || ( min(pmet,pTrackMet)>40 && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
 
   TCut cut = base&&"njets==0"&&newcuts&&sigreg&&trig;
-  cut.SetName("hm"+hm+"");
 
   TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma"};
   int  colors[] = {kCyan,kCyan,kGreen,kGreen,kGreen,kYellow,kYellow,kBlue,kBlue,kGray,kGray};
