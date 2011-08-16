@@ -9,7 +9,7 @@ void makeFakeTable(float lumi) {
   bool useJson    = false;
   bool applyTnPSF = false;
 
-  bool doSpillage = 0;
+  bool doSpillage = 1;
 
   int mass = 0;
   TString region = "minmet40,dphijet,dphireg";
@@ -24,8 +24,10 @@ void makeFakeTable(float lumi) {
     pair<float, float> wjMC   = getYield(dir_mc+"wjets",  wwSelection, noVeto, mass, njets, region, lumi, useJson, applyTnPSF, false);
     
     //electron+fake electron
-    pair<float, float> wjData_ee1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",eefs", 0, useJson, applyTnPSF, true);
-    pair<float, float> wjData_ee2 = getYield(data_file, wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",eefs", 0, useJson, applyTnPSF, true);
+    pair<float, float> wjData_ee1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",eefs", 0, useJson, false, true, false);
+    pair<float, float> wjData_ee2 = getYield(data_file, wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",eefs", 0, useJson, false, true, false);
+    //pair<float, float> wjData_ee1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection|Lep1LooseEleV4, Lep1FullSelection, mass, njets, region+",eefs", 0, useJson, false, true, false);
+    //pair<float, float> wjData_ee2 = getYield(data_file, wwSelectionNoLep|Lep1FullSelection|Lep2LooseEleV4, Lep2FullSelection, mass, njets, region+",eefs", 0, useJson, false, true, false);
     pair<float, float> wwFake_ee1 = make_pair<float, float>(0,0);
     pair<float, float> wwFake_ee2 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_ee1 = make_pair<float, float>(0,0);
@@ -40,8 +42,8 @@ void makeFakeTable(float lumi) {
     float ee_err = sqrt(pow(wjData_ee1.second,2)+pow(wjData_ee2.second,2)+pow(wwFake_ee1.second,2)+pow(wwFake_ee2.second,2)+pow(ttFake_ee1.second,2)+pow(ttFake_ee2.second,2));
     
     //muon+fake electron
-    pair<float, float> wjData_me1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",emfs", 0, useJson, applyTnPSF, true);
-    pair<float, float> wjData_me2 = getYield(data_file,  wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mefs", 0, useJson, applyTnPSF, true);
+    pair<float, float> wjData_me1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",emfs", 0, useJson, false, true, false);
+    pair<float, float> wjData_me2 = getYield(data_file,  wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mefs", 0, useJson, false, true, false);
     pair<float, float> wwFake_me1 = make_pair<float, float>(0,0);
     pair<float, float> wwFake_me2 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_me1 = make_pair<float, float>(0,0);
@@ -56,8 +58,8 @@ void makeFakeTable(float lumi) {
     float me_err = sqrt(pow(wjData_me1.second,2)+pow(wjData_me2.second,2)+pow(wwFake_me1.second,2)+pow(wwFake_me2.second,2)+pow(ttFake_me1.second,2)+pow(ttFake_me2.second,2));
     
     //electron+fake muon
-    pair<float, float> wjData_em1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", 0, useJson, applyTnPSF, true);
-    pair<float, float> wjData_em2 = getYield(data_file,  wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",emfs", 0, useJson, applyTnPSF, true);
+    pair<float, float> wjData_em1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", 0, useJson, false, true, false);
+    pair<float, float> wjData_em2 = getYield(data_file,  wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",emfs", 0, useJson, false, true, false);
     pair<float, float> wwFake_em1 = make_pair<float, float>(0,0);
     pair<float, float> wwFake_em2 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_em1 = make_pair<float, float>(0,0);
@@ -72,8 +74,8 @@ void makeFakeTable(float lumi) {
     float em_err = sqrt(pow(wjData_em1.second,2)+pow(wjData_em2.second,2)+pow(wwFake_em1.second,2)+pow(wwFake_em2.second,2)+pow(ttFake_em1.second,2)+pow(ttFake_em2.second,2));
     
     //muon+fake muon
-    pair<float, float> wjData_mm1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mmfs", 0, useJson, applyTnPSF, true);
-    pair<float, float> wjData_mm2 = getYield(data_file, wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mmfs", 0, useJson, applyTnPSF, true);
+    pair<float, float> wjData_mm1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mmfs", 0, useJson, false, true, false);
+    pair<float, float> wjData_mm2 = getYield(data_file, wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mmfs", 0, useJson, false, true, false);
     pair<float, float> wwFake_mm1 = make_pair<float, float>(0,0);
     pair<float, float> wwFake_mm2 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_mm1 = make_pair<float, float>(0,0);
