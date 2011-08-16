@@ -81,6 +81,8 @@ TString dir_mc_tas     = "/smurf/data/LP2011/tas/";
 TString data_file      = "/smurf/data/LP2011/tas/data";
 //TString data_file      = "/smurf/data/EPS/tas/data-met20-1092ipb";
 
+//TString fr_file_mit    = "/smurf/sixie/FakeRates/FakeRates_SmurfV6.FromEPSToLP2011.root";
+//TString fr_file_mit    = "/smurf/data/LP2011/auxiliar/FakeRates_SmurfV6.LP2011.root";
 TString fr_file_mit    = "/smurf/data/LP2011/auxiliar/FakeRates_SmurfV6.V4HasNod0Cut.root";
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
@@ -451,6 +453,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     dataEvent->tree_->GetEntry(n);
     if (isMC) weight = lumi*dataEvent->scale1fb_;
     if (!isMC && (dataEvent->cuts_ & Trigger) != Trigger ) continue;
+    //if (!isMC && dataEvent->run_<170826) continue;//FIXME
     if (useJson && !passJson(dataEvent->run_,dataEvent->lumi_)) continue;    
     if ( dataEvent->njets_!=njets) continue;
     if ( (dataEvent->cuts_ & cut) != cut ) continue;
@@ -498,6 +501,9 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     //if (isMC&&doPUw) puw = getPileupReweightFactor(dataEvent->npu_,puweights);
     if (isMC&&doPUw) puw = getPileupReweightFactor(dataEvent->nvtx_,puweights);
     //if (isMC&&doPUw) puw = dataEvent->sfWeightPU_;
+
+//     float fakew = 1.;
+//     if (doFake) fakew = dataEvent->sfWeightFR_;
 
     if (!doFake) {
       float effSF=1.;
@@ -609,10 +615,8 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     fM->Close();
   }
   dataEvent->tree_->Delete();
-  //delete dataEvent;
   //cout << yield << " " << error << endl;
   return make_pair<float, float>(yield,error);
 }
-
 
 #endif
