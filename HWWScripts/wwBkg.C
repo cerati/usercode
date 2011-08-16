@@ -189,11 +189,15 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
     pair<float,float> j1mc = wwEstimationMC  (mass,1,lumi,applyEff,doPUw);
 
     if (doLatex) {
-      cout << Form("%i & %4.1f $\\pm$ %4.1f & %4.1f $\\pm$ %4.1f & %4.1f $\\pm$ %4.1f & %4.1f $\\pm$ %.1f \\\\",mass,
+      cout << Form("%i & %4.1f $\\pm$ %4.1f & %4.1f $\\pm$ %4.1f & %4.2f $\\pm$ %4.2f & %4.1f $\\pm$ %4.1f & %4.1f $\\pm$ %4.1f & %4.2f $\\pm$ %4.2f \\\\",mass,
 		   round(j0dd.first*10.)/10.,round(j0dd.second*10.)/10.,
 		   round(j0mc.first*10.)/10.,round(j0mc.second*10.)/10.,
+		   round(j0dd.first/j0mc.first*100)/100.,
+		   round(sqrt(pow(j0dd.second/j0mc.first,2)+pow(j0dd.first*j0mc.second/pow(j0mc.first,2),2))*100)/100.,
 		   round(j1dd.first*10.)/10.,round(j1dd.second*10.)/10.,
-		   round(j1mc.first*10.)/10.,round(j1mc.second*10.)/10.) 
+		   round(j1mc.first*10.)/10.,round(j1mc.second*10.)/10.,
+		   round(j1dd.first/j1mc.first*100)/100.,
+		   round(sqrt(pow(j1dd.second/j1mc.first,2)+pow(j1dd.first*j1mc.second/pow(j1mc.first,2),2))*100)/100.) 
 	   << endl;
     } else {
       cout << Form("| %i | %4.1f +/- %4.1f | %4.1f +/- %4.1f | %4.2f +/- %4.2f | %4.1f +/- %4.1f | %4.1f +/- %4.1f | %4.2f +/- %4.2f |",mass,
