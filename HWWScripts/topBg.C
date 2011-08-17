@@ -12,9 +12,12 @@ pair<float, float> fakeBgEstimation(unsigned int cut, unsigned int veto, int mas
   //correct for spillage...
   pair<float, float> wwFake    = getYield(dir_mc+"qqww",  cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
   pair<float, float> ttbarFake = getYield(dir_mc+"ttbar", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  float fakeYield = dataFake.first-wwFake.first-ttbarFake.first;
+  pair<float, float> twFake    = getYield(dir_mc+"tw", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
+  pair<float, float> dymmFake  = getYield(dir_mc+"dymm", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
+  pair<float, float> dyeeFake  = getYield(dir_mc+"dyee", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
+  float fakeYield = dataFake.first-wwFake.first-ttbarFake.first-twFake.first-dymmFake.first-dyeeFake.first;
   //assume 35% syst uncertainty
-  float fakeError = sqrt(pow(dataFake.second,2)+pow(wwFake.second,2)+pow(ttbarFake.second,2)+pow(0.35*fakeYield,2));
+  float fakeError = sqrt(pow(dataFake.second,2)+pow(wwFake.second,2)+pow(ttbarFake.second,2)+pow(twFake.second,2)+pow(dymmFake.second,2)+pow(dyeeFake.second,2)+pow(0.35*fakeYield,2));
   if (debug) {
     cout << "fakes data, ww, ttbar: " << dataFake.first << "+/-" << dataFake.second << " " 
 	                              << wwFake.first << "+/-" << wwFake.second << " " 
