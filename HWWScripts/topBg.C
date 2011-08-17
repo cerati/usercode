@@ -58,8 +58,8 @@ float expectedPurity(TString dir, unsigned int cut, unsigned int veto, int mass,
   return sb_tag_purity;
 }
 
-float evaluateBackground(TString dir, unsigned int cut, unsigned int veto, int mass, int njets, TString myRegion, float lumi, bool useJson=0, 
-			 bool applyEff=true, bool doFake=false, bool doPUw=false){
+pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned int veto, int mass, int njets, TString myRegion, float lumi, bool useJson=0, 
+				      bool applyEff=true, bool doFake=false, bool doPUw=false){
 
   bool debug = 0;
 
@@ -81,12 +81,13 @@ float evaluateBackground(TString dir, unsigned int cut, unsigned int veto, int m
                    getYield(dir+"zz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
                    getYield(dir+"wz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
 
-  float nwj = fakeBgEstimation(cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doPUw).first;
+  pair<float, float> nwj = fakeBgEstimation(cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doPUw);
   //cout << nwj << endl;
 
-  float background = mc_other+nwj;
-  if (debug) cout << "bkg total, fake, other: " << background << " " << nwj << " " << mc_other << endl;
-  return background;
+  float background = mc_other+nwj.first;
+  float backgr_err = sqrt(pow(0.5*mc_other,2)+pow(nwj.second,2));//take 50% for MC based
+  if (debug) cout << "bkg total, fake, other: " << background << " " << nwj.first << " " << mc_other << endl;
+  return make_pair<float, float>(background,backgr_err);
 }
 
 pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, float lumi=0., TString region = "dphijet,minmet40", 
@@ -120,10 +121,10 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
 //   sideband_data_nj_top_tag*=sb_nj_top_tag_frac;
 
   //subtract contamination
-  float sb_nj_top_bkg     = evaluateBackground(dir_mc, control_top,    veto, mass, nj_top, region_top,    lumi, false, applyEff, false, doPUw);
-  float sb_nj_top_tag_bkg = evaluateBackground(dir_mc, control_toptag, veto, mass, nj_top, region_toptag, lumi, false, applyEff, false, doPUw);
-  sideband_data_nj_top-=sb_nj_top_bkg;
-  sideband_data_nj_top_tag-=sb_nj_top_tag_bkg;
+  pair<float, float> sb_nj_top_bkg     = evaluateBackground(dir_mc, control_top,    veto, mass, nj_top, region_top,    lumi, false, applyEff, false, doPUw);
+  pair<float, float> sb_nj_top_tag_bkg = evaluateBackground(dir_mc, control_toptag, veto, mass, nj_top, region_toptag, lumi, false, applyEff, false, doPUw);
+  sideband_data_nj_top-=sb_nj_top_bkg.first;        //FIXME: add uncertainties on background
+  sideband_data_nj_top_tag-=sb_nj_top_tag_bkg.first;//FIXME: add uncertainties on background
 
   //get tag and veto efficiencies
   float eff_tag_data = sideband_data_nj_top_tag/sideband_data_nj_top;
@@ -146,8 +147,8 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   }
   if (debug) {
     cout << "nj cr: " << nj_top << endl;
-    cout << "uncorr data cr, tag: " << sideband_data_nj_top+sb_nj_top_bkg << " " << sideband_data_nj_top_tag+sb_nj_top_tag_bkg << endl;
-    cout << "backgound cr, tag: " << sb_nj_top_bkg << " " << sb_nj_top_tag_bkg << endl;
+    cout << "uncorr data cr, tag: " << sideband_data_nj_top+sb_nj_top_bkg.first << " " << sideband_data_nj_top_tag+sb_nj_top_tag_bkg.first << endl;
+    cout << "backgound cr, tag: " << sb_nj_top_bkg.first << " " << sb_nj_top_tag_bkg.first << endl;
     cout << "corr. data cr, tag: " << sideband_data_nj_top << " " << sideband_data_nj_top_tag << endl;
     cout << "data eff tag,veto: " << eff_tag_data << "+/-" << eff_err_tag_data << " " << eff_veto_data << "+/-" << eff_err_veto_data << endl;
   }
@@ -164,7 +165,8 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
   TString toptagreg = "";
   if (njets==1) toptagreg = ",btagJet1";
 
-  float sideband_data_tag  = getYield(data_file, baseline_toptag, veto, mass, njets,  region+toptagreg, 0, useJson, 0, 0, 0).first;
+  pair<float, float> sb_data_tag = getYield(data_file, baseline_toptag, veto, mass, njets,  region+toptagreg, 0, useJson, 0, 0, 0);
+  float sideband_data_tag  = sb_data_tag.first;
 
   ////compute expected purity
   //float sb_tag_purity = expectedPurity(dir_mc, baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw);
@@ -173,10 +175,10 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
   //float sideband_data_tag_err  = sqrt( pow(sb_tag_purity,2)*sideband_data_tag );//fixme: should account for purity error
 
   //compute background contamination
-  float sb_tag_bkg = evaluateBackground(dir_mc, baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw);
-  //apply purity correction
-  sideband_data_tag-=sb_tag_bkg;
-  float sideband_data_tag_err  = sqrt( (sideband_data_tag+sb_tag_bkg) + pow(sb_tag_bkg,2) );//fixme: should account for background error, now assume 100%
+  pair<float, float> sb_tag_bkg = evaluateBackground(dir_mc, baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw);
+  //subtract background
+  sideband_data_tag-=sb_tag_bkg.first;
+  float sideband_data_tag_err  = sqrt( pow(sb_data_tag.second,2) + pow(sb_tag_bkg.second,2) );
 
   //get the efficiency (if needed)
   if (eff_veto_data<1E-5) {
@@ -199,7 +201,7 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
                             getYield(dir_mc+"zz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
                             getYield(dir_mc+"wz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first;
     cout << "sb tag mc top, mc other: " << sb_mc_top_tag << " " << sb_mc_other_tag << endl;
-    cout << "sb tag data unc, bkg, data corr: " << sideband_data_tag+sb_tag_bkg << " " << sb_tag_bkg << " " << sideband_data_tag << endl;
+    cout << "sb tag data unc, bkg, data corr: " << sideband_data_tag+sb_tag_bkg.first << " " << sb_tag_bkg.first << " " << sideband_data_tag << endl;
     //cout << "sb_tag_purity: " << sb_tag_purity << endl;
     //cout << "sb tag data unc, exp bkg, data corr: " << sideband_data_tag/sb_tag_purity << " " << (sideband_data_tag/sb_tag_purity)*(1.-sb_tag_purity) << " " << sideband_data_tag << endl;
     float sigreg_ttbar  = getYield(dir_mc+"ttbar", wwSelection, veto, mass, njets,  region, lumi).first;
@@ -249,10 +251,8 @@ void makeTopTable(float lumi) {
 //   pair<float, float> bkg_exp_cr_0j = make_pair<float, float>(top_tag_data_0j.first*(1.-cr_purity_0j),top_tag_data_0j.second*(1.-cr_purity_0j));
 //   pair<float, float> bkg_exp_cr_1j = make_pair<float, float>(top_tag_data_1j.first*(1.-cr_purity_1j),top_tag_data_1j.second*(1.-cr_purity_1j));
 
-  float cr_bkg_0j = evaluateBackground(dir_mc, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
-  float cr_bkg_1j = evaluateBackground(dir_mc, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> bkg_exp_cr_0j = make_pair<float, float>(cr_bkg_0j,cr_bkg_0j);
-  pair<float, float> bkg_exp_cr_1j = make_pair<float, float>(cr_bkg_1j,cr_bkg_1j);
+  pair<float, float> bkg_exp_cr_0j = evaluateBackground(dir_mc, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> bkg_exp_cr_1j = evaluateBackground(dir_mc, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
 
   //this can be replaced with a simple count
   pair<float, float> topData0j = topBgEstimation(mass, 0, lumi, anaRegion, vetoEff0j.first, vetoEff0j.second, useJson, applyEff, doFake, doPUw);
