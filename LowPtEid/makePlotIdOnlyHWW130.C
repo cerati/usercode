@@ -4,8 +4,8 @@
   gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);
   gStyle->SetPalette(1);
-  TFile *_file0 = TFile::Open("baby_EG2010A.root");
-  TFile *_file1 = TFile::Open("baby_GluGluToHToWWTo2L2Nu_M-130_7TeV_LOPU.root");
+  TFile *_file0 = TFile::Open("baby_JunkRun2011A.root");
+  TFile *_file1 = TFile::Open("baby_GluGluToHToWWTo2L2Nu_M-130_7TeV.root");
 
   TTree* tree0 = (TTree*) _file0->Get("tree");
   TTree* tree1 = (TTree*) _file1->Get("tree");
@@ -16,17 +16,19 @@
   TCut bar = "abs(el_etaSC)<1.479";
   TCut end = "abs(el_etaSC)>1.479";
   TCut cutNoPt = "met<20&&el_Mt<20";
-  TCut base0 = "el_MZ<0&&met<20&&el_Mt<20&&el10_sw&&el_pt<20";
-  TCut base1 = "el_pt<20";
+  TCut base0 = "el_MZ<0&&met<20&&el_Mt<20&&(el8_v1||el8_v2||el8_v3)&&el_pt<200";
+  TCut base1 = "el_pt<200";
   
   TCut v0id("el_VBTF80 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95&&abs(el_dPhiIn*el_q)<0.006))") ;
   TCut eta("abs(el_etaSC)<2.2");
   TCut mva("el_mva>0.4");
-  TCut newconv("abs(el_newconv_dist)>0.05||abs(el_newconv_dcot)>0.02||abs(el_newconv_dmh)>1");
   TCut iso("20*el_relIso/el_pt<0.1");
   //iso = "(el_CICt&2)>0";
   TCut ip("abs(el_d0corr)<0.02");
-  TCut conv("(abs(el_conv_dist)>0.02||abs(el_conv_dcot)>0.02) && el_innerlayer39X==0");
+  //TCut newconv("abs(el_newconv_dist)>0.05||abs(el_newconv_dcot)>0.02||abs(el_newconv_dmh)>1");
+  //TCut conv("(abs(el_conv_dist)>0.02||abs(el_conv_dcot)>0.02) && el_innerlayer==0");
+  TCut conv("el_mitconv==0 && el_innerlayer==0");
+  TCut newconv = conv;
  
   TCut vbtf90_id  ("VBTF90"  ,"el_VBTF90");
   TCut vbtf85_id  ("VBTF85"  ,"el_VBTF90 && (abs(el_etaSC)<1.479&&abs(el_dPhiIn)<0.06&&abs(el_dEtaIn)<0.006&&el_hOverE<0.04 || abs(el_etaSC)>1.479&&abs(el_dPhiIn)<0.04&&abs(el_dEtaIn)<0.007&&el_hOverE<0.025)");
@@ -71,6 +73,14 @@
   TCut cic_t_ip    ("cic_t_ip","(el_CICt&8)>0");
 
   TCut lik_t_id ("lht","abs(el_etaSC)<1.479&&el_fbrem<0.15&&el_LL>0.820 || abs(el_etaSC)<1.479&&el_fbrem>0.15&&el_LL>0.925 || abs(el_etaSC)>1.479&&el_fbrem<0.15&&el_LL>0.930 || abs(el_etaSC)>1.479&&el_fbrem>0.15&&el_LL>0.979");
+
+  TCut lik95_id ("lh95","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>-4.274 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>-3.773 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>-5.092 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>-2.796");
+  TCut lik90_id ("lh90","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>-1.497 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>-1.521 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>-2.571 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>-0.657");
+  TCut lik85_id ("lh85","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>+0.163 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>+0.065 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>-0.683 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>+1.564");
+  TCut lik80_id ("lh80","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>+1.193 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>+1.345 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>+0.810 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>+3.021");
+  TCut lik70_id ("lh70","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>+1.781 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>+2.397 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>+2.361 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>+4.052");
+
+
   TCut pfmva3_id ("mva3","el_mva>0.3");
   TCut pfmva5_id ("mva5","el_mva>0.5");
   TCut pfmva6_id ("mva6","el_mva>0.6");
@@ -105,20 +115,21 @@
   base0=base0+ip+conv+iso;
   base1=base1+ip+conv+iso;
 
-  float ptbins[] = {10.,20.};
+  float ptbins[] = {20.,999.};
   float etabins[] = {0,2.5};
   TH2F* pt_vs_eta = new TH2F("pt_vs_eta","pt_vs_eta",1,etabins,1,ptbins);
 
   TGraph gr(2);
   gr.SetTitle("");
   gr.SetPoint(0, 0, 0);
-  gr.SetPoint(1, 1.5, 3.0);
+  gr.SetPoint(1, 1.3, 2.0);
   gr.SetMarkerStyle(1);
 
   TCut cuts[] = {vbtf90_id,vbtf85_id,vbtf80_id,vbtf70_id,vbtf80p_id,vbtf70p_id, 
-		 //vbtf80_nohoeend_id,vbtf70_nohoeend_id,vbtf80p_nohoeend_id,vbtf70p_nohoeend_id; 
+		 vbtf80_nohoeend_id,vbtf70_nohoeend_id,vbtf80p_nohoeend_id,vbtf70p_nohoeend_id,
 		 cic_t_id,cic_st_id,cic_ht1_id,cic_ht2_id,cic_ht3_id,cic_ht4_id,
-		 lik_t_id,pfmva3_id,pfmva5_id,pfmva6_id,pfmva7_id,pfmva8_id};
+		 lik95_id,lik90_id,lik85_id,lik80_id,lik70_id,
+		 pfmva3_id,pfmva5_id,pfmva6_id,pfmva7_id,pfmva8_id};
   int ncuts = sizeof(cuts)/sizeof(TCut);
 
   tree0->Draw("el_pt:abs(el_etaSC)>>pt_vs_eta",base0+vbtf80_id,"goff");
@@ -131,20 +142,20 @@
   l1->SetFillColor(kWhite);
 
   gr.Draw("AP");
-  gr.GetXaxis()->SetRangeUser(0.,1.5);
-  gr.GetYaxis()->SetRangeUser(0.,2.5);
+  gr.GetXaxis()->SetRangeUser(0.4,1.3);
+  gr.GetYaxis()->SetRangeUser(0.,2.);
   gr.GetXaxis()->SetTitle("Electron ID/VBTF80 eff (HWW130 MC)");
-  gr.GetYaxis()->SetTitle("Electron ID/VBTF80 eff (EG2010A data)");
+  gr.GetYaxis()->SetTitle("Electron ID/VBTF80 eff (2011 data)");
 
   TGraph gr_vbtf(6);
   gr_vbtf.SetMarkerStyle(20); 
   gr_vbtf.SetMarkerColor(kBlue);
   gr_vbtf.SetLineColor(kBlue);
 
-//   TGraph gr_vbtf_nohoeend(4);
-//   gr_vbtf_nohoeend.SetMarkerStyle(20); 
-//   gr_vbtf_nohoeend.SetMarkerColor(kMagenta);
-//   gr_vbtf_nohoeend.SetLineColor(kMagenta);
+  TGraph gr_vbtf_nohoeend(4);
+  gr_vbtf_nohoeend.SetMarkerStyle(20); 
+  gr_vbtf_nohoeend.SetMarkerColor(kMagenta);
+  gr_vbtf_nohoeend.SetLineColor(kMagenta);
 
   TGraph gr_cic(6);
   gr_cic.SetMarkerStyle(21); 
@@ -156,10 +167,10 @@
   gr_mva.SetMarkerColor(kGreen);
   gr_mva.SetLineColor(kGreen);
 
-  TGraph gr_lik(1);
+  TGraph gr_lik(3);
   gr_lik.SetMarkerStyle(23); 
-  gr_lik.SetMarkerColor(kGreen);
-  gr_lik.SetLineColor(kGreen);
+  gr_lik.SetMarkerColor(kOrange);
+  gr_lik.SetLineColor(kOrange);
 
   int n_vbtf=0,n_vbtf_nohoeend=0,n_cic=0,n_mva=0,n_lik=0;
   for (unsigned int ic=0;ic<ncuts;++ic){
@@ -168,25 +179,25 @@
     tree1->Draw("el_pt:abs(el_etaSC)>>pt_vs_eta",base1+cuts[ic],"goff");
     float cut1 = pt_vs_eta->GetBinContent(1,1);
     if (TString(cuts[ic].GetName()).Contains("VBTF")&&!TString(cuts[ic].GetName()).Contains("-")) gr_vbtf.SetPoint(n_vbtf++, cut1/all1, cut0/all0);
-    //if (TString(cuts[ic].GetName()).Contains("VBTF")&&TString(cuts[ic].GetName()).Contains("-")) gr_vbtf_nohoeend.SetPoint(n_vbtf_nohoeend++, cut1/all1, cut0/all0);
+    if (TString(cuts[ic].GetName()).Contains("VBTF")&&TString(cuts[ic].GetName()).Contains("-")) gr_vbtf_nohoeend.SetPoint(n_vbtf_nohoeend++, cut1/all1, cut0/all0);
     if (TString(cuts[ic].GetName()).Contains("cic")) gr_cic.SetPoint(n_cic++, cut1/all1, cut0/all0);
     if (TString(cuts[ic].GetName()).Contains("mva")) gr_mva.SetPoint(n_mva++, cut1/all1, cut0/all0);
-    if (TString(cuts[ic].GetName()).Contains("lht")) gr_lik.SetPoint(n_lik++, cut1/all1, cut0/all0);
+    if (TString(cuts[ic].GetName()).Contains("lh")) gr_lik.SetPoint(n_lik++, cut1/all1, cut0/all0);
     cout << cuts[ic].GetName() << " hww: " << Form("%4.2f",cut1/all1) << " - eg2010a: " << Form("%4.2f",cut0/all0) << endl;
 
   }
 
   l1->AddEntry(&gr_vbtf, "VBTF", "p");
   gr_vbtf.Draw("PL");
-//   l1->AddEntry(&gr_vbtf_nohoeend, "VBTF-", "p");
-//   gr_vbtf_nohoeend.Draw("PL");
+  l1->AddEntry(&gr_vbtf_nohoeend, "VBTF-", "p");
+  gr_vbtf_nohoeend.Draw("PL");
   l1->AddEntry(&gr_cic, "CIC", "p");
   gr_cic.Draw("PL");
   l1->AddEntry(&gr_mva, "MVA", "p");
   gr_mva.Draw("PL");
-  l1->AddEntry(&gr_lik, "LHT", "p");
-  gr_lik.Draw("P");
+  l1->AddEntry(&gr_lik, "LH", "p");
+  gr_lik.Draw("PL");
   l1->Draw();
-  c1->SaveAs("idEffic.png");  
+  c1->SaveAs("idEffic_20ptup.png");  
 
 }

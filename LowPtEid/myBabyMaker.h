@@ -36,6 +36,12 @@ class myBabyMaker
 	Float_t scale1fb_;
 	Int_t   nvtx_;
 
+	//jet
+	Float_t jet_pt_;
+	Float_t jet_eta_;
+	Float_t jet_phi_;
+	Float_t jet_dR_;
+
 	// charge
 	Int_t   el_q_;
 
@@ -70,6 +76,7 @@ class myBabyMaker
 
 	// brem
 	Float_t el_fbrem_;
+	Int_t el_nbrem_;
 
 	// transverse mass
 	Float_t el_Mt_;
@@ -84,25 +91,31 @@ class myBabyMaker
 	Float_t el_ecalIso04_;
 	Float_t el_hcalIso04_;
 
+	Float_t el_pfIso03_;
+	Float_t el_pfIso04_;
+
 	// conversion
-	Float_t el_innerlayer39X_;
+	Float_t el_innerlayer_;
 	Float_t el_conv_dist_;
 	Float_t el_conv_dcot_;
 	Float_t el_conv_rad_;
 	Float_t el_conv_ddz_;
 	Float_t el_inner_posrho_;
-
 	// new conversion
 	Float_t el_newconv_dist_;
 	Float_t el_newconv_dcot_;
 	Float_t el_newconv_rad_;
 	Float_t el_newconv_dmh_;
+	// mit conversion
+	Bool_t el_mitconv_;
 
 	// hits and tk additional stuff
 	Int_t el_validhits_;
 	Int_t el_invalidhits_;
 	Int_t el_misshitsout_;
 	Float_t el_nchi2_;
+
+	Float_t el_dzpv_;
 
 	Float_t el_d0corr_;
 	Float_t el_d0Err_;
@@ -113,6 +126,7 @@ class myBabyMaker
 
 	// likelihood
 	Float_t el_LL_;
+	Float_t el_lh_;
 
         // seeding
 	Int_t el_type_;
@@ -155,19 +169,21 @@ class myBabyMaker
 
 
 	// trigger matching. 2 means matching
-	Int_t el10_lw_;     	// HLT_Ele10_LW_L1R
-	Int_t el10_sw_;     	// HLT_Ele10_SW_L1R
-	Int_t el10_sw_v2_;     	// HLT_Ele10_SW_L1R_v2
-	Int_t el10_lw_id_;     	// HLT_Ele10_LW_EleId_L1R
-	Int_t el10_sw_id_;     	// HLT_Ele10_SW_EleId_L1R
-	Int_t el12_sw_tightid_; // HLT_Ele12_SW_TightEleId_L1R
-        Int_t el12_sw_tightidiso_;//HLT_Ele12_SW_TightEleIdIsol_L1R
-        Int_t el12_sw_tightidiso_nodeta_;//HLT_Ele12_SW_TightEleIdIsol_NoDEtaInEE_L1R
-	Int_t el15_lw_;     	// HLT_Ele15_LW_L1R
-	Int_t el15_sw_;     	// HLT_Ele15_SW_L1R
-	Int_t el15_lw_id_;     	// HLT_Ele15_LW_EleId_L1R
-	Int_t el15_sw_id_;     	// HLT_Ele15_SW_EleId_L1R
-	Int_t el15_sw_caloid_;  // HLT_Ele15_SW_CaloEleId_L1R
+	Int_t el8_v1_; // HLT_Ele8_v1
+	Int_t el8_v2_; // HLT_Ele8_v2
+	Int_t el8_v3_; // HLT_Ele8_v3
+	Int_t el8idisojet40_v1_; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v1
+	Int_t el8idisojet40_v2_; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v2
+	Int_t el8idisojet40_v3_; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v3
+	Int_t el8idiso_v1_; // HLT_Ele8_CaloIdL_CaloIsoVL_v1
+	Int_t el8idiso_v2_; // HLT_Ele8_CaloIdL_CaloIsoVL_v2
+	Int_t el8idiso_v3_; // HLT_Ele8_CaloIdL_CaloIsoVL_v3
+	Int_t el17idiso_v1_; // HLT_Ele17_CaloIdL_CaloIsoVL_v1
+	Int_t el17idiso_v2_; // HLT_Ele17_CaloIdL_CaloIsoVL_v2
+	Int_t el17idiso_v3_; // HLT_Ele17_CaloIdL_CaloIsoVL_v3
+	Int_t el8pho20_v1_; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v1
+	Int_t el8pho20_v2_; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v2
+	Int_t el8pho20_v3_; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v3
 
 };
 

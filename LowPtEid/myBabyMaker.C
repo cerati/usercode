@@ -13,7 +13,7 @@
 #include "TLorentzVector.h"
 
 // TAS includes
-#include "./CMS2.cc"
+#include "./CORE/CMS2.cc"
 
 #include "./CORE/trackSelections.cc"
 #include "./CORE/eventSelections.cc"
@@ -27,6 +27,7 @@
 #include "./Tools/goodrun.cc"
 #include "./Tools/EgammaAnalysisTools/include/LikelihoodUtil.h"
 #include "./CORE/conversionTools.cc"
+#include "./CORE/MITConversionUtilities.cc"
 
 #include "./CORE/triggerUtils.cc"
 #include "./CORE/triggerSuperModel.cc"
@@ -118,7 +119,7 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 
   // Set the JSON file
   if(isData){
-    set_goodrun_file("Certls_TopNov5_Merged_135821-149442_allPVT.txt");
+    set_goodrun_file("goodruns.txt");
   }
 
   // initiate likelihood object with pdf location
@@ -199,6 +200,8 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
       for(unsigned int iEl = 0; iEl < els_p4().size(); ++iEl) 
       {
 
+
+	if (els_gsftrkidx().at(iEl)<0) continue;
   //cout << "8" << endl;
 	      
 	      //  10 < pt < 30 GeV
@@ -229,9 +232,30 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 		if(isGoodVertex(v)) nvtx_++;
 	      }
 
-
 	      met_		= evt_pfmet();
 	      met_phi_		= evt_pfmetPhi();
+
+	      float  leadJetPt = -1.;
+	      int iJet = -1;
+	      for (int ij=0;ij<pfjets_p4().size();++ij){
+		if (ROOT::Math::VectorUtil::DeltaR( pfjets_p4().at(ij), els_p4().at(iEl) )<1.0) continue;
+		float jetPt = pfjets_p4().at(ij).pt()*pfjets_corL1FastL2L3().at(ij);
+		if (jetPt>leadJetPt){
+		  leadJetPt=jetPt;
+		  iJet = ij;
+		}
+	      }
+	      if (iJet>=0){
+		jet_pt_ 	= pfjets_p4().at(iJet).pt()*pfjets_corL1FastL2L3().at(iJet);
+		jet_eta_ 	= pfjets_p4().at(iJet).eta();
+		jet_phi_ 	= pfjets_p4().at(iJet).phi();
+		jet_dR_         = ROOT::Math::VectorUtil::DeltaR( pfjets_p4().at(iJet), els_p4().at(iEl) );
+	      } else {
+		jet_pt_ 	= -999.;
+		jet_eta_ 	= -999.;
+		jet_phi_ 	= -999.;
+		jet_dR_         = -999.;
+	      }
 
 	      el_q_ 	= els_charge().at(iEl);
 	      el_pt_ 	= els_p4().at(iEl).pt();
@@ -254,6 +278,7 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 	      el_eOverPIn_ 	= els_eOverPIn().at(iEl); 
 	      el_eOverPOut_ 	= els_eOverPOut().at(iEl);
 	      el_fbrem_ 	= els_fbrem().at(iEl); 
+	      el_nbrem_ 	= els_nSeed().at(iEl); 
 	      el_Mt_		= Mt(els_p4().at(iEl), met_, met_phi_);
 	      el_relIso_ 	= electronIsolation_rel(iEl, true);
 	      el_ecalIso_ 	= els_ecalIso().at(iEl);
@@ -262,34 +287,40 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 	      el_ecalIso04_ 	= els_ecalIso04().at(iEl);
 	      el_hcalIso04_ 	= els_hcalIso04().at(iEl);
 	      el_tkIso04_  	= els_tkIso04().at(iEl);
-	      el_innerlayer39X_	= els_exp_innerlayers39X().at(iEl);
+	      el_pfIso03_ = electronIsoValuePF(iEl,0,0.3,1.0,0.1,0.07,0.025,0.025);
+	      el_pfIso04_ = electronIsoValuePF(iEl,0,0.4,1.0,0.1,0.07,0.025,0.025);
+	      el_innerlayer_	= els_exp_innerlayers().at(iEl);
 	      el_conv_dist_	= els_conv_dist().at(iEl);
 	      el_conv_dcot_	= els_conv_dcot().at(iEl);
-	      el_conv_rad_	= els_conv_radius().at(iEl);
+	      //el_conv_rad_	= els_conv_radius().at(iEl);
 	      el_conv_ddz_	= 0;
 	      if (els_conv_tkidx().at(iEl)>=0) el_conv_ddz_	= trks_z0().at(els_conv_tkidx().at(iEl))-els_z0().at(iEl);
 	      el_inner_posrho_	= els_inner_position().at(iEl).rho();
 	      el_LL_		= likelihoodUtil.getValue(iEl);
+	      if (el_LL_<=0) el_lh_=-20.;
+	      else if (el_LL_==1) el_lh_=20.; 
+	      else el_lh_            = log(el_LL_/(1.0-el_LL_));
 	      el_type_		= els_type().at(iEl);
 
-	      el_CICt_ 	= electronId_CIC(iEl, 6, CIC_TIGHT, false, false); // 3? CIC_MEDIUM?
+	      el_mitconv_ = isFromConversionMIT(iEl);
+
+	      el_CICt_ 	        = electronId_CIC(iEl, 6, CIC_TIGHT, false, false); // 3? CIC_MEDIUM?
 	      el_CICst_ 	= electronId_CIC(iEl, 6, CIC_SUPERTIGHT, false, false); // 3? CIC_MEDIUM?
 	      el_CICht1_ 	= electronId_CIC(iEl, 6, CIC_HYPERTIGHT1, false, false); // 3? CIC_MEDIUM?
 	      el_CICht2_ 	= electronId_CIC(iEl, 6, CIC_HYPERTIGHT2, false, false); // 3? CIC_MEDIUM?
 	      el_CICht3_ 	= electronId_CIC(iEl, 6, CIC_HYPERTIGHT3, false, false); // 3? CIC_MEDIUM?
 	      el_CICht4_ 	= electronId_CIC(iEl, 6, CIC_HYPERTIGHT4, false, false); // 3? CIC_MEDIUM?
 
-	      if(el_pt_>10 && el_pt_<20 
-		     && (el_fbrem_>0.2 || (el_fbrem_<0.2 && abs(el_etaSC_)<1.479 && el_eOverPIn_>0.95)))      
+	      if(el_pt_>10 && el_pt_<20 && (el_fbrem_>0.2 || (el_fbrem_<0.2 && abs(el_etaSC_)<1.479 && el_eOverPIn_>0.95)))      
   	      el_fbrem_eOverP_ = true;
 
 	      el_class_ 	= els_class().at(iEl);
 	      el_category_ 	= els_category().at(iEl);
-	      el_eg_roblooseid_ = els_egamma_robustLooseId().at(iEl);
-	      el_eg_robtightid_ = els_egamma_robustTightId().at(iEl);
-	      el_eg_looseid_ 	= els_egamma_looseId().at(iEl);
-	      el_eg_tightid_ 	= els_egamma_tightId().at(iEl);
-	      el_eg_robhighE_	= els_egamma_robustHighEnergy().at(iEl);
+	      //el_eg_roblooseid_ = els_egamma_robustLooseId().at(iEl);
+	      //el_eg_robtightid_ = els_egamma_robustTightId().at(iEl);
+	      //el_eg_looseid_ 	= els_egamma_looseId().at(iEl);
+	      //el_eg_tightid_ 	= els_egamma_tightId().at(iEl);
+	      //el_eg_robhighE_	= els_egamma_robustHighEnergy().at(iEl);
 
 	      // id
 	      el_VBTF70_ = pass_electronSelection(iEl, electronSelection_VBTF70, false, false);
@@ -302,20 +333,23 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 	      el_wwV0b_ = pass_electronSelection(iEl, electronSelection_wwV0b, false, false); 
 	      el_wwV1_ 	= pass_electronSelection(iEl, electronSelection_wwV1, false, false); 
 
+
 	      // HLT mathcing dR<0.4. returns 2 if matching
-	      el10_lw_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele10_LW_L1R");
-	      el10_sw_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele10_SW_L1R");
-	      el10_sw_v2_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele10_SW_L1R_v2");
-	      el10_lw_id_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele10_LW_EleId_L1R");
-	      el10_sw_id_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele10_SW_EleId_L1R");
-	      el12_sw_tightid_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele12_SW_TightEleId_L1R");
-	      el12_sw_tightidiso_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele12_SW_TightEleIdIsol_L1R");
-	      el12_sw_tightidiso_nodeta_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele12_SW_TightEleIdIsol_NoDEtaInEE_L1R");
-	      el15_lw_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele15_LW_L1R");
-	      el15_sw_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele15_SW_L1R");
-	      el15_lw_id_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele15_LW_EleId_L1R");
-	      el15_sw_id_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele15_SW_EleId_L1R");
-	      el15_sw_caloid_	= TriggerMatch( els_p4().at(iEl), "HLT_Ele15_SW_CaloEleId_L1R");
+	      el8_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_v1");
+	      el8_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_v2");
+	      el8_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_v3");
+	      el8idisojet40_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v1");
+	      el8idisojet40_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v2");
+	      el8idisojet40_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v3");
+	      el8idiso_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_v1");
+	      el8idiso_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_v2");
+	      el8idiso_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_v3");
+	      el17idiso_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele17_CaloIdL_CaloIsoVL_v1");
+	      el17idiso_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele17_CaloIdL_CaloIsoVL_v2");
+	      el17idiso_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele17_CaloIdL_CaloIsoVL_v3");
+	      el8pho20_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v1");
+	      el8pho20_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v2");
+	      el8pho20_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v3");
 
 	      vector<ConversionInfo> v_convInfos = getConversionInfos(iEl, evt_bField(), 0.45);   
 	      ConversionInfo bestConv = findBestConversionMatch(v_convInfos);
@@ -332,11 +366,11 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 	      el_d0Err_ = els_d0Err().at(iEl);
 
 	      el_d0pv2d_ = electron_d0PV_wwV1(iEl);
-	      el_d0pv3d_ = electron_d0PV3d_wwV1(iEl);
+	      //el_d0pv3d_ = electron_d0PV3d_wwV1(iEl);
 
-	      el_d0pv2dErr_ = electron_d0PVErr_wwV1(iEl);
-	      el_d0pv3dErr_ = electron_d0PV3dErr_wwV1(iEl);
-
+	      //el_d0pv2dErr_ = electron_d0PVErr_wwV1(iEl);
+	      //el_d0pv3dErr_ = electron_d0PV3dErr_wwV1(iEl);
+	      el_dzpv_ = gsftrks_dz_pv(els_gsftrkidx().at(iEl), 0, true).first;
 
 	      FillBabyNtuple(); 
 
@@ -367,6 +401,11 @@ void myBabyMaker::InitBabyNtuple ()
   met_ = -999.;
   met_phi_ = -999.;
 
+  jet_pt_ = -999.;
+  jet_eta_ = -999.;
+  jet_phi_ = -999.;
+  jet_dR_ = -999.;
+
   el_q_ = -1;
   el_pt_ = -999.;
   el_px_ = -999.;
@@ -388,6 +427,7 @@ void myBabyMaker::InitBabyNtuple ()
   el_eOverPIn_ = -999.;
   el_eOverPOut_ = -999.;
   el_fbrem_ = -999.;
+  el_nbrem_ = -999;
   el_Mt_= -999.;
   el_relIso_ = -999.;
   el_tkIso_ = -999.;
@@ -396,13 +436,14 @@ void myBabyMaker::InitBabyNtuple ()
   el_tkIso04_ = -999.;
   el_ecalIso04_ = -999.;
   el_hcalIso04_ = -999.;
-  el_innerlayer39X_ = -999.;
+  el_innerlayer_ = -999.;
   el_conv_dist_ = -999.; 
   el_conv_dcot_ = -999.; 
   el_conv_rad_ = -999.; 
   el_conv_ddz_ = -999.; 
   el_inner_posrho_ = -999.; 
   el_LL_ = -999.; 
+  el_lh_ = -999.; 
   el_type_ = -1; 
   el_CICt_ = -1; 
   el_CICst_ = -1; 
@@ -410,6 +451,8 @@ void myBabyMaker::InitBabyNtuple ()
   el_CICht2_ = -1; 
   el_CICht3_ = -1; 
   el_CICht4_ = -1; 
+
+  el_mitconv_ = false;
 
   el_VBTF70_ = false;
   el_VBTF80_ = false;
@@ -431,19 +474,21 @@ void myBabyMaker::InitBabyNtuple ()
   el_eg_tightid_ = -999.;
   el_eg_robhighE_= -999.;
   
-  el10_sw_ = -1;
-  el10_sw_ = -1;     
-  el10_sw_v2_ = -1;     
-  el10_lw_id_ = -1;    
-  el10_sw_id_ = -1;    
-  el12_sw_tightid_ = -1;
-  el12_sw_tightidiso_ = -1;
-  el12_sw_tightidiso_nodeta_ = -1;
-  el15_lw_ = -1;   
-  el15_sw_ = -1;     
-  el15_lw_id_ = -1;    
-  el15_sw_id_ = -1;     
-  el15_sw_caloid_ = -1;    
+  el8_v1_ = -1; // HLT_Ele8_v1
+  el8_v2_ = -1; // HLT_Ele8_v2
+  el8_v3_ = -1; // HLT_Ele8_v3
+  el8idisojet40_v1_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v1
+  el8idisojet40_v2_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v2
+  el8idisojet40_v3_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v3
+  el8idiso_v1_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_v1
+  el8idiso_v2_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_v2
+  el8idiso_v3_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_v3
+  el17idiso_v1_ = -1; // HLT_Ele17_CaloIdL_CaloIsoVL_v1
+  el17idiso_v2_ = -1; // HLT_Ele17_CaloIdL_CaloIsoVL_v2
+  el17idiso_v3_ = -1; // HLT_Ele17_CaloIdL_CaloIsoVL_v3
+  el8pho20_v1_ = -1; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v1
+  el8pho20_v2_ = -1; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v2
+  el8pho20_v3_ = -1; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v3
 
   el_newconv_dist_ = -999.; 
   el_newconv_dcot_ = -999.; 
@@ -460,6 +505,10 @@ void myBabyMaker::InitBabyNtuple ()
   el_d0pv3d_ = -999.;
   el_d0pv2dErr_ = -999.;
   el_d0pv3dErr_ = -999.;
+  el_dzpv_ = -999.;
+
+  el_pfIso03_ = -999.;
+  el_pfIso04_ = -999.;
 
 }
 
@@ -483,6 +532,11 @@ void myBabyMaker::MakeBabyNtuple(const char *babyFilename)
     babyTree_->Branch("met",     		&met_,			"met/F");
     babyTree_->Branch("met_phi",     		&met_phi_,		"met_phi/F");
 
+    babyTree_->Branch("jet_pt",     		&jet_pt_,		"jet_pt/F");
+    babyTree_->Branch("jet_eta",     		&jet_eta_,		"jet_eta/F");
+    babyTree_->Branch("jet_phi",     		&jet_phi_,		"jet_phi/F");
+    babyTree_->Branch("jet_dR",     		&jet_dR_,		"jet_dR/F");
+
     babyTree_->Branch("el_q",     		&el_q_,			"el_q/I");
     babyTree_->Branch("el_pt",     		&el_pt_,		"el_pt/F");
     babyTree_->Branch("el_px",     		&el_px_,		"el_px/F");
@@ -504,6 +558,7 @@ void myBabyMaker::MakeBabyNtuple(const char *babyFilename)
     babyTree_->Branch("el_eOverPIn",     	&el_eOverPIn_,		"el_eOverPIn/F");
     babyTree_->Branch("el_eOverPOut",   	&el_eOverPOut_,		"el_eOverPOut/F");
     babyTree_->Branch("el_fbrem",     		&el_fbrem_,		"el_fbrem/F");
+    babyTree_->Branch("el_nbrem",     		&el_nbrem_,		"el_nbrem/I");
     babyTree_->Branch("el_Mt",     		&el_Mt_,		"el_Mt/F");
     babyTree_->Branch("el_relIso",     		&el_relIso_,		"el_relIso/F");
     babyTree_->Branch("el_tkIso",     		&el_tkIso_,		"el_tkIso/F");
@@ -512,13 +567,14 @@ void myBabyMaker::MakeBabyNtuple(const char *babyFilename)
     babyTree_->Branch("el_tkIso04",     	&el_tkIso04_,		"el_tkIso04/F");
     babyTree_->Branch("el_ecalIso04",    	&el_ecalIso04_,		"el_ecalIso04/F");
     babyTree_->Branch("el_hcalIso04",   	&el_hcalIso04_,		"el_hcalIso04/F");
-    babyTree_->Branch("el_innerlayer39X",   	&el_innerlayer39X_,	"el_innerlayer39X/F");
+    babyTree_->Branch("el_innerlayer",   	&el_innerlayer_,	"el_innerlayer/F");
     babyTree_->Branch("el_conv_dist",   	&el_conv_dist_,		"el_conv_dist/F");
     babyTree_->Branch("el_conv_dcot",   	&el_conv_dcot_,		"el_conv_dcot/F");
     babyTree_->Branch("el_conv_rad",	   	&el_conv_rad_,		"el_conv_rad/F");
     babyTree_->Branch("el_conv_ddz",	   	&el_conv_ddz_,		"el_conv_ddz/F");
     babyTree_->Branch("el_inner_posrho",	&el_inner_posrho_,	"el_inner_posrho/F");
     babyTree_->Branch("el_LL",   		&el_LL_,		"el_LL/F");
+    babyTree_->Branch("el_lh",   		&el_lh_,		"el_lh/F");
     babyTree_->Branch("el_type",   		&el_type_,		"el_type/I");
     babyTree_->Branch("el_CICt",   		&el_CICt_,		"el_CICt/I");
     babyTree_->Branch("el_CICst",   		&el_CICst_,		"el_CICst/I");
@@ -547,25 +603,28 @@ void myBabyMaker::MakeBabyNtuple(const char *babyFilename)
     babyTree_->Branch("el_eg_tightid",      	&el_eg_tightid_,    	"el_eg_tightid/F"     );
     babyTree_->Branch("el_eg_robhighE",      	&el_eg_robhighE_,    	"el_eg_robhighE/F"     );
 
-    babyTree_->Branch("el10_lw",          	&el10_lw_,        	"el10_lw/I"	);
-    babyTree_->Branch("el10_sw",          	&el10_sw_,        	"el10_sw/I"     );
-    babyTree_->Branch("el10_sw_v2",          	&el10_sw_v2_,        	"el10_sw_v2/I"	);
-    babyTree_->Branch("el10_lw_id",          	&el10_lw_id_,        	"el10_lw_id/I"  );
-    babyTree_->Branch("el10_sw_id",          	&el10_sw_id_,        	"el10_sw_id/I"  );
-    babyTree_->Branch("el12_sw_tightid",       	&el12_sw_tightid_,    	"el12_sw_tightid/I"	);
-    babyTree_->Branch("el12_sw_tightidiso",    	&el12_sw_tightidiso_,  	"el12_sw_tightidiso/I"	);
-    babyTree_->Branch("el12_sw_tightidiso_nodeta",     	&el12_sw_tightidiso_nodeta_,    
-		                                             "el12_sw_tightidiso_nodeta/I"	);
-    babyTree_->Branch("el15_lw",          	&el15_lw_,        	"el15_lw/I"     );
-    babyTree_->Branch("el15_sw",          	&el15_sw_,        	"el15_sw/I"     );
-    babyTree_->Branch("el15_lw_id",          	&el15_lw_id_,        	"el15_lw_id/I"  );
-    babyTree_->Branch("el15_sw_id",          	&el15_sw_id_,        	"el15_sw_id/I"  );
-    babyTree_->Branch("el15_sw_caloid",        	&el15_sw_caloid_,      	"el15_sw_caloid/I"	);
+    babyTree_->Branch("el8_v1",          	&el8_v1_,        	"el8_v1/I"	);
+    babyTree_->Branch("el8_v2",          	&el8_v2_,        	"el8_v2/I"	);
+    babyTree_->Branch("el8_v3",          	&el8_v3_,        	"el8_v3/I"	);
+    babyTree_->Branch("el8idisojet40_v1",      	&el8idisojet40_v1_,     "el8idisojet40_v1/I"	);
+    babyTree_->Branch("el8idisojet40_v2",     	&el8idisojet40_v2_,     "el8idisojet40_v2/I"	);
+    babyTree_->Branch("el8idisojet40_v3",     	&el8idisojet40_v3_,     "el8idisojet40_v3/I"	);
+    babyTree_->Branch("el8idiso_v1",          	&el8idiso_v1_,        	"el8idiso_v1/I"	);
+    babyTree_->Branch("el8idiso_v2",          	&el8idiso_v2_,        	"el8idiso_v2/I"	);
+    babyTree_->Branch("el8idiso_v3",          	&el8idiso_v3_,        	"el8idiso_v3/I"	);
+    babyTree_->Branch("el17idiso_v1",          	&el17idiso_v1_,        	"el17idiso_v1/I"	);
+    babyTree_->Branch("el17idiso_v2",          	&el17idiso_v2_,        	"el17idiso_v2/I"	);
+    babyTree_->Branch("el17idiso_v3",          	&el17idiso_v3_,        	"el17idiso_v3/I"	);
+    babyTree_->Branch("el8pho20_v1",          	&el8pho20_v1_,        	"el8pho20_v1/I"	);
+    babyTree_->Branch("el8pho20_v2",          	&el8pho20_v2_,        	"el8pho20_v2/I"	);
+    babyTree_->Branch("el8pho20_v3",          	&el8pho20_v3_,        	"el8pho20_v3/I"	);
 
     babyTree_->Branch("el_newconv_dist",   	&el_newconv_dist_,		"el_newconv_dist/F");
     babyTree_->Branch("el_newconv_dcot",   	&el_newconv_dcot_,		"el_newconv_dcot/F");
     babyTree_->Branch("el_newconv_rad",	   	&el_newconv_rad_,		"el_newconv_rad/F");
     babyTree_->Branch("el_newconv_dmh",	   	&el_newconv_dmh_,		"el_newconv_dmh/F");
+
+    babyTree_->Branch("el_mitconv",          	&el_mitconv_,        	"el_mitconv/O"   );
 
     babyTree_->Branch("el_validhits",	   	&el_validhits_,		"el_validhits/I");
     babyTree_->Branch("el_invalidhits",	   	&el_invalidhits_,		"el_invalidhits/I");
@@ -573,11 +632,15 @@ void myBabyMaker::MakeBabyNtuple(const char *babyFilename)
     babyTree_->Branch("el_nchi2",	   	&el_nchi2_,		"el_nchi2/F");
     babyTree_->Branch("el_d0corr",	   	&el_d0corr_,		"el_d0corr/F");
     babyTree_->Branch("el_d0Err",	   	&el_d0Err_,		"el_d0Err/F");
+    babyTree_->Branch("el_dzpv",	   	&el_dzpv_,		"el_dzpv/F");
 
     babyTree_->Branch("el_d0pv2d",	   	&el_d0pv2d_,		"el_d0pv2d/F");
     babyTree_->Branch("el_d0pv3d",	   	&el_d0pv3d_,		"el_d0pv3d/F");
     babyTree_->Branch("el_d0pv2dErr",	   	&el_d0pv2dErr_,		"el_d0pv2dErr/F");
     babyTree_->Branch("el_d0pv3dErr",	   	&el_d0pv3dErr_,		"el_d0pv3dErr/F");
+
+    babyTree_->Branch("el_pfIso03",     	&el_pfIso03_,		"el_pfIso03/F");
+    babyTree_->Branch("el_pfIso04",     	&el_pfIso04_,		"el_pfIso04/F");
 
 }
 //----------------------------------
@@ -597,8 +660,3 @@ void myBabyMaker::CloseBabyNtuple()
     babyFile_->Close();
 }
 
-float deltaPhi( float phi1 , float phi2 ){
-	float dphi = fabs( phi1 - phi2 );
-	if( dphi > TMath::Pi() ) dphi = TMath::TwoPi() - dphi;
-	return dphi;
-} 

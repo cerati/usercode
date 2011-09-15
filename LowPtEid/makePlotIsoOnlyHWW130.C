@@ -4,8 +4,8 @@
   gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);
   gStyle->SetPalette(1);
-  TFile *_file0 = TFile::Open("baby_EG2010A.root");
-  TFile *_file1 = TFile::Open("baby_GluGluToHToWWTo2L2Nu_M-130_7TeV_LOPU.root");
+  TFile *_file0 = TFile::Open("baby_JunkRun2011A.root");
+  TFile *_file1 = TFile::Open("baby_GluGluToHToWWTo2L2Nu_M-130_7TeV.root");
 
   TTree* tree0 = (TTree*) _file0->Get("tree");
   TTree* tree1 = (TTree*) _file1->Get("tree");
@@ -16,7 +16,7 @@
   TCut bar = "abs(el_etaSC)<1.479";
   TCut end = "abs(el_etaSC)>1.479";
   TCut cutNoPt = "met<20&&el_Mt<20";
-  TCut base0 = "el_MZ<0&&met<20&&el_Mt<20&&el10_sw&&el_pt<200";
+  TCut base0 = "el_MZ<0&&met<20&&el_Mt<20&&(el8_v1||el8_v2||el8_v3)&&el_pt<200";
   TCut base1 = "el_pt<200";
   
   TCut v0id("el_VBTF80 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95&&abs(el_dPhiIn*el_q)<0.006))") ;
@@ -26,7 +26,9 @@
   TCut iso("20*el_relIso/el_pt<0.1");
   //iso = "(el_CICt&2)>0";
   TCut ip("abs(el_d0corr)<0.02");
-  TCut conv("(abs(el_conv_dist)>0.02||abs(el_conv_dcot)>0.02) && el_innerlayer39X==0");
+  //TCut conv("(abs(el_conv_dist)>0.02||abs(el_conv_dcot)>0.02) && el_innerlayer==0");
+  TCut conv("el_mitconv && el_innerlayer==0");
+  newconv = conv;
  
   TCut vbtf90_id  ("VBTF90"  ,"el_VBTF90");
   TCut vbtf85_id  ("VBTF85"  ,"el_VBTF90 && (abs(el_etaSC)<1.479&&abs(el_dPhiIn)<0.06&&abs(el_dEtaIn)<0.006&&el_hOverE<0.04 || abs(el_etaSC)>1.479&&abs(el_dPhiIn)<0.04&&abs(el_dEtaIn)<0.007&&el_hOverE<0.025)");
