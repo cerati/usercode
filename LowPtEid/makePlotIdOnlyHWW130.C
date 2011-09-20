@@ -4,8 +4,8 @@
   gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);
   gStyle->SetPalette(1);
-  TFile *_file0 = TFile::Open("baby_JunkRun2011A.root");
-  TFile *_file1 = TFile::Open("baby_GluGluToHToWWTo2L2Nu_M-130_7TeV.root");
+  TFile *_file0 = TFile::Open("baby_data_v6.root");
+  TFile *_file1 = TFile::Open("baby_ww2l.root");
 
   TTree* tree0 = (TTree*) _file0->Get("tree");
   TTree* tree1 = (TTree*) _file1->Get("tree");
@@ -16,36 +16,54 @@
   TCut bar = "abs(el_etaSC)<1.479";
   TCut end = "abs(el_etaSC)>1.479";
   TCut cutNoPt = "met<20&&el_Mt<20";
-  TCut base0 = "el_MZ<0&&met<20&&el_Mt<20&&(el8_v1||el8_v2||el8_v3)&&el_pt<200";
+  TCut base0 = "el_MZ<0&&met<20&&el_Mt<20&&el_pt<200&&(el8_v8||el8idiso_v8||el8idid_v8||el17idiso_v8||el8idisojet40_v8||el8pho20_v9)"; //
   TCut base1 = "el_pt<200";
+
+
   
   TCut v0id("el_VBTF80 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95&&abs(el_dPhiIn*el_q)<0.006))") ;
   TCut eta("abs(el_etaSC)<2.2");
   TCut mva("el_mva>0.4");
   TCut iso("20*el_relIso/el_pt<0.1");
   //iso = "(el_CICt&2)>0";
-  TCut ip("abs(el_d0corr)<0.02");
+  TCut ip("abs(el_d0corr)<0.02 && abs(el_dzpv)<0.1");
   //TCut newconv("abs(el_newconv_dist)>0.05||abs(el_newconv_dcot)>0.02||abs(el_newconv_dmh)>1");
   //TCut conv("(abs(el_conv_dist)>0.02||abs(el_conv_dcot)>0.02) && el_innerlayer==0");
   TCut conv("el_mitconv==0 && el_innerlayer==0");
   TCut newconv = conv;
  
   TCut vbtf90_id  ("VBTF90"  ,"el_VBTF90");
-  TCut vbtf85_id  ("VBTF85"  ,"el_VBTF90 && (abs(el_etaSC)<1.479&&abs(el_dPhiIn)<0.06&&abs(el_dEtaIn)<0.006&&el_hOverE<0.04 || abs(el_etaSC)>1.479&&abs(el_dPhiIn)<0.04&&abs(el_dEtaIn)<0.007&&el_hOverE<0.025)");
+  TCut vbtf85_id  ("VBTF85"  ,"el_VBTF85");
   TCut vbtf80_id  ("VBTF80"  ,"el_VBTF80");
   TCut vbtf70_id  ("VBTF70"  ,"el_VBTF70");
-  TCut vbtf60_id  ("VBTF60"  ,"el_VBTF70 && (abs(el_etaSC)<1.479&&abs(el_dPhiIn)<0.025 || abs(el_etaSC)>1.479)");
+  TCut vbtf60_id  ("VBTF60"  ,"el_VBTF60");
+  TCut vbtf60p_id ("VBTF60+" ,"el_VBTF60 && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf60pp_id("VBTF60++","el_VBTF60 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
   TCut vbtf70p_id ("VBTF70+" ,"el_VBTF70 && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
   TCut vbtf70pp_id("VBTF70++","el_VBTF70 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
   TCut vbtf80p_id ("VBTF80+" ,"el_VBTF80 && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
   TCut vbtf80pp_id("VBTF80++","el_VBTF80 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
 
-  TCut vbtf80_nohoeend_id ("VBTF80-","el_VBTF80 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.03&&abs(el_dEtaIn)<0.007");
-  TCut vbtf80p_nohoeend_id ("VBTF80-+","(el_VBTF80 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.03&&abs(el_dEtaIn)<0.007) && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
-  TCut vbtf80pp_nohoeend_id ("VBTF80-++","(el_VBTF80 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.03&&abs(el_dEtaIn)<0.007) && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
-  TCut vbtf70_nohoeend_id ("VBTF70-","el_VBTF70 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.02&&abs(el_dEtaIn)<0.005");
-  TCut vbtf70p_nohoeend_id ("VBTF70-+","(el_VBTF70 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.02&&abs(el_dEtaIn)<0.005) && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
-  TCut vbtf70pp_nohoeend_id ("VBTF70-++","(el_VBTF70 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.02&&abs(el_dEtaIn)<0.005) && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf95_nohoeend_id("VBTF95-"  ,"el_VBTF95m");
+  TCut vbtf90_nohoeend_id("VBTF90-"  ,"el_VBTF90m");
+  TCut vbtf85_nohoeend_id("VBTF85-"  ,"el_VBTF85m");
+  TCut vbtf80_nohoeend_id("VBTF80-"  ,"el_VBTF80m");
+  TCut vbtf70_nohoeend_id("VBTF70-"  ,"el_VBTF70m");
+  TCut vbtf60_nohoeend_id("VBTF60-"  ,"el_VBTF60m");
+
+  TCut vbtf95p_nohoeend_id("VBTF95-+"  ,"el_VBTF95m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf90p_nohoeend_id("VBTF90-+"  ,"el_VBTF90m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf85p_nohoeend_id("VBTF85-+"  ,"el_VBTF85m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf80p_nohoeend_id("VBTF80-+"  ,"el_VBTF80m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf70p_nohoeend_id("VBTF70-+"  ,"el_VBTF70m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf60p_nohoeend_id("VBTF60-+"  ,"el_VBTF60m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+
+  TCut vbtf95pp_nohoeend_id("VBTF95-++"  ,"el_VBTF95m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf90pp_nohoeend_id("VBTF90-++"  ,"el_VBTF90m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf85pp_nohoeend_id("VBTF85-++"  ,"el_VBTF85m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf80pp_nohoeend_id("VBTF80-++"  ,"el_VBTF80m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf70pp_nohoeend_id("VBTF70-++"  ,"el_VBTF70m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf60pp_nohoeend_id("VBTF60-++"  ,"el_VBTF60m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
 
   TCut cic_ht1_id  ("cic_ht1","(el_CICht1&1)>0");
   TCut cic_ht1_iso ("cic_ht1_iso","(el_CICht1&2)>0");
@@ -73,13 +91,12 @@
   TCut cic_t_ip    ("cic_t_ip","(el_CICt&8)>0");
 
   TCut lik_t_id ("lht","abs(el_etaSC)<1.479&&el_fbrem<0.15&&el_LL>0.820 || abs(el_etaSC)<1.479&&el_fbrem>0.15&&el_LL>0.925 || abs(el_etaSC)>1.479&&el_fbrem<0.15&&el_LL>0.930 || abs(el_etaSC)>1.479&&el_fbrem>0.15&&el_LL>0.979");
-
   TCut lik95_id ("lh95","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>-4.274 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>-3.773 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>-5.092 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>-2.796");
   TCut lik90_id ("lh90","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>-1.497 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>-1.521 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>-2.571 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>-0.657");
   TCut lik85_id ("lh85","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>+0.163 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>+0.065 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>-0.683 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>+1.564");
   TCut lik80_id ("lh80","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>+1.193 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>+1.345 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>+0.810 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>+3.021");
   TCut lik70_id ("lh70","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>+1.781 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>+2.397 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>+2.361 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>+4.052");
-
+  TCut likNew_id ("lhNew","el_lh_WP0");
 
   TCut pfmva3_id ("mva3","el_mva>0.3");
   TCut pfmva5_id ("mva5","el_mva>0.5");
@@ -115,7 +132,7 @@
   base0=base0+ip+conv+iso;
   base1=base1+ip+conv+iso;
 
-  float ptbins[] = {20.,999.};
+  float ptbins[] = {10.,20.};
   float etabins[] = {0,2.5};
   TH2F* pt_vs_eta = new TH2F("pt_vs_eta","pt_vs_eta",1,etabins,1,ptbins);
 
@@ -125,10 +142,10 @@
   gr.SetPoint(1, 1.3, 2.0);
   gr.SetMarkerStyle(1);
 
-  TCut cuts[] = {vbtf90_id,vbtf85_id,vbtf80_id,vbtf70_id,vbtf80p_id,vbtf70p_id, 
-		 vbtf80_nohoeend_id,vbtf70_nohoeend_id,vbtf80p_nohoeend_id,vbtf70p_nohoeend_id,
+  TCut cuts[] = {vbtf90_id,vbtf85_id,vbtf80_id,vbtf70_id,vbtf80p_id,vbtf70p_id,vbtf60p_id, 
+		 vbtf80_nohoeend_id,vbtf70_nohoeend_id,vbtf80p_nohoeend_id,vbtf70p_nohoeend_id,vbtf60p_nohoeend_id,
 		 cic_t_id,cic_st_id,cic_ht1_id,cic_ht2_id,cic_ht3_id,cic_ht4_id,
-		 lik95_id,lik90_id,lik85_id,lik80_id,lik70_id,
+		 lik95_id,lik90_id,lik85_id,lik80_id,lik70_id,likNew_id,
 		 pfmva3_id,pfmva5_id,pfmva6_id,pfmva7_id,pfmva8_id};
   int ncuts = sizeof(cuts)/sizeof(TCut);
 
@@ -147,12 +164,12 @@
   gr.GetXaxis()->SetTitle("Electron ID/VBTF80 eff (HWW130 MC)");
   gr.GetYaxis()->SetTitle("Electron ID/VBTF80 eff (2011 data)");
 
-  TGraph gr_vbtf(6);
+  TGraph gr_vbtf(7);
   gr_vbtf.SetMarkerStyle(20); 
   gr_vbtf.SetMarkerColor(kBlue);
   gr_vbtf.SetLineColor(kBlue);
 
-  TGraph gr_vbtf_nohoeend(4);
+  TGraph gr_vbtf_nohoeend(5);
   gr_vbtf_nohoeend.SetMarkerStyle(20); 
   gr_vbtf_nohoeend.SetMarkerColor(kMagenta);
   gr_vbtf_nohoeend.SetLineColor(kMagenta);
@@ -167,7 +184,7 @@
   gr_mva.SetMarkerColor(kGreen);
   gr_mva.SetLineColor(kGreen);
 
-  TGraph gr_lik(3);
+  TGraph gr_lik(6);
   gr_lik.SetMarkerStyle(23); 
   gr_lik.SetMarkerColor(kOrange);
   gr_lik.SetLineColor(kOrange);
@@ -198,6 +215,6 @@
   l1->AddEntry(&gr_lik, "LH", "p");
   gr_lik.Draw("PL");
   l1->Draw();
-  c1->SaveAs("idEffic_20ptup.png");  
+  c1->SaveAs("idEffic_10pt20.png");  
 
 }

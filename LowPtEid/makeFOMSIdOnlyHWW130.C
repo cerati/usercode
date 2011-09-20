@@ -4,8 +4,8 @@
   gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);
   gStyle->SetPalette(1);
-  TFile *_fileB = TFile::Open("baby_EG2010A.root");
-  TFile *_fileS = TFile::Open("baby_GluGluToHToWWTo2L2Nu_M-130_7TeV_LOPU.root");
+  TFile *_fileB = TFile::Open("baby_data_v6.root");
+  TFile *_fileS = TFile::Open("baby_ww2l.root");
 
   TCanvas c1;
 
@@ -15,33 +15,50 @@
   TCut bar = "abs(el_etaSC)<1.479";
   TCut end = "abs(el_etaSC)>1.479";
   TCut ptcut = "";
-  TCut baseB = "el_MZ<0&&met<20&&el_Mt<20&&el10_sw"+ptcut;
+  TCut baseB = "el_MZ<0&&met<20&&el_Mt<20"+ptcut;//&&(el8_v1||el8_v2||el8_v3||el8_v4||el8_v5||el8_v6||el8_v7||el8_v8||el8_v9)";
   TCut baseS = ""+ptcut;
 
-  TCut ip("abs(el_d0corr)<0.02");
-  TCut conv("(abs(el_conv_dist)>0.02||abs(el_conv_dcot)>0.02) && el_innerlayer39X==0");
+  TCut ip("abs(el_d0corr)<0.02 && abs(el_dzpv)<0.1");
+  TCut conv("el_mitconv==0 && el_innerlayer==0");
 
   baseB=baseB+ip+conv;
   baseS=baseS+ip+conv;
 
   TCut iso("20*el_relIso/el_pt<0.1");
   
+
   TCut vbtf90_id  ("VBTF90"  ,"el_VBTF90");
-  TCut vbtf85_id  ("VBTF85"  ,"el_VBTF90 && (abs(el_etaSC)<1.479&&abs(el_dPhiIn)<0.06&&abs(el_dEtaIn)<0.006&&el_hOverE<0.04 || abs(el_etaSC)>1.479&&abs(el_dPhiIn)<0.04&&abs(el_dEtaIn)<0.007&&el_hOverE<0.025)");
+  TCut vbtf85_id  ("VBTF85"  ,"el_VBTF85");
   TCut vbtf80_id  ("VBTF80"  ,"el_VBTF80");
   TCut vbtf70_id  ("VBTF70"  ,"el_VBTF70");
-  TCut vbtf60_id  ("VBTF60"  ,"el_VBTF70 && (abs(el_etaSC)<1.479&&abs(el_dPhiIn)<0.025 || abs(el_etaSC)>1.479)");
+  TCut vbtf60_id  ("VBTF60"  ,"el_VBTF60");
+  TCut vbtf60p_id ("VBTF60+" ,"el_VBTF60 && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf60pp_id("VBTF60++","el_VBTF60 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
   TCut vbtf70p_id ("VBTF70+" ,"el_VBTF70 && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
   TCut vbtf70pp_id("VBTF70++","el_VBTF70 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
   TCut vbtf80p_id ("VBTF80+" ,"el_VBTF80 && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
   TCut vbtf80pp_id("VBTF80++","el_VBTF80 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
 
-  TCut vbtf80_nohoeend_id ("VBTF80-","el_VBTF80 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.03&&abs(el_dEtaIn)<0.007");
-  TCut vbtf80p_nohoeend_id ("VBTF80-+","(el_VBTF80 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.03&&abs(el_dEtaIn)<0.007) && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
-  TCut vbtf80pp_nohoeend_id ("VBTF80-++","(el_VBTF80 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.03&&abs(el_dEtaIn)<0.007) && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
-  TCut vbtf70_nohoeend_id ("VBTF70-","el_VBTF70 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.02&&abs(el_dEtaIn)<0.005");
-  TCut vbtf70p_nohoeend_id ("VBTF70-+","(el_VBTF70 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.02&&abs(el_dEtaIn)<0.005) && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
-  TCut vbtf70pp_nohoeend_id ("VBTF70-++","(el_VBTF70 & abs(el_etaSC)<1.479 || abs(el_etaSC)>1.479&&el_sigmaIEtaIEta<0.03&&abs(el_dPhiIn)<0.02&&abs(el_dEtaIn)<0.005) && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf95_nohoeend_id("VBTF95-"  ,"el_VBTF95m");
+  TCut vbtf90_nohoeend_id("VBTF90-"  ,"el_VBTF90m");
+  TCut vbtf85_nohoeend_id("VBTF85-"  ,"el_VBTF85m");
+  TCut vbtf80_nohoeend_id("VBTF80-"  ,"el_VBTF80m");
+  TCut vbtf70_nohoeend_id("VBTF70-"  ,"el_VBTF70m");
+  TCut vbtf60_nohoeend_id("VBTF60-"  ,"el_VBTF60m");
+
+  TCut vbtf95p_nohoeend_id("VBTF95-+"  ,"el_VBTF95m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf90p_nohoeend_id("VBTF90-+"  ,"el_VBTF90m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf85p_nohoeend_id("VBTF85-+"  ,"el_VBTF85m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf80p_nohoeend_id("VBTF80-+"  ,"el_VBTF80m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf70p_nohoeend_id("VBTF70-+"  ,"el_VBTF70m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+  TCut vbtf60p_nohoeend_id("VBTF60-+"  ,"el_VBTF60m && (el_pt>20 || (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95)))");
+
+  TCut vbtf95pp_nohoeend_id("VBTF95-++"  ,"el_VBTF95m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf90pp_nohoeend_id("VBTF90-++"  ,"el_VBTF90m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf85pp_nohoeend_id("VBTF85-++"  ,"el_VBTF85m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf80pp_nohoeend_id("VBTF80-++"  ,"el_VBTF80m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf70pp_nohoeend_id("VBTF70-++"  ,"el_VBTF70m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
+  TCut vbtf60pp_nohoeend_id("VBTF60-++"  ,"el_VBTF60m && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95))");
 
   TCut cic_ht1_id  ("cic_ht1","(el_CICht1&1)>0");
   TCut cic_ht1_iso ("cic_ht1_iso","(el_CICht1&2)>0");
@@ -71,6 +88,13 @@
   //iso = cic_ht2_iso;
 
   TCut lik_t_id ("lht","abs(el_etaSC)<1.479&&el_fbrem<0.15&&el_LL>0.820 || abs(el_etaSC)<1.479&&el_fbrem>0.15&&el_LL>0.925 || abs(el_etaSC)>1.479&&el_fbrem<0.15&&el_LL>0.930 || abs(el_etaSC)>1.479&&el_fbrem>0.15&&el_LL>0.979");
+  TCut lik95_id ("lh95","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>-4.274 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>-3.773 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>-5.092 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>-2.796");
+  TCut lik90_id ("lh90","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>-1.497 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>-1.521 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>-2.571 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>-0.657");
+  TCut lik85_id ("lh85","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>+0.163 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>+0.065 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>-0.683 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>+1.564");
+  TCut lik80_id ("lh80","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>+1.193 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>+1.345 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>+0.810 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>+3.021");
+  TCut lik70_id ("lh70","abs(el_etaSC)<1.479&&el_nbrem==0&&el_lh>+1.781 || abs(el_etaSC)<1.479&&el_nbrem>=1&&el_lh>+2.397 || abs(el_etaSC)>1.479&&el_nbrem==0&&el_lh>+2.361 || abs(el_etaSC)>1.479&&el_nbrem>=1&&el_lh>+4.052");
+  TCut likNew_id ("lhNew","el_lh_WP0");
+
   TCut pfmva3_id ("mva3","el_mva>0.3");
   TCut pfmva5_id ("mva5","el_mva>0.5");
   TCut pfmva6_id ("mva6","el_mva>0.6");
@@ -87,7 +111,7 @@
   else if (do20up) ptrange = "pt20";
 
   //TCut cuts[] = {vbtf85_id,vbtf80_id,vbtf70_id,pfmva5_id,pfmva7_id,lik_t_id,cic_st_id,cic_ht2_id,cic_ht4_id};
-  TCut cuts[] = {vbtf80_id,vbtf80p_id,vbtf70_id,vbtf70p_id,pfmva5_id,pfmva7_id,lik_t_id,cic_st_id,cic_ht2_id,cic_ht4_id};
+  TCut cuts[] = {vbtf80_id,vbtf80p_id,vbtf70_id,vbtf70p_id,pfmva5_id,pfmva7_id,likNew_id,cic_st_id,cic_ht2_id,cic_ht4_id};
   //TCut cuts[] = {vbtf80_id,vbtf80_nohoeend_id,vbtf80p_id,vbtf80p_nohoeend_id,vbtf70_id,vbtf70_nohoeend_id,vbtf70p_id,vbtf70p_nohoeend_id};
 
   float ptbins[] =  {10., 15., 20., 9999.};
@@ -161,9 +185,11 @@
   float totS = totS_11+totS_21+totS_31+totS_12+totS_22+totS_32+totS_13+totS_23+totS_33;
 
   vector<TString> names;
-  vector<float> fom1s;
-  vector<float> fom2s;
-  vector<float> fom3s;
+  vector<double> fom1s;
+  vector<double> fom2s;
+  vector<double> fom3s;
+
+  fom1s.clear();
 
   int ncuts = sizeof(cuts)/sizeof(TCut);
   for (int id_it=0;id_it<ncuts;++id_it) {
@@ -315,7 +341,7 @@
       hfom1_cic->GetXaxis()->SetBinLabel(j+1,"");
     }
   }
-  float ymax = max(hfom1_vbtf->GetMaximum(),max(hfom1_mva->GetMaximum(),hfom1_vbtf->GetMaximum()))*1.2;
+  float ymax = TMath::Max(hfom1_vbtf->GetMaximum(),TMath::Max(hfom1_mva->GetMaximum(),hfom1_vbtf->GetMaximum()))*1.2;
   hfom1_vbtf->GetYaxis()->SetRangeUser(0,0.20);
   hfom1_vbtf->Draw("P");
   Float_t x, y;
@@ -371,7 +397,7 @@
       hfom2_cic->GetXaxis()->SetBinLabel(j+1,"");
     }
   }
-  float ymax = max(hfom2_vbtf->GetMaximum(),max(hfom2_mva->GetMaximum(),hfom2_vbtf->GetMaximum()))*1.2;
+  float ymax = TMath::Max(hfom2_vbtf->GetMaximum(),TMath::Max(hfom2_mva->GetMaximum(),hfom2_vbtf->GetMaximum()))*1.2;
   hfom2_vbtf->GetYaxis()->SetRangeUser(0,1.0);
   hfom2_vbtf->Draw("P");
   Float_t x, y;
@@ -427,7 +453,7 @@
       hfom3_cic->GetXaxis()->SetBinLabel(j+1,"");
     }
   }
-  float ymax = max(hfom3_vbtf->GetMaximum(),max(hfom3_mva->GetMaximum(),hfom3_vbtf->GetMaximum()))*1.2;
+  float ymax = TMath::Max(hfom3_vbtf->GetMaximum(),TMath::Max(hfom3_mva->GetMaximum(),hfom3_vbtf->GetMaximum()))*1.2;
   hfom3_vbtf->GetYaxis()->SetRangeUser(0,0.5);
   hfom3_vbtf->Draw("P");
   Float_t x, y;

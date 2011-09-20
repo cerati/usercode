@@ -7,30 +7,31 @@
 #include "TChain.h"
 #include "TDirectory.h"
 #include "TChainElement.h"
+#include "TTreeCache.h"
 #include "TH1F.h"
 #include "TH2F.h"
 #include "Math/VectorUtil.h"
 #include "TLorentzVector.h"
 
 // TAS includes
-#include "./CORE/CMS2.cc"
+#include "../CORE/CMS2.cc"
 
-#include "./CORE/trackSelections.cc"
-#include "./CORE/eventSelections.cc"
+#include "../CORE/trackSelections.cc"
+#include "../CORE/eventSelections.cc"
 
-#include "./CORE/muonSelections.cc"
-#include "./CORE/electronSelections.cc"
-#include "./CORE/electronSelectionsParameters.cc"
-#include "./CORE/metSelections.cc"
-#include "./CORE/utilities.cc"
-#include "./CORE/jetSelections.cc"
-#include "./Tools/goodrun.cc"
-#include "./Tools/EgammaAnalysisTools/include/LikelihoodUtil.h"
-#include "./CORE/conversionTools.cc"
-#include "./CORE/MITConversionUtilities.cc"
+#include "../CORE/muonSelections.cc"
+#include "../CORE/electronSelections.cc"
+#include "../CORE/electronSelectionsParameters.cc"
+#include "../CORE/MITConversionUtilities.cc"
+#include "../CORE/metSelections.cc"
+#include "../CORE/utilities.cc"
+//#include "../CORE/jetSelections.cc"
+#include "../Tools/goodrun.cc"
+//#include "../Tools/EgammaAnalysisTools/include/LikelihoodUtil.h"
+#include "../CORE/conversionTools.cc"
 
-#include "./CORE/triggerUtils.cc"
-#include "./CORE/triggerSuperModel.cc"
+#include "../CORE/triggerUtils.cc"
+#include "../CORE/triggerSuperModel.cc"
 #include "./myBabyMaker.h"
 
 using namespace std;
@@ -119,11 +120,11 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 
   // Set the JSON file
   if(isData){
-    set_goodrun_file("goodruns.txt");
+    set_goodrun_file("goodrunlist.txt");
   }
 
   // initiate likelihood object with pdf location
-  LikelihoodUtil likelihoodUtil("./Tools/EgammaAnalysisTools/PDFs/pdfs_MC.root");
+  //LikelihoodUtil likelihoodUtil("./Tools/EgammaAnalysisTools/PDFs/pdfs_MC.root");
 
   //cout << "2" << endl;
 
@@ -153,6 +154,8 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 
     TFile f(filename.Data());
     TTree *tree = (TTree*)f.Get("Events");
+    TTreeCache::SetLearnEntries(10);
+    tree->SetCacheSize(128*1024*1024);
     cms2.Init(tree);
     unsigned int nEntries = tree->GetEntries();
     unsigned int nLoop = nEntries;
@@ -161,7 +164,7 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
     { // Event Loop
       cms2.GetEntry(z);
 
-  //cout << "5" << endl;
+      //cout << "5" << endl;
       if(isData){
         // Good  Runs
         if(!goodrun( evt_run(), evt_lumiBlock() )) continue;
@@ -191,8 +194,17 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
       // define eleId bits
       static const cuts_t electronSelection_VBTF95 = (1ll<<ELEID_VBTF_35X_95);
       static const cuts_t electronSelection_VBTF90 = (1ll<<ELEID_VBTF_35X_90);
+      static const cuts_t electronSelection_VBTF85 = (1ll<<ELEID_VBTF_85);
       static const cuts_t electronSelection_VBTF80 = (1ll<<ELEID_VBTF_35X_80);
       static const cuts_t electronSelection_VBTF70 = (1ll<<ELEID_VBTF_35X_70);
+      static const cuts_t electronSelection_VBTF60 = (1ll<<ELEID_VBTF_35X_60);
+
+      static const cuts_t electronSelection_VBTF95m = (1ll<<ELEID_VBTF_95_NOHOEEND);
+      static const cuts_t electronSelection_VBTF90m = (1ll<<ELEID_VBTF_90_NOHOEEND);
+      static const cuts_t electronSelection_VBTF85m = (1ll<<ELEID_VBTF_85_NOHOEEND);
+      static const cuts_t electronSelection_VBTF80m = (1ll<<ELEID_VBTF_80_NOHOEEND);
+      static const cuts_t electronSelection_VBTF70m = (1ll<<ELEID_VBTF_70_NOHOEEND);
+      static const cuts_t electronSelection_VBTF60m = (1ll<<ELEID_VBTF_60_NOHOEEND);
 
   //cout << "7" << endl;
       InitBabyNtuple();  
@@ -296,10 +308,8 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 	      el_conv_ddz_	= 0;
 	      if (els_conv_tkidx().at(iEl)>=0) el_conv_ddz_	= trks_z0().at(els_conv_tkidx().at(iEl))-els_z0().at(iEl);
 	      el_inner_posrho_	= els_inner_position().at(iEl).rho();
-	      el_LL_		= likelihoodUtil.getValue(iEl);
-	      if (el_LL_<=0) el_lh_=-20.;
-	      else if (el_LL_==1) el_lh_=20.; 
-	      else el_lh_            = log(el_LL_/(1.0-el_LL_));
+	      el_lh_		= els_lh().at(iEl);//likelihoodUtil.getValue(iEl);
+	      el_lh_WP0_	= passLikelihoodId_v2(iEl,els_lh().at(iEl),0);//likelihoodUtil.getValue(iEl);
 	      el_type_		= els_type().at(iEl);
 
 	      el_mitconv_ = isFromConversionMIT(iEl);
@@ -323,10 +333,19 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 	      //el_eg_robhighE_	= els_egamma_robustHighEnergy().at(iEl);
 
 	      // id
+	      el_VBTF60_ = pass_electronSelection(iEl, electronSelection_VBTF60, false, false);
 	      el_VBTF70_ = pass_electronSelection(iEl, electronSelection_VBTF70, false, false);
 	      el_VBTF80_ = pass_electronSelection(iEl, electronSelection_VBTF80, false, false);
+	      el_VBTF85_ = pass_electronSelection(iEl, electronSelection_VBTF85, false, false);
 	      el_VBTF90_ = pass_electronSelection(iEl, electronSelection_VBTF90, false, false);
 	      el_VBTF95_ = pass_electronSelection(iEl, electronSelection_VBTF95, false, false);
+
+	      el_VBTF60m_ = pass_electronSelection(iEl, electronSelection_VBTF60m, false, false);
+	      el_VBTF70m_ = pass_electronSelection(iEl, electronSelection_VBTF70m, false, false);
+	      el_VBTF80m_ = pass_electronSelection(iEl, electronSelection_VBTF80m, false, false);
+	      el_VBTF85m_ = pass_electronSelection(iEl, electronSelection_VBTF85m, false, false);
+	      el_VBTF90m_ = pass_electronSelection(iEl, electronSelection_VBTF90m, false, false);
+	      el_VBTF95m_ = pass_electronSelection(iEl, electronSelection_VBTF95m, false, false);
    
 	      // selection 
 	      el_wwV0_ 	= pass_electronSelection(iEl, electronSelection_wwV0, false, false); 
@@ -335,21 +354,13 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 
 
 	      // HLT mathcing dR<0.4. returns 2 if matching
-	      el8_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_v1");
-	      el8_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_v2");
-	      el8_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_v3");
-	      el8idisojet40_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v1");
-	      el8idisojet40_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v2");
-	      el8idisojet40_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v3");
-	      el8idiso_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_v1");
-	      el8idiso_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_v2");
-	      el8idiso_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_v3");
-	      el17idiso_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele17_CaloIdL_CaloIsoVL_v1");
-	      el17idiso_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele17_CaloIdL_CaloIsoVL_v2");
-	      el17idiso_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele17_CaloIdL_CaloIsoVL_v3");
-	      el8pho20_v1_  = TriggerMatch( els_p4().at(iEl), "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v1");
-	      el8pho20_v2_  = TriggerMatch( els_p4().at(iEl), "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v2");
-	      el8pho20_v3_  = TriggerMatch( els_p4().at(iEl), "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v3");
+	      //check vX for the relevant runs at http://dmytro.web.cern.ch/dmytro/trigger/triggerEvolution_all.txt
+	      el8_v8_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_v8");
+	      el8idisojet40_v8_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v8");
+	      el8idiso_v8_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_CaloIsoVL_v8");
+	      el8idid_v8_   = TriggerMatch( els_p4().at(iEl), "HLT_Ele8_CaloIdL_TrkIdVL_v8");
+	      el17idiso_v8_  = TriggerMatch( els_p4().at(iEl), "HLT_Ele17_CaloIdL_CaloIsoVL_v8");
+	      el8pho20_v9_  = TriggerMatch( els_p4().at(iEl), "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v9");
 
 	      vector<ConversionInfo> v_convInfos = getConversionInfos(iEl, evt_bField(), 0.45);   
 	      ConversionInfo bestConv = findBestConversionMatch(v_convInfos);
@@ -367,7 +378,6 @@ void myBabyMaker::ScanChain( TChain* chain, const char *babyFilename, bool isDat
 
 	      el_d0pv2d_ = electron_d0PV_wwV1(iEl);
 	      //el_d0pv3d_ = electron_d0PV3d_wwV1(iEl);
-
 	      //el_d0pv2dErr_ = electron_d0PVErr_wwV1(iEl);
 	      //el_d0pv3dErr_ = electron_d0PV3dErr_wwV1(iEl);
 	      el_dzpv_ = gsftrks_dz_pv(els_gsftrkidx().at(iEl), 0, true).first;
@@ -442,7 +452,7 @@ void myBabyMaker::InitBabyNtuple ()
   el_conv_rad_ = -999.; 
   el_conv_ddz_ = -999.; 
   el_inner_posrho_ = -999.; 
-  el_LL_ = -999.; 
+  el_lh_WP0_ = false;
   el_lh_ = -999.; 
   el_type_ = -1; 
   el_CICt_ = -1; 
@@ -454,10 +464,18 @@ void myBabyMaker::InitBabyNtuple ()
 
   el_mitconv_ = false;
 
+  el_VBTF60_ = false;
   el_VBTF70_ = false;
   el_VBTF80_ = false;
+  el_VBTF85_ = false;
   el_VBTF90_ = false;
   el_VBTF95_ = false;
+  el_VBTF60m_ = false;
+  el_VBTF70m_ = false;
+  el_VBTF80m_ = false;
+  el_VBTF85m_ = false;
+  el_VBTF90m_ = false;
+  el_VBTF95m_ = false;
   el_wwV0_   = false;
   el_wwV0b_  = false;
   el_wwV1_   = false;
@@ -474,21 +492,12 @@ void myBabyMaker::InitBabyNtuple ()
   el_eg_tightid_ = -999.;
   el_eg_robhighE_= -999.;
   
-  el8_v1_ = -1; // HLT_Ele8_v1
-  el8_v2_ = -1; // HLT_Ele8_v2
-  el8_v3_ = -1; // HLT_Ele8_v3
-  el8idisojet40_v1_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v1
-  el8idisojet40_v2_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v2
-  el8idisojet40_v3_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v3
-  el8idiso_v1_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_v1
-  el8idiso_v2_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_v2
-  el8idiso_v3_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_v3
-  el17idiso_v1_ = -1; // HLT_Ele17_CaloIdL_CaloIsoVL_v1
-  el17idiso_v2_ = -1; // HLT_Ele17_CaloIdL_CaloIsoVL_v2
-  el17idiso_v3_ = -1; // HLT_Ele17_CaloIdL_CaloIsoVL_v3
-  el8pho20_v1_ = -1; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v1
-  el8pho20_v2_ = -1; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v2
-  el8pho20_v3_ = -1; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v3
+  el8_v8_ = -1; // HLT_Ele8_vX
+  el8idisojet40_v8_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_vX
+  el8idiso_v8_ = -1; // HLT_Ele8_CaloIdL_CaloIsoVL_vX
+  el8idid_v8_ = -1; // HLT_Ele8_CaloIdL_TrkIdVL_v8
+  el17idiso_v8_ = -1; // HLT_Ele17_CaloIdL_CaloIsoVL_vX
+  el8pho20_v9_ = -1; // HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_vX
 
   el_newconv_dist_ = -999.; 
   el_newconv_dcot_ = -999.; 
@@ -573,7 +582,7 @@ void myBabyMaker::MakeBabyNtuple(const char *babyFilename)
     babyTree_->Branch("el_conv_rad",	   	&el_conv_rad_,		"el_conv_rad/F");
     babyTree_->Branch("el_conv_ddz",	   	&el_conv_ddz_,		"el_conv_ddz/F");
     babyTree_->Branch("el_inner_posrho",	&el_inner_posrho_,	"el_inner_posrho/F");
-    babyTree_->Branch("el_LL",   		&el_LL_,		"el_LL/F");
+    babyTree_->Branch("el_lh_WP0",   		&el_lh_WP0_,		"el_lh_WP0/O");
     babyTree_->Branch("el_lh",   		&el_lh_,		"el_lh/F");
     babyTree_->Branch("el_type",   		&el_type_,		"el_type/I");
     babyTree_->Branch("el_CICt",   		&el_CICt_,		"el_CICt/I");
@@ -583,10 +592,18 @@ void myBabyMaker::MakeBabyNtuple(const char *babyFilename)
     babyTree_->Branch("el_CICht3",  		&el_CICht3_,		"el_CICht3/I");
     babyTree_->Branch("el_CICht4",  		&el_CICht4_,		"el_CICht4/I");
 
+    babyTree_->Branch("el_VBTF60",          	&el_VBTF60_,        	"el_VBTF60/O"   );
     babyTree_->Branch("el_VBTF70",          	&el_VBTF70_,        	"el_VBTF70/O"   );
     babyTree_->Branch("el_VBTF80",          	&el_VBTF80_,        	"el_VBTF80/O"   );
+    babyTree_->Branch("el_VBTF85",          	&el_VBTF85_,        	"el_VBTF85/O"   );
     babyTree_->Branch("el_VBTF90",          	&el_VBTF90_,        	"el_VBTF90/O"   );
     babyTree_->Branch("el_VBTF95",          	&el_VBTF95_,        	"el_VBTF95/O"   );
+    babyTree_->Branch("el_VBTF60m",          	&el_VBTF60m_,        	"el_VBTF60m/O"   );
+    babyTree_->Branch("el_VBTF70m",          	&el_VBTF70m_,        	"el_VBTF70m/O"   );
+    babyTree_->Branch("el_VBTF80m",          	&el_VBTF80m_,        	"el_VBTF80m/O"   );
+    babyTree_->Branch("el_VBTF85m",          	&el_VBTF85m_,        	"el_VBTF85m/O"   );
+    babyTree_->Branch("el_VBTF90m",          	&el_VBTF90m_,        	"el_VBTF90m/O"   );
+    babyTree_->Branch("el_VBTF95m",          	&el_VBTF95m_,        	"el_VBTF95m/O"   );
     babyTree_->Branch("el_wwV0",          	&el_wwV0_,        	"el_wwV0/O"	);
     babyTree_->Branch("el_wwV0b",          	&el_wwV0b_,        	"el_wwV0b/O"    );
     babyTree_->Branch("el_wwV1",          	&el_wwV1_,        	"el_wwV1/O"     );
@@ -603,21 +620,12 @@ void myBabyMaker::MakeBabyNtuple(const char *babyFilename)
     babyTree_->Branch("el_eg_tightid",      	&el_eg_tightid_,    	"el_eg_tightid/F"     );
     babyTree_->Branch("el_eg_robhighE",      	&el_eg_robhighE_,    	"el_eg_robhighE/F"     );
 
-    babyTree_->Branch("el8_v1",          	&el8_v1_,        	"el8_v1/I"	);
-    babyTree_->Branch("el8_v2",          	&el8_v2_,        	"el8_v2/I"	);
-    babyTree_->Branch("el8_v3",          	&el8_v3_,        	"el8_v3/I"	);
-    babyTree_->Branch("el8idisojet40_v1",      	&el8idisojet40_v1_,     "el8idisojet40_v1/I"	);
-    babyTree_->Branch("el8idisojet40_v2",     	&el8idisojet40_v2_,     "el8idisojet40_v2/I"	);
-    babyTree_->Branch("el8idisojet40_v3",     	&el8idisojet40_v3_,     "el8idisojet40_v3/I"	);
-    babyTree_->Branch("el8idiso_v1",          	&el8idiso_v1_,        	"el8idiso_v1/I"	);
-    babyTree_->Branch("el8idiso_v2",          	&el8idiso_v2_,        	"el8idiso_v2/I"	);
-    babyTree_->Branch("el8idiso_v3",          	&el8idiso_v3_,        	"el8idiso_v3/I"	);
-    babyTree_->Branch("el17idiso_v1",          	&el17idiso_v1_,        	"el17idiso_v1/I"	);
-    babyTree_->Branch("el17idiso_v2",          	&el17idiso_v2_,        	"el17idiso_v2/I"	);
-    babyTree_->Branch("el17idiso_v3",          	&el17idiso_v3_,        	"el17idiso_v3/I"	);
-    babyTree_->Branch("el8pho20_v1",          	&el8pho20_v1_,        	"el8pho20_v1/I"	);
-    babyTree_->Branch("el8pho20_v2",          	&el8pho20_v2_,        	"el8pho20_v2/I"	);
-    babyTree_->Branch("el8pho20_v3",          	&el8pho20_v3_,        	"el8pho20_v3/I"	);
+    babyTree_->Branch("el8_v8",          	&el8_v8_,        	"el8_v8/I"	);
+    babyTree_->Branch("el8idisojet40_v8",      	&el8idisojet40_v8_,     "el8idisojet40_v8/I"	);
+    babyTree_->Branch("el8idiso_v8",          	&el8idiso_v8_,        	"el8idiso_v8/I"	);
+    babyTree_->Branch("el8idid_v8",          	&el8idid_v8_,        	"el8idid_v8/I"	);
+    babyTree_->Branch("el17idiso_v8",          	&el17idiso_v8_,        	"el17idiso_v8/I"	);
+    babyTree_->Branch("el8pho20_v9",          	&el8pho20_v9_,        	"el8pho20_v9/I"	);
 
     babyTree_->Branch("el_newconv_dist",   	&el_newconv_dist_,		"el_newconv_dist/F");
     babyTree_->Branch("el_newconv_dcot",   	&el_newconv_dcot_,		"el_newconv_dcot/F");
