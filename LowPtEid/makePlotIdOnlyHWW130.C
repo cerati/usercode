@@ -13,13 +13,12 @@
   TCanvas *c1 = new TCanvas();
   c1->cd();
 
+  //denominator cuts definitions
   TCut bar = "abs(el_etaSC)<1.479";
   TCut end = "abs(el_etaSC)>1.479";
   TCut cutNoPt = "met<20&&el_Mt<20";
   TCut base0 = "el_MZ<0&&met<20&&el_Mt<20&&el_pt<200&&(el8_v8||el8idiso_v8||el8idid_v8||el17idiso_v8||el8idisojet40_v8||el8pho20_v9)"; //
   TCut base1 = "el_pt<200";
-
-
   
   TCut v0id("el_VBTF80 && (el_fbrem>0.15 || (abs(el_etaSC)<1.&&el_eOverPIn>0.95&&abs(el_dPhiIn*el_q)<0.006))") ;
   TCut eta("abs(el_etaSC)<2.2");
@@ -31,7 +30,9 @@
   //TCut conv("(abs(el_conv_dist)>0.02||abs(el_conv_dcot)>0.02) && el_innerlayer==0");
   TCut conv("el_mitconv==0 && el_innerlayer==0");
   TCut newconv = conv;
- 
+
+
+  //ide cuts definitions 
   TCut vbtf90_id  ("VBTF90"  ,"el_VBTF90");
   TCut vbtf85_id  ("VBTF85"  ,"el_VBTF85");
   TCut vbtf80_id  ("VBTF80"  ,"el_VBTF80");
@@ -128,12 +129,12 @@
   TCut ip_d03ds_3("ip_d03ds_3","abs(el_d0pv3d/el_d0pv3dErr)<3");
   TCut ip_d03ds_9("ip_d03ds_9","abs(el_d0pv3d/el_d0pv3dErr)<9");
 
-
+  //denominator
   base0=base0+ip+conv+iso;
   base1=base1+ip+conv+iso;
 
   float ptbins[] = {10.,20.};
-  float etabins[] = {0,2.5};
+  float etabins[] = {0,1.};
   TH2F* pt_vs_eta = new TH2F("pt_vs_eta","pt_vs_eta",1,etabins,1,ptbins);
 
   TGraph gr(2);
@@ -142,6 +143,7 @@
   gr.SetPoint(1, 1.3, 2.0);
   gr.SetMarkerStyle(1);
 
+  //define here which cuts to test
   TCut cuts[] = {vbtf90_id,vbtf85_id,vbtf80_id,vbtf70_id,vbtf80p_id,vbtf70p_id,vbtf60p_id, 
 		 vbtf80_nohoeend_id,vbtf70_nohoeend_id,vbtf80p_nohoeend_id,vbtf70p_nohoeend_id,vbtf60p_nohoeend_id,
 		 cic_t_id,cic_st_id,cic_ht1_id,cic_ht2_id,cic_ht3_id,cic_ht4_id,
@@ -149,6 +151,7 @@
 		 pfmva3_id,pfmva5_id,pfmva6_id,pfmva7_id,pfmva8_id};
   int ncuts = sizeof(cuts)/sizeof(TCut);
 
+  //all effs relative to vbtf80
   tree0->Draw("el_pt:abs(el_etaSC)>>pt_vs_eta",base0+vbtf80_id,"goff");
   float all0 = pt_vs_eta->GetBinContent(1,1);
   tree1->Draw("el_pt:abs(el_etaSC)>>pt_vs_eta",base1+vbtf80_id,"goff");
@@ -164,6 +167,7 @@
   gr.GetXaxis()->SetTitle("Electron ID/VBTF80 eff (HWW130 MC)");
   gr.GetYaxis()->SetTitle("Electron ID/VBTF80 eff (2011 data)");
 
+  //categories (i.e. colors and markers in the final plot)
   TGraph gr_vbtf(7);
   gr_vbtf.SetMarkerStyle(20); 
   gr_vbtf.SetMarkerColor(kBlue);
@@ -189,6 +193,7 @@
   gr_lik.SetMarkerColor(kOrange);
   gr_lik.SetLineColor(kOrange);
 
+  //loop over cuts applied
   int n_vbtf=0,n_vbtf_nohoeend=0,n_cic=0,n_mva=0,n_lik=0;
   for (unsigned int ic=0;ic<ncuts;++ic){
     tree0->Draw("el_pt:abs(el_etaSC)>>pt_vs_eta",base0+cuts[ic],"goff");
