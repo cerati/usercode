@@ -15,7 +15,7 @@
   TCut bar = "abs(el_etaSC)<1.479";
   TCut end = "abs(el_etaSC)>1.479";
   TCut ptcut = "";
-  TCut baseB = "el_MZ<0&&met<20&&el_Mt<20&&(el8_v8||el8idiso_v8||el8idid_v8||el17idiso_v8||el8idisojet40_v8||el8pho20_v9"+ptcut;//
+  TCut baseB = "el_MZ<0&&met<20&&el_Mt<20&&(el8_v8||el8idiso_v8||el8idid_v8||el17idiso_v8||el8idisojet40_v8||el8pho20_v9)"+ptcut;//
   TCut baseS = ""+ptcut;
 
   TCut ip("abs(el_d0corr)<0.02 && abs(el_dzpv)<0.1");
