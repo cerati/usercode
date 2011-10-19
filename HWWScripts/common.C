@@ -485,7 +485,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( region.Contains("mm40allfs") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0 ) continue;
     if ( region.Contains("minmetvtx") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<35.+dataEvent->nvtx_/2.) ) continue;
     if ( region.Contains("lep2pt15") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->lep2_.pt()<15.) ) continue;
-    if ( region.Contains("ptll45") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.pt()<45.) ) continue;
+    if ( region.Contains("ptll45") && ( dataEvent->dilep_.pt()<45.) ) continue;
     //cuts for Rout/in
     if ( region.Contains("met2022") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>22.0) ) continue;
     if ( region.Contains("met2226") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<22.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>26.0) ) continue;
