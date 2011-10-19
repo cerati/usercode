@@ -74,21 +74,16 @@ unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSe
 unsigned int noVeto          = 1UL<<31;
 unsigned int noCut           = 1UL<<0;
 
-// TString dir_mc         = "/smurf/data/LP2011/mitf/";
-// TString data_file      = "/smurf/data/LP2011/mitf/data.root";
-TString dir_mc         = "/smurf/cerati/Run2011_Spring11_SmurfV6_42X/2121ipb/wwSelNoLepNoTV/";
-TString data_file      = "/smurf/cerati/Run2011_Spring11_SmurfV6_42X/2121ipb/wwSelNoLepNoTV/data.root";
+TString dir_mc         = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/";
+TString data_file      = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/data.root";
 
-//TString data_file      = "/smurf/data/Run2011_Spring11_SmurfV6_42X/mitf-alljets/data.root";
-//TString data_file      = "/smurf/cerati/Run2011_Spring11_SmurfV6_42X/skimTop/data.root";
-TString dir_mc_mit     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/mitf-alljets/";
-TString dir_mc_tas     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/";
+// TString dir_mc_mit     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/mitf-alljets/";
+// TString dir_mc_tas     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/";
 
-
-TString fr_file_mit    = "/smurf/data/LP2011/auxiliar/FakeRates_SmurfV6.LP2011.root";
+TString fr_file_mit    = "/smurf/data/Winter11/auxiliar/FakeRates_SmurfMVAWithIPInfoElectron.root";
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
-TString eff_file       = "/smurf/data/LP2011/auxiliar/efficiency_results_v6_42x.root";
+TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_SmurfBDTGWithIPInfoElectrons.root";
 TString puw_file       = "/smurf/data/LP2011/auxiliar/puWeights_PU4_68mb.root";
 
 bool redoWeights  = 0;
@@ -485,9 +480,12 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( (region.Contains("zvetoall")) && fabs(dataEvent->dilep_.mass()-91.1876)<15. ) continue;
     //additional higgs cuts
     if ( region.Contains("dphijet")   && ( dataEvent->type_!=1 && dataEvent->type_!=2 && (dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.)) ) continue;
-    if ( region.Contains("minmet40")  && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0) ) continue;
+    if ( region.Contains("minmet40")  && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0)) continue;
     if ( region.Contains("dpjallfs")  && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) continue;
     if ( region.Contains("mm40allfs") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0 ) continue;
+    if ( region.Contains("minmetvtx") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<35.+dataEvent->nvtx_/2.) ) continue;
+    if ( region.Contains("lep2pt15") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->lep2_.pt()<15.) ) continue;
+    if ( region.Contains("ptll45") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.pt()<45.) ) continue;
     //cuts for Rout/in
     if ( region.Contains("met2022") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>22.0) ) continue;
     if ( region.Contains("met2226") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<22.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>26.0) ) continue;

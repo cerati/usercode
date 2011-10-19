@@ -11,8 +11,8 @@ pair<float,float> wwEstimationMC(int mass=160, unsigned int njets=0, float lumi 
 
   float scale_qq = getScale1fb(dir_mc+"qqww")*lumi;
   float scale_gg = getScale1fb(dir_mc+"ggww")*lumi;
-  float sigreg_qqww_l = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
-  float sigreg_ggww_l = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmet40", lumi, false, applyEff, false, doPUw).first;
+  float sigreg_qqww_l = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw).first;
+  float sigreg_ggww_l = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw).first;
   float sr_ww_true = sigreg_qqww_l+sigreg_ggww_l;
   float sr_ww_true_err = sqrt(scale_qq*sigreg_qqww_l+scale_gg*sigreg_ggww_l);
 
@@ -22,7 +22,7 @@ pair<float,float> wwEstimationMC(int mass=160, unsigned int njets=0, float lumi 
 
 }
 
-pair<float, float> fakeBgEstimation(int mass=160, unsigned int njets=0, TString region="dphijet,minmet40", float lumi=0., 
+pair<float, float> fakeBgEstimation(int mass=160, unsigned int njets=0, TString region="dphijet,minmetvtx,lep2pt15,ptll45", float lumi=0., 
 				    bool useJson=false, bool applyEff=true, bool doPUw=false)  {
   bool debug = false;
   pair<float, float> dataFake  = getYield(data_file, wwSelectionNoLep, noVeto, mass, njets, region, 0, useJson, false, true, false);
@@ -57,17 +57,17 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   unsigned int baseline_toptag=0, control_top=0, control_toptag=0, veto=0, nj_top=0;
   getCutMasks(njets, baseline_toptag, control_top, control_toptag, veto, nj_top);
 
-  pair<float, float> sideband_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
-  pair<float, float> sideband_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sideband_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sideband_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
 
-  pair<float, float> massreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "massreg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
-  pair<float, float> massreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "massreg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> massreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "massreg,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+  pair<float, float> massreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "massreg,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
 
-  pair<float, float> mtreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "mtreg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
-  pair<float, float> mtreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "mtreg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> mtreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "mtreg,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+  pair<float, float> mtreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "mtreg,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
 
-  pair<float, float> sigreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
-  pair<float, float> sigreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sigreg_qqww = getYield(dir_mc+"qqww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sigreg_ggww = getYield(dir_mc+"ggww", wwSelection, veto, mass, njets, "dphireg,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
 
   float scale_qq  = getScale1fb(dir_mc+"qqww")*lumi;
   //float scale_gg  = getScale1fb(dir_mc+"ggww")*lumi;
@@ -88,26 +88,26 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   //float eff_err_dp_mr_mg = ratioPoissErr( sigreg_qqww.first+sigreg_ggww.first, sqrt(pow(sigreg_qqww.second,2)+pow(sigreg_ggww.second,2)),
   //                                        mtreg_qqww.first+mtreg_ggww.first, sqrt(pow(mtreg_qqww.second,2)+pow(mtreg_ggww.second,2)) );
 
-  float sideband_data = getYield(data_file, wwSelection, veto, mass, njets,  "sideband,dphijet,minmet40", 0., useJson, false, false, false).first;
+  float sideband_data = getYield(data_file, wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", 0., useJson, false, false, false).first;
 
   //********* get top **********
-  pair<float, float> top = topBgEstimation(mass, njets, lumi, "sideband,dphijet,minmet40", eff_veto_data, eff_err_veto_data, useJson, applyEff, false, doPUw);
+  pair<float, float> top = topBgEstimation(mass, njets, lumi, "sideband,dphijet,minmetvtx,lep2pt15,ptll45", eff_veto_data, eff_err_veto_data, useJson, applyEff, false, doPUw);
   float num_top_data = top.first;
   float num_top_err_data = top.second;
   //********* get top **********
 
   //********* get w+jets **********
-  pair<float, float> wj = fakeBgEstimation(mass, njets, "sideband,dphijet,minmet40", lumi, useJson, applyEff, doPUw);
+  pair<float, float> wj = fakeBgEstimation(mass, njets, "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, useJson, applyEff, doPUw);
   float num_wjets_data = wj.first;
   float num_wjets_err_data = wj.second;
   //********* get w+jets **********
 
   //********* get DY ********** => take it from MC
-  //pair<float, float> dy = dyBkgEstimation(data_file, wwSelection, veto, mass, njets,  "sideband,dphijet,minmet40", 0);
+  //pair<float, float> dy = dyBkgEstimation(data_file, wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", 0);
   //float num_dy_data = dy.first;
   //float num_dy_err_data = dy.second;
-  pair<float, float> sb_dymm   = getYield(dir_mc+"dymm",  wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
-  pair<float, float> sb_dyee   = getYield(dir_mc+"dyee",  wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sb_dymm   = getYield(dir_mc+"dymm",  wwSelection,     veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sb_dyee   = getYield(dir_mc+"dyee",  wwSelection,     veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
   float sideband_dymm          = sb_dymm.first;
   float sideband_dyee          = sb_dyee.first;
   float sideband_dymm_err      = sb_dymm.second;
@@ -119,11 +119,11 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   //********* get DY **********
 
   //********* get others **********
-  pair<float, float> sideband_dytt = getYield(dir_mc+"dytt",  wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
-  pair<float, float> sideband_zz   = getYield(dir_mc+"zz",    wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
-  pair<float, float> sideband_wz   = getYield(dir_mc+"wz",    wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sideband_dytt = getYield(dir_mc+"dytt",  wwSelection,     veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sideband_zz   = getYield(dir_mc+"zz",    wwSelection,     veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+  pair<float, float> sideband_wz   = getYield(dir_mc+"wz",    wwSelection,     veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
   float num_other_mc  = sideband_zz.first+sideband_wz.first+sideband_dytt.first;
-  float num_other_err_mc = num_other_mc;//100% for now
+  float num_other_err_mc = num_other_mc*0.2;//20% for now
   //********* get others **********
 
   float sb_ww_meas_data = sideband_data-num_top_data-num_wjets_data-num_dy_data-num_other_mc;
@@ -137,18 +137,18 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   float sr_ww_meas_err_data = sqrt( e1+e2+e3+e4 );
 
   if (printAll) {
-    pair<float,float>  sideband_ttbar = getYield(dir_mc+"ttbar", wwSelection, veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
-    pair<float,float>  sideband_tw    = getYield(dir_mc+"tw",    wwSelection, veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+    pair<float,float>  sideband_ttbar = getYield(dir_mc+"ttbar", wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+    pair<float,float>  sideband_tw    = getYield(dir_mc+"tw",    wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
     cout << "sb top data, mc: " << num_top_data << "+/-" << num_top_err_data << " " << sideband_ttbar.first+sideband_tw.first << "+/-" << sqrt(pow(sideband_ttbar.second,2)+pow(sideband_tw.second,2)) << endl;
-    pair<float,float>  sideband_wjets = getYield(dir_mc+"wjets", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+    pair<float,float>  sideband_wjets = getYield(dir_mc+"wjets", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
     cout << "sb w+jets data, mc: " << num_wjets_data << "+/-" << num_wjets_err_data << " " << sideband_wjets.first << "+/-" << sideband_wjets.second << endl;
     cout << "sb mc dymm, dyee, dytt, wz, zz: " << sideband_dymm << "+/-" << sideband_dymm_err << " " 
 	                                       << sideband_dyee << "+/-" << sideband_dyee_err << " " 
 	                                       << sideband_dytt.first << "+/-" << sideband_dytt.second << " " 
 	                                       << sideband_wz.first << "+/-" << sideband_wz.second << " " 
 	                                       << sideband_zz.first << "+/-" << sideband_zz.second << endl;    
-    pair<float,float>  sideband_qqww_l        = getYield(dir_mc+"qqww", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
-    pair<float,float>  sideband_ggww_l        = getYield(dir_mc+"ggww", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmet40", lumi, false, applyEff, false, doPUw);
+    pair<float,float>  sideband_qqww_l        = getYield(dir_mc+"qqww", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+    pair<float,float>  sideband_ggww_l        = getYield(dir_mc+"ggww", wwSelection,     veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
     cout << "sb data, all mc: " << sideband_data << " " 
 	 << sideband_qqww_l.first+sideband_ggww_l.first+sideband_ttbar.first+sideband_tw.first+sideband_wjets.first+sideband_dyee+sideband_dymm+sideband_zz.first+sideband_wz.first+sideband_dytt.first 
 	 << endl;
@@ -167,16 +167,17 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
   bool applyEff = true;
   bool doPUw    = true;
 
-  pair<float, float> tagEff0j = topVetoEffEstimation(0,0,lumi,"dphijet,minmet40",useJson,applyEff,doPUw);
-  pair<float, float> tagEff1j = topVetoEffEstimation(0,1,lumi,"dphijet,minmet40",useJson,applyEff,doPUw);
+  pair<float, float> tagEff0j = topVetoEffEstimation(0,0,lumi,"dphijet,minmetvtx,lep2pt15,ptll45",useJson,applyEff,doPUw);
+  pair<float, float> tagEff1j = topVetoEffEstimation(0,1,lumi,"dphijet,minmetvtx,lep2pt15,ptll45",useJson,applyEff,doPUw);
 
   //   cout << "topVeto eff 0j: " << tagEff0j.first << "+/-" << tagEff0j.second << endl;
   //   cout << "topVeto eff 1j: " << tagEff1j.first << "+/-" << tagEff1j.second << endl;
 
   int masses[] = {115,120,130,140,150,160,170,180,190,200};
   //int masses[] = {115,120,130,140,150};
-  //int masses[] = {/*160,170,*/180,190,200};
-  //int masses[] = {115};
+  //int masses[] = {115,130,150,170,190};
+  //int masses[] = {120,140,160,180,200};
+  //int masses[] = {120};
   int nmasses = sizeof(masses)/sizeof(int);
 
   if (!doLatex) cout << "| m_H |   0-j meas    |   0-j exp     |      SF       |   1-j meas    |   1-j exp     |      SF       |" << endl;
