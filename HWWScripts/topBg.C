@@ -27,42 +27,9 @@ pair<float, float> fakeBgEstimation(unsigned int cut, unsigned int veto, int mas
   return make_pair<float, float>(fakeYield,fakeError);
 }
 
-float expectedPurity(TString dir, unsigned int cut, unsigned int veto, int mass, int njets, TString myRegion, float lumi, bool useJson=0, 
-		     bool applyEff=true, bool doFake=false, bool doPUw=false){
-
-  //assume these scale factors for DY and W+jets
-  float dySF = 1.;
-  float wjSF = 1.;
-  if (njets==0){
-    dySF=4.19;
-    wjSF=1.52;
-  } else if (njets==1) {
-    dySF=3.17;
-    wjSF=2.71;
-  }
-
-  float sb_mc_top_tag = getYield(dir+"ttbar", cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first+
-                        getYield(dir+"tw",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first/*+
-                        getYield(dir_mc_mit+"stop",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first+
-                        getYield(dir_mc_mit+"ttop",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first*/;
-  float sb_mc_other_tag = getYield(dir+"qqww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
-                          getYield(dir+"ggww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first +
-                          wjSF*getYield(dir+"wjets", cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
-                          dySF*getYield(dir+"dymm",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first +
-                          dySF*getYield(dir+"dyee",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
-                          getYield(dir+"dytt",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first +
-                          getYield(dir+"zz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
-                          getYield(dir+"wz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
-
-  //float nwj = fakeBgEstimation(cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doPUw).first;
-  //cout << nwj << endl;
-
-  float sb_tag_purity = sb_mc_top_tag/(sb_mc_top_tag+sb_mc_other_tag);
-  return sb_tag_purity;
-}
-
 pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned int veto, int mass, int njets, TString myRegion, float lumi, bool useJson=0, 
 				      bool applyEff=true, bool doFake=false, bool doPUw=false){
+
 
   bool debug = 0;
 
@@ -76,25 +43,28 @@ pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned in
     dySF=4.84;
   }
 
-  float mc_other = getYield(dir+"qqww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
-                   getYield(dir+"ggww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first +
-                   dySF*getYield(dir+"dymm",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first +
-                   dySF*getYield(dir+"dyee",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
-                   getYield(dir+"dytt",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first +
-                   getYield(dir+"zz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first + 
-                   getYield(dir+"wz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float qqww = getYield(dir+"qqww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float ggww = getYield(dir+"ggww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float dymm = dySF*getYield(dir+"dymm",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float dyee = dySF*getYield(dir+"dyee",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float dytt = getYield(dir+"dytt",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float zz   = getYield(dir+"zz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float wz   = getYield(dir+"wz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
 
+  float mc_other = qqww + ggww + dymm + dyee + dytt + zz+ wz;
   pair<float, float> nwj = fakeBgEstimation(cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doPUw);
-  //cout << nwj << endl;
 
   float background = mc_other+nwj.first;
   float backgr_err = sqrt(pow(0.5*mc_other,2)+pow(nwj.second,2));//take 50% for MC based
-  if (debug) cout << "bkg total, fake, other: " << background << " " << nwj.first << " " << mc_other << endl;
+  if (debug) cout << "bkg total, fake, qqww, ggww, dymm, dyee, dytt, zz, wz: " << background << " " << nwj.first << " " 
+		  << qqww << " " << ggww << " " << dymm << " " << dyee << " " << dytt << " " << zz << " " << wz << endl;
+
   return make_pair<float, float>(background,backgr_err);
 }
 
 pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, float lumi=0., TString region = "dphijet,minmet40", 
 					bool useJson=0, bool applyEff=true, bool doPUw=false) {
+
   //mass is not used
   bool debug = 0;
   unsigned int baseline_toptag=0, control_top=0, control_toptag=0, veto=0, nj_top=0;
@@ -103,10 +73,10 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   TString region_top    = region+"btagJet1";
   TString region_toptag = region+"btagJet1";
   if (njets==1) {
-//     //*********** fixme: ok we do not apply dphijet in the 2 jet bin
-    if (region.Contains("dphijet"))  region.ReplaceAll("dphijet","");
-    if (region.Contains("dpjallfs")) region.ReplaceAll("dpjallfs","");
-//     //*********** 
+    ////*********** fixme: ok we do not apply dphijet in the 2 jet bin
+    //if (region.Contains("dphijet"))  region.ReplaceAll("dphijet","");
+    //if (region.Contains("dpjallfs")) region.ReplaceAll("dpjallfs","");
+    ////*********** 
     region_top    = region+"btagJet2";
     region_toptag = region+"btag1and2";
   }
@@ -115,17 +85,20 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   float sideband_data_nj_top     = getYield(data_file, control_top,    veto, mass, nj_top, region_top,    0., useJson, false, false, false).first;
   float sideband_data_nj_top_tag = getYield(data_file, control_toptag, veto, mass, nj_top, region_toptag, 0., useJson, false, false, false).first;
 
-//   //compute purity fraction
-//   float sb_nj_top_frac     = expectedPurity(dir_mc, control_top,    veto, mass, nj_top, region_top,    lumi, false, applyEff, false, doPUw);
-//   float sb_nj_top_tag_frac = expectedPurity(dir_mc, control_toptag, veto, mass, nj_top, region_toptag, lumi, false, applyEff, false, doPUw);
-//   //FIXME: add uncertainty on purity
-//   //correct for expected purity
-//   sideband_data_nj_top*=sb_nj_top_frac;
-//   sideband_data_nj_top_tag*=sb_nj_top_tag_frac;
-
   //subtract contamination
   pair<float, float> sb_nj_top_bkg     = evaluateBackground(dir_mc, control_top,    veto, mass, nj_top, region_top,    lumi, false, applyEff, false, doPUw);
   pair<float, float> sb_nj_top_tag_bkg = evaluateBackground(dir_mc, control_toptag, veto, mass, nj_top, region_toptag, lumi, false, applyEff, false, doPUw);
+  if (njets==0) {
+    //need to subtract tW as well
+    pair<float, float> sb_nj_tw     = getYield(dir_mc+"tw",  control_top,    veto, mass, nj_top, region_top,    lumi, false, applyEff, false, doPUw);
+    pair<float, float> sb_nj_tw_tag = getYield(dir_mc+"tw",  control_toptag, veto, mass, nj_top, region_toptag, lumi, false, applyEff, false, doPUw);
+    float sfTW = 1.06;
+    //cout << sb_nj_top_bkg.first << " " << sb_nj_top_tag_bkg.first << endl;
+    //cout << "tw bkg cr, tag: " << sfTW*sb_nj_tw.first << " " << sfTW*sb_nj_tw_tag.first << endl;
+    sb_nj_top_bkg = make_pair<float, float>(sb_nj_top_bkg.first+sfTW*sb_nj_tw.first,sb_nj_top_bkg.second);//FIXME: add uncertainties on tW
+    sb_nj_top_tag_bkg = make_pair<float, float>(sb_nj_top_tag_bkg.first+sfTW*sb_nj_tw_tag.first,sb_nj_top_tag_bkg.second);//FIXME: add uncertainties on tW
+    //cout << sb_nj_top_bkg.first << " " << sb_nj_top_tag_bkg.first << endl;
+  }
   sideband_data_nj_top-=sb_nj_top_bkg.first;        //FIXME: add uncertainties on background
   sideband_data_nj_top_tag-=sb_nj_top_tag_bkg.first;//FIXME: add uncertainties on background
 
@@ -141,8 +114,17 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
     float fttbar = sideband_ttbar/(sideband_ttbar+sideband_tw);
     float fttbar_err = fttbar*0.17;//from CS uncertainty
     //cout << "nttbar, ntw, ftt: " << sideband_ttbar << " " << sideband_tw << " " << fttbar << endl;
-    eff_veto_data = fttbar*(1 - (1-eff_tag_data)*(1-eff_tag_data)) + (1.-fttbar)*eff_tag_data;
-    eff_err_veto_data = pow(eff_tag_data-pow(eff_tag_data,2),2)*pow(fttbar_err,2) + pow(fttbar-2*fttbar*eff_tag_data+1,2)*pow(eff_err_tag_data,2);
+
+    //eff_veto_data = fttbar*(1 - (1-eff_tag_data)*(1-eff_tag_data)) + (1.-fttbar)*eff_tag_data;
+    //eff_err_veto_data = pow(eff_tag_data-pow(eff_tag_data,2),2)*pow(fttbar_err,2) + pow(fttbar-2*fttbar*eff_tag_data+1,2)*pow(eff_err_tag_data,2);
+    float twlikett = 0.15;
+    float twlikett_err = 0.;//fixme
+    //cout << "fttbar: " << fttbar << endl;
+    //cout << "f2b: " << fttbar+twlikett*(1.-fttbar) << endl;
+    eff_veto_data = (fttbar + twlikett*(1.-fttbar) )*(1 - pow(1.-eff_tag_data,2)) + (1.-fttbar)*(1.-twlikett)*eff_tag_data;
+    eff_err_veto_data = pow( (1.-pow(1.-eff_tag_data,2))*(1.-twlikett) - (1.-twlikett)*eff_tag_data ,2)*pow(fttbar_err,2) +
+      pow( 2*(fttbar + twlikett*(1.-fttbar))*(1.-eff_tag_data) + (1.-fttbar)*(1.-twlikett) ,2)*pow(eff_err_tag_data,2) +
+      pow( (1.-fttbar)*(1.-pow(1.-eff_tag_data,2)) - (1.-fttbar)*eff_tag_data ,2)*pow(twlikett_err,2);
     eff_err_veto_data = sqrt(eff_err_veto_data);
   } else if (njets==1) {
     eff_veto_data = eff_tag_data;
@@ -170,12 +152,6 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
 
   pair<float, float> sb_data_tag = getYield(data_file, baseline_toptag, veto, mass, njets,  region+toptagreg, 0, useJson, 0, 0, 0);
   float sideband_data_tag  = sb_data_tag.first;
-
-  ////compute expected purity
-  //float sb_tag_purity = expectedPurity(dir_mc, baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw);
-  ////apply purity correction
-  //sideband_data_tag*=sb_tag_purity;
-  //float sideband_data_tag_err  = sqrt( pow(sb_tag_purity,2)*sideband_data_tag );//fixme: should account for purity error
 
   //compute background contamination
   pair<float, float> sb_tag_bkg = evaluateBackground(dir_mc, baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw);
@@ -248,11 +224,6 @@ void makeTopTable(float lumi) {
 
   pair<float, float> top_tag_data_0j = getYield(data_file, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, 0, useJson, 0, 0, 0);
   pair<float, float> top_tag_data_1j = getYield(data_file, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, 0, useJson, 0, 0, 0);
-
-//   float cr_purity_0j = expectedPurity(dir_mc, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
-//   float cr_purity_1j = expectedPurity(dir_mc, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
-//   pair<float, float> bkg_exp_cr_0j = make_pair<float, float>(top_tag_data_0j.first*(1.-cr_purity_0j),top_tag_data_0j.second*(1.-cr_purity_0j));
-//   pair<float, float> bkg_exp_cr_1j = make_pair<float, float>(top_tag_data_1j.first*(1.-cr_purity_1j),top_tag_data_1j.second*(1.-cr_purity_1j));
 
   pair<float, float> bkg_exp_cr_0j = evaluateBackground(dir_mc, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> bkg_exp_cr_1j = evaluateBackground(dir_mc, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
