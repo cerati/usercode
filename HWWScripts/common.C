@@ -21,6 +21,7 @@
 #include "TRandom3.h"
 #include "Smurf/Core/SmurfTree.h"
 #include <vector>
+#include "Smurf/Core/LeptonScaleLookup.cc"
 
 //copy here to avoid SmurfTree::
 enum Selection {
@@ -73,21 +74,25 @@ unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSe
 unsigned int noVeto          = 1UL<<31;
 unsigned int noCut           = 1UL<<0;
 
-//TString dir_mc         = "/smurf/data/EPS/tas/";
-TString dir_mc         = "/smurf/data/LP2011/mitf/";
-TString dir_mc_mit     = "/smurf/data/LP2011/mitf/";
-TString dir_mc_tas     = "/smurf/data/LP2011/tas/";
-//TString dir_mc_mit     = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/";
-TString data_file      = "/smurf/data/LP2011/tas/data";
-//TString data_file      = "/smurf/data/EPS/tas/data-met20-1092ipb";
+// TString dir_mc         = "/smurf/data/LP2011/mitf/";
+// TString data_file      = "/smurf/data/LP2011/mitf/data.root";
+TString dir_mc         = "/smurf/cerati/Run2011_Spring11_SmurfV6_42X/2121ipb/wwSelNoLepNoTV/";
+TString data_file      = "/smurf/cerati/Run2011_Spring11_SmurfV6_42X/2121ipb/wwSelNoLepNoTV/data.root";
 
-//TString fr_file_mit    = "/smurf/sixie/FakeRates/FakeRates_SmurfV6.FromEPSToLP2011.root";
-//TString fr_file_mit    = "/smurf/data/LP2011/auxiliar/FakeRates_SmurfV6.LP2011.root";
-TString fr_file_mit    = "/smurf/data/LP2011/auxiliar/FakeRates_SmurfV6.V4HasNod0Cut.root";
+//TString data_file      = "/smurf/data/Run2011_Spring11_SmurfV6_42X/mitf-alljets/data.root";
+//TString data_file      = "/smurf/cerati/Run2011_Spring11_SmurfV6_42X/skimTop/data.root";
+TString dir_mc_mit     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/mitf-alljets/";
+TString dir_mc_tas     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/";
+
+
+TString fr_file_mit    = "/smurf/data/LP2011/auxiliar/FakeRates_SmurfV6.LP2011.root";
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
-TString eff_file       = "/smurf/data/EPS/auxiliar/efficiency_results_v6.root";
-TString puw_file       = "/smurf/data/LP2011/auxiliar/puReweighting.root";
+TString eff_file       = "/smurf/data/LP2011/auxiliar/efficiency_results_v6_42x.root";
+TString puw_file       = "/smurf/data/LP2011/auxiliar/puWeights_PU4_68mb.root";
+
+bool redoWeights  = 0;
+bool checkWeights = 0;
 
 bool passJson(int run, int lumi) {
   ifstream ifs( "goodruns.txt" );
@@ -109,11 +114,14 @@ bool passJson(int run, int lumi) {
 }
 
 float getScale1fb(TString sample) {
+  //warning this method does not work if the sample is composite 
+  //(i.e. more than one scale1fb value, e.g. dy=[10-20]+[20-inf])
   SmurfTree *dataEvent = new SmurfTree();
   dataEvent->LoadTree(sample+".root");
   dataEvent->InitTree();
   dataEvent->tree_->GetEntry(0);
   float result = dataEvent->scale1fb_;
+  dataEvent->tree_->Delete();
   delete dataEvent;
   return result;
 }
@@ -361,6 +369,7 @@ float getPileupReweightFactor(int nvtx, TH1F* puweights=0) {
   if (puweights) {
     return puweights->GetBinContent(puweights->FindBin(nvtx));
   } else {
+    //this is deprecated
     float weight = 1.0;
     if     (nvtx == 0) weight = 0.00000;
     else if(nvtx == 1) weight = 0.23111;
@@ -498,9 +507,13 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( region.Contains("spill") && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) continue;
 
     float puw = 1.;
-    //if (isMC&&doPUw) puw = getPileupReweightFactor(dataEvent->npu_,puweights);
-    if (isMC&&doPUw) puw = getPileupReweightFactor(dataEvent->nvtx_,puweights);
-    //if (isMC&&doPUw) puw = dataEvent->sfWeightPU_;
+    if (isMC&&doPUw) {
+      ////puw = getPileupReweightFactor(dataEvent->nvtx_,puweights);
+      if (redoWeights) puw = getPileupReweightFactor(dataEvent->npu_,puweights);
+      else puw = dataEvent->sfWeightPU_;
+      if (checkWeights) assert(fabs((getPileupReweightFactor(dataEvent->npu_,puweights)-dataEvent->sfWeightPU_)/dataEvent->sfWeightPU_)<0.0001);
+      //cout << puw << " " << dataEvent->sfWeightPU_ << endl;
+    }
 
 //     float fakew = 1.;
 //     if (doFake) fakew = dataEvent->sfWeightFR_;
@@ -508,32 +521,49 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if (!doFake) {
       float effSF=1.;
       if (isMC&&applyEff) {
-	float selLep1=1.,selLep2=1.,dblLep1=1.,dblLep2=1.,sglLep1=1.,sglLep2=1.;
-	float pt1 = min(dataEvent->lep1_.pt(),49.);
-	float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
-	float pt2 = min(dataEvent->lep2_.pt(),49.);
-	float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
-	if (abs(dataEvent->lid1_)==11) {
-	  selLep1 = effElSel->GetBinContent(effElSel->FindBin(pt1,eta1));
-	  dblLep1 = effElDbl->GetBinContent(effElDbl->FindBin(pt1,eta1));
-	  sglLep1 = effElSgl->GetBinContent(effElSgl->FindBin(pt1,eta1));
+	if (redoWeights) {
+	  float selLep1=1.,selLep2=1.,dblLep1=1.,dblLep2=1.,sglLep1=1.,sglLep2=1.;
+	  float pt1 = min(dataEvent->lep1_.pt(),49.);
+	  float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
+	  float pt2 = min(dataEvent->lep2_.pt(),49.);
+	  float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
+	  if (abs(dataEvent->lid1_)==11) {
+	    selLep1 = effElSel->GetBinContent(effElSel->FindBin(pt1,eta1));
+	    dblLep1 = effElDbl->GetBinContent(effElDbl->FindBin(pt1,eta1));
+	    sglLep1 = effElSgl->GetBinContent(effElSgl->FindBin(pt1,eta1));
+	  } else {
+	    selLep1 = effMuSel->GetBinContent(effMuSel->FindBin(pt1,eta1));
+	    dblLep1 = effMuDbl->GetBinContent(effMuDbl->FindBin(pt1,eta1));
+	    sglLep1 = effMuSgl->GetBinContent(effMuSgl->FindBin(pt1,eta1));      
+	  }
+	  if (abs(dataEvent->lid2_)==11) {
+	    selLep2 = effElSel->GetBinContent(effElSel->FindBin(pt2,eta2));
+	    dblLep2 = effElDbl->GetBinContent(effElDbl->FindBin(pt2,eta2));
+	    sglLep2 = effElSgl->GetBinContent(effElSgl->FindBin(pt2,eta2));
+	  } else {
+	    selLep2 = effMuSel->GetBinContent(effMuSel->FindBin(pt2,eta2));
+	    dblLep2 = effMuDbl->GetBinContent(effMuDbl->FindBin(pt2,eta2));
+	    sglLep2 = effMuSgl->GetBinContent(effMuSgl->FindBin(pt2,eta2));      
+	  }
+	  float effSelSF = selLep1*selLep2;
+	  float effTrgSF = dblLep1*dblLep2+sglLep2*(1.-dblLep1)+sglLep1*(1.-dblLep2);
+	  effSF = effSelSF*effTrgSF;
+	  if (checkWeights) {
+	    //cout << dataEvent->sfWeightEff_ << " " << effSelSF << " pt1=" << pt1 << " eta1=" << eta1 << " pt2=" << pt2 << " eta2=" << eta2 << endl;;
+	    if (dataEvent->sfWeightEff_>0) assert(fabs((effSelSF-dataEvent->sfWeightEff_)/dataEvent->sfWeightEff_)<0.0001);
+	    if (fabs((effTrgSF-dataEvent->sfWeightTrig_)/dataEvent->sfWeightTrig_)>0.001) {
+	      //cout << effSelSF << " " << dataEvent->sfWeightEff_ << " - " << effTrgSF << " " << dataEvent->sfWeightTrig_ << " " 
+	      //<< dataEvent->type_ << " " << dataEvent->dstype_ << " " << dataEvent->run_ << " " << dataEvent->event_ << endl;
+	      //cout << "db1=" << dblLep1 << " db2=" << dblLep2 << " sg1=" << sglLep1 << " sg2=" << sglLep2 << endl;
+	      //LeptonScaleLookup lsl(&*eff_file);
+	      //cout << lsl.GetExpectedTriggerEfficiency(eta1,pt1,eta2,pt2,dataEvent->lid1_,dataEvent->lid2_) << endl;
+	    }
+	    //fixme
+	    //assert(fabs((effTrgSF-dataEvent->sfWeightTrig_)/dataEvent->sfWeightTrig_)<0.1);
+	  }
 	} else {
-	  selLep1 = effMuSel->GetBinContent(effMuSel->FindBin(pt1,eta1));
-	  dblLep1 = effMuDbl->GetBinContent(effMuDbl->FindBin(pt1,eta1));
-	  sglLep1 = effMuSgl->GetBinContent(effMuSgl->FindBin(pt1,eta1));      
+	  effSF = dataEvent->sfWeightEff_ * dataEvent->sfWeightTrig_;
 	}
-	if (abs(dataEvent->lid2_)==11) {
-	  selLep2 = effElSel->GetBinContent(effElSel->FindBin(pt2,eta2));
-	  dblLep2 = effElDbl->GetBinContent(effElDbl->FindBin(pt2,eta2));
-	  sglLep2 = effElSgl->GetBinContent(effElSgl->FindBin(pt2,eta2));
-	} else {
-	  selLep2 = effMuSel->GetBinContent(effMuSel->FindBin(pt2,eta2));
-	  dblLep2 = effMuDbl->GetBinContent(effMuDbl->FindBin(pt2,eta2));
-	  sglLep2 = effMuSgl->GetBinContent(effMuSgl->FindBin(pt2,eta2));      
-	}
-	float effSelSF = selLep1*selLep2;
-	float effTrgSF = dblLep1*dblLep2+sglLep1*(1-dblLep1)+sglLep2*(1-dblLep2);
-	effSF = effSelSF*effTrgSF;
       }
       yield = yield + weight*effSF*puw;
       //fixme: should consider the error of effSF
@@ -545,36 +575,60 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 	   (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) {
 	float pt = dataEvent->lep1_.pt();
 	float eta = fabs(dataEvent->lep1_.eta());
+	if (eta==2) eta=1.9999;//test to sync with G's weights
 	if (pt>maxPt) pt=maxPt;
 	if (eta>maxEta) eta=maxEta;
 	useMit ? elPFY->Fill(pt,eta,weight*puw) : elPFY->Fill(eta,pt,weight*puw);
+	if (checkWeights) {
+	  float fr = eFR->GetBinContent(eFR->FindBin(pt,eta));
+	  //cout << dataEvent->sfWeightFR_ << " " << fr/(1.-fr) << " pt=" << pt << " eta=" << eta << endl;
+	  assert((fabs(fr/(1.-fr))-fabs(dataEvent->sfWeightFR_))/fabs(dataEvent->sfWeightFR_)<0.0001);
+	}
       }
       if ( (dataEvent->cuts_ & Lep2LooseEleV4)    == Lep2LooseEleV4    &&
 	   (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
 	   (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) {
 	float pt = dataEvent->lep2_.pt();
 	float eta = fabs(dataEvent->lep2_.eta());
+	if (eta==2) eta=1.9999;//test to sync with G's weights
 	if (pt>maxPt) pt=maxPt;
 	if (eta>maxEta) eta=maxEta;
 	useMit ? elPFY->Fill(pt,eta,weight*puw) : elPFY->Fill(eta,pt,weight*puw);
+	if (checkWeights) {
+	  float fr = eFR->GetBinContent(eFR->FindBin(pt,eta));
+	  //cout << dataEvent->sfWeightFR_ << " " << fr/(1.-fr) << " pt=" << pt << " eta=" << eta << endl;
+	  assert((fabs(fr/(1.-fr))-fabs(dataEvent->sfWeightFR_))/fabs(dataEvent->sfWeightFR_)<0.0001);
+	}
       }
       if ( (dataEvent->cuts_ & Lep1LooseMuV2)     == Lep1LooseMuV2     &&
 	   (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection &&
 	   (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) {
 	float pt = dataEvent->lep1_.pt();
 	float eta = fabs(dataEvent->lep1_.eta());
+	if (eta==2) eta=1.9999;//test to sync with G's weights
 	if (pt>maxPt) pt=maxPt;
 	if (eta>maxEta) eta=maxEta;
 	useMit ? muPFY->Fill(pt,eta,weight*puw) : muPFY->Fill(eta,pt,weight*puw);
+	if (checkWeights) {
+	  float fr = mFR->GetBinContent(eFR->FindBin(pt,eta));
+	  //cout << dataEvent->sfWeightFR_ << " " << fr/(1.-fr) << " pt=" << pt << " eta=" << eta << endl;
+	  assert((fabs(fr/(1.-fr))-fabs(dataEvent->sfWeightFR_))/fabs(dataEvent->sfWeightFR_)<0.0001);
+	}
       }
       if ( (dataEvent->cuts_ & Lep2LooseMuV2)     == Lep2LooseMuV2     &&
 	   (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
 	   (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) {
 	float pt = dataEvent->lep2_.pt();
 	float eta = fabs(dataEvent->lep2_.eta());
+	if (eta==2) eta=1.9999;//test to sync with G's weights
 	if (pt>maxPt) pt=maxPt;
 	if (eta>maxEta) eta=maxEta;
 	useMit ? muPFY->Fill(pt,eta,weight*puw) : muPFY->Fill(eta,pt,weight*puw);
+	if (checkWeights) {
+	  float fr = mFR->GetBinContent(eFR->FindBin(pt,eta));
+	  //cout << dataEvent->sfWeightFR_ << " " << fr/(1.-fr) << " pt=" << pt << " eta=" << eta << endl;
+	  assert((fabs(fr/(1.-fr))-fabs(dataEvent->sfWeightFR_))/fabs(dataEvent->sfWeightFR_)<0.0001);
+	}
       }
     }
   }
