@@ -36,11 +36,11 @@ pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned in
   //assume these scale factors for DY 
   float dySF = 1.;
   if (njets==0){
-    dySF=3.02;
+    dySF=3.27;
   } else if (njets==1) {
-    dySF=2.81;
+    dySF=4.17;
   }else if (njets==2) {
-    dySF=4.84;
+    dySF=6.49;
   }
 
   float qqww = getYield(dir+"qqww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
@@ -197,7 +197,7 @@ void makeTopTable(float lumi) {
   bool doFake   = false;
   bool doPUw    = true;
 
-  TString anaRegion = "dphijet,minmet40";
+  TString anaRegion = "dphijet,minmetvtx,lep2pt15,ptll45";
 
   int mass = 0;
 
@@ -232,6 +232,12 @@ void makeTopTable(float lumi) {
   pair<float, float> topData0j = topBgEstimation(mass, 0, lumi, anaRegion, vetoEff0j.first, vetoEff0j.second, useJson, applyEff, doFake, doPUw);
   pair<float, float> topData1j = topBgEstimation(mass, 1, lumi, anaRegion, vetoEff1j.first, vetoEff1j.second, useJson, applyEff, doFake, doPUw);
 
+  float sf0j = topData0j.first/sigreg_top_0j.first;
+  float sf1j = topData1j.first/sigreg_top_1j.first;
+
+  float sf0jpercerr = 100*sqrt(pow(topData0j.second/topData0j.first,2)+pow(sigreg_top_0j.second/sigreg_top_0j.first,2));
+  float sf1jpercerr = 100*sqrt(pow(topData1j.second/topData1j.first,2)+pow(sigreg_top_1j.second/sigreg_top_1j.first,2));
+
   cout << "--------------------------------------------------------------------------------" << endl;
   cout << Form("| %40s | %-15s | %-15s |","Sample","0-jet","1-jet") << endl;
   cout << "--------------------------------------------------------------------------------" << endl;
@@ -259,6 +265,11 @@ void makeTopTable(float lumi) {
 	       "Data-driven top background estimate",
 	       round(10.*topData0j.first)/10.,round(10.*topData0j.second)/10.,
 	       round(10.*topData1j.first)/10.,round(10.*topData1j.second)/10.) 
+       << endl;
+  cout << Form("| %40s | %5.2f +/- %-4.1f%% | %5.2f +/- %-4.1f%% |",
+	       "Scale factors",
+	       round(100.*sf0j)/100.,round(100.*sf0jpercerr)/100.,
+	       round(100.*sf1j)/100.,round(100.*sf1jpercerr)/100.) 
        << endl;
   cout << "--------------------------------------------------------------------------------" << endl;
 
