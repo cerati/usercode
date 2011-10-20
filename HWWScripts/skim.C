@@ -161,8 +161,12 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
 
     if ( dilep_->mass() < 12.0) continue;
     
+    //this is for dy
+    if ((cuts_ & wwSelNoZVNoMet) != wwSelNoZVNoMet) continue;
+    if (min(pmet_,pTrackMet_)<20.0) continue;
+
+    //this is for top/ww
     //if ((cuts_ & wwSelNoLepNoTV) != wwSelNoLepNoTV) continue;
-    if ((cuts_ & wwSelNoLepNoTV) != wwSelNoLepNoTV) continue;
         
     evt_tree->Fill();
   }   //nevent
