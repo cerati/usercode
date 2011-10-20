@@ -112,20 +112,20 @@ pair<float, float> getZYieldInData(TString sample, unsigned int cut, unsigned in
   float kee = sqrt(zeeNoMet/zmmNoMet);//the error is negligible
 
   //get Z yields after full met
-  float zmm = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,mmfs,mm40allfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
-  float zme = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,mefs,mm40allfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
-  float zem = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,emfs,mm40allfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
-  float zee = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,eefs,mm40allfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
+  float zmm = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,mmfs,mmvtxallfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
+  float zme = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,mefs,mmvtxallfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
+  float zem = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,emfs,mmvtxallfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
+  float zee = getYield(sample, FullMET|cut, veto, mass, njets, "zregion,eefs,mmvtxallfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
   float zmmofs = zmm - 0.5*(zme+zem)/kee;
   float zmmofs_err = sqrt( zmm + 0.25*(zme+zem)/pow(kee,2) );
   float zeeofs = zee - 0.5*(zme+zem)*kee;
   float zeeofs_err = sqrt( zee + 0.25*(zme+zem)*pow(kee,2) );
   float zofs = zmmofs+zeeofs;
   float zofs_err = sqrt( zmm + zee + 0.25*(zme+zem)*pow(kee+1./kee,2) );
-  pair<float, float> wzmm_p = getYield(dir_mc_mit+"wz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> zzmm_p = getYield(dir_mc_mit+"zz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> wzee_p = getYield(dir_mc_mit+"wz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> zzee_p = getYield(dir_mc_mit+"zz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmet40,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> wzmm_p = getYield(dir_mc+"wz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> zzmm_p = getYield(dir_mc+"zz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> wzee_p = getYield(dir_mc+"wz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> zzee_p = getYield(dir_mc+"zz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
   float wzmm = wzmm_p.first;
   float wzmm_stat_err = wzmm_p.second;
   float wzmm_syst_err = 0.1*(wzmm);//assume 10% syst
@@ -196,8 +196,8 @@ pair<float, float> dyBkgEstimation(TString sample, unsigned int cut, unsigned in
     cout << "r_all: " << r_all << "+/-" << r_all_err << endl;
     cout << "OF+VV corr all: " << zofs_corr << "+/-" << zofs_corr_err << endl;
     cout << "data driven DY estimate: " << dy_est << "+/-" << dy_est_err << endl;
-    cout << "MC expect.: " << getYield(dir_mc+"dymm", ZVeto|FullMET|cut, veto, mass, njets, regionOut+",mmfs,minmet40", lumi, useJson, applyEff, doFake, doPUw).first+
-                              getYield(dir_mc+"dyee", ZVeto|FullMET|cut, veto, mass, njets, regionOut+",eefs,minmet40", lumi, useJson, applyEff, doFake, doPUw).first << endl;
+    cout << "MC expect.: " << getYield(dir_mc+"dymm", ZVeto|FullMET|cut, veto, mass, njets, regionOut+",mmfs,minmetvtx", lumi, useJson, applyEff, doFake, doPUw).first+
+                              getYield(dir_mc+"dyee", ZVeto|FullMET|cut, veto, mass, njets, regionOut+",eefs,minmetvtx", lumi, useJson, applyEff, doFake, doPUw).first << endl;
   }
   return make_pair<float, float>(dy_est,dy_est_err);
 }
@@ -209,8 +209,8 @@ void makeDYTable(float lumi) {
   bool doFake   = false;
   bool doPUw    = true;
 
-  TString regionIn  = "dpjallfs,leppts,dphicut";
-  TString regionOut = "dphijet,leppts,dphicut,masscut";
+  TString regionIn  = "dpjallfs,leppts,dphicut,ptll45,lep2pt15allfs";
+  TString regionOut = "dphijet,leppts,dphicut,masscut,ptll45,lep2pt15";
 
   //int jetbins[] = {0};
   int jetbins[] = {0,1};
@@ -230,8 +230,8 @@ void makeDYTable(float lumi) {
 
       int mass = masses[jj];
 
-      pair<float, float> dymmMC   = getYield(dir_mc+"dymm",  wwSelection, noVeto, mass, njets, "mmfs,minmet40,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
-      pair<float, float> dyeeMC   = getYield(dir_mc+"dyee",  wwSelection, noVeto, mass, njets, "eefs,minmet40,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
+      pair<float, float> dymmMC   = getYield(dir_mc+"dymm",  wwSelection, noVeto, mass, njets, "mmfs,minmetvtx,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
+      pair<float, float> dyeeMC   = getYield(dir_mc+"dyee",  wwSelection, noVeto, mass, njets, "eefs,minmetvtx,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
       
       pair<float, float> r = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
       //pair<float, float> r = make_pair<float, float>(0.252045, 0.0743647);//this is 0-jet bin WW level, just to speed everything up
