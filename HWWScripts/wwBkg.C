@@ -112,8 +112,8 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   float sideband_dyee          = sb_dyee.first;
   float sideband_dymm_err      = sb_dymm.second;
   float sideband_dyee_err      = sb_dyee.second;
-  float dySF = 4.19;
-  if (njets==1) dySF = 3.17;
+  float dySF = 3.27;
+  if (njets==1) dySF = 4.17;
   float num_dy_data = (sideband_dyee+sideband_dymm)*dySF;
   float num_dy_err_data = num_dy_data;
   //********* get DY **********
