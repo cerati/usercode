@@ -74,6 +74,8 @@ unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSe
 unsigned int noVeto          = 1UL<<31;
 unsigned int noCut           = 1UL<<0;
 
+// TString dir_mc         = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoMetNoZVminMET20/";
+// TString data_file      = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoMetNoZVminMET20/data.root";
 TString dir_mc         = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/";
 TString data_file      = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/data.root";
 
@@ -483,8 +485,10 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( region.Contains("minmet40")  && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0)) continue;
     if ( region.Contains("dpjallfs")  && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) continue;
     if ( region.Contains("mm40allfs") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0 ) continue;
-    if ( region.Contains("minmetvtx") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<35.+dataEvent->nvtx_/2.) ) continue;
+    if ( region.Contains("minmetvtx") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) continue;
+    if ( region.Contains("mmvtxallfs") && ( min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) continue;
     if ( region.Contains("lep2pt15") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->lep2_.pt()<15.) ) continue;
+    if ( region.Contains("lep2pt15allfs") && (dataEvent->lep2_.pt()<15.) ) continue;
     if ( region.Contains("ptll45") && ( dataEvent->dilep_.pt()<45.) ) continue;
     //cuts for Rout/in
     if ( region.Contains("met2022") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>22.0) ) continue;
