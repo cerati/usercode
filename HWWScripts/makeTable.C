@@ -1,8 +1,7 @@
-void makeTable(int njets=0, int mass=0, bool useSF=false, bool dodata=false){
+void makeTable(float lumi=2.121, int njets=0, int mass=0, bool useSF=false, bool dodata=false){
+  //lumi is in /fb
 
   gROOT->Reset();
-
-  Float_t lumi = 2.121;//fb-1
 
   TCut lep1pt,lep2pt,dPhi,mll,mt,himass;
   if (mass==0) {
@@ -116,6 +115,7 @@ void makeTable(int njets=0, int mass=0, bool useSF=false, bool dodata=false){
   unsigned int wwSelectionNoTV = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|ExtraLeptonVeto;
   unsigned int wwSelection     = wwSelectionNoTV|TopVeto;
 
+  TCut jets(Form("njets==%i",njets));
   TCut base(Form("(cuts & %i)==%i",wwSelection,wwSelection));
   TCut baseNTV(Form("(cuts & %i)==%i",wwSelectionNoTV,wwSelectionNoTV));
   TCut notTagNotInJets(Form("(cuts & %i)!=%i",TopTagNotInJets,TopTagNotInJets));
@@ -123,7 +123,7 @@ void makeTable(int njets=0, int mass=0, bool useSF=false, bool dodata=false){
   TCut newcuts = "type==1 || type==2 || ( lep2.pt()>15. && min(pmet,pTrackMet)>(37.+nvtx/2.) && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
   TCut kincuts = "dilep.pt()>45.";
 
-  TCut cut = base&&"njets==0"&&newcuts&&sigreg&&trig&&kincuts;
+  TCut cut = base&&jets&&newcuts&&sigreg&&trig&&kincuts;
   //cout << "cut: " << cut.GetTitle() << endl;
 
   TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma"};

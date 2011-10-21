@@ -1,4 +1,5 @@
-void plotBaby(int njets=0, int mass=0, bool logy=0){
+void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool useSF=false, bool logy=0){
+  //lumi is in /fb
 
   gROOT->Reset();
   gStyle->SetOptStat(0);
@@ -39,8 +40,6 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
   unsigned int wwSelection = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|TopVeto|ExtraLeptonVeto;
   unsigned int wwSelectionNoTV = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|ExtraLeptonVeto;
   
-  Float_t lumi = 2.121;//fb-1
-
   TString mh = Form("%i",mass); 
   TString nj = Form("%i",njets); 
 
@@ -110,7 +109,6 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
     himass = "dilep.mass()>100.";
   }
 
-
   TCut ptreg   = lep1pt && lep2pt;
   TCut massreg = lep1pt && lep2pt && mll;
   TCut mtreg   = lep1pt && lep2pt && mll && mt;
@@ -172,8 +170,8 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
   float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.0,    1.0, 1.0, 1.0, 3.4,    1.0};
   float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0};
   float* sfs;
-  if (njets==0) sfs = sfs0j;
-  else if (njets==1) sfs = sfs1j;
+  if (useSF&&njets==0) sfs = sfs0j;
+  else if (useSF&&njets==1) sfs = sfs1j;
   else sfs = nosfs;
 
   ////if we want to plot signal
@@ -240,13 +238,16 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
     //plotSignal->SetLineWidth(2);
     //plotSignal->SetLineStyle(1);
 
-    TH1F* plotData = new TH1F("plotData","plotData",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
-    data->Draw(plot[pl]+">>plotData",cut,"EP,same");
-    c.Update();  
-    plotData->SetMarkerStyle(20);
-    int maxb=plotData->GetMaximumBin();
-    double max=plotData->GetBinContent(maxb);
-    leg->AddEntry(plotData,"data","p");
+    TH1F* plotData = 0;
+    if (dodata) {
+      plotData = new TH1F("plotData","plotData",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+      data->Draw(plot[pl]+">>plotData",cut,"EP,same");
+      c.Update();  
+      plotData->SetMarkerStyle(20);
+      int maxb=plotData->GetMaximumBin();
+      double max=plotData->GetBinContent(maxb);
+      leg->AddEntry(plotData,"data","p");
+    }
 
     ////if we want to compare two different data samples
     //TH1F* plotDataEPS = new TH1F("plotDataEPS","",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
@@ -304,13 +305,13 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
     plot[pl].ReplaceAll(".","");
     plot[pl].ReplaceAll("(","");
     plot[pl].ReplaceAll(")","");
-    gSystem->Exec("mkdir -p plots/mh"+mh+"_nj"+nj);
+    gSystem->Exec("mkdir -p dirplots/mh"+mh+"_nj"+nj);
     TString extension = ".png";
     if (logy) extension="_log"+extension;
-    if (cutName.Length()==0) c.SaveAs("plots/mh"+mh+"_nj"+nj+"/"+plot[pl]+extension);
-    else c.SaveAs("plots/mh"+mh+"_nj"+nj+"/"+plot[pl]+"_"+cutName+extension);
+    if (cutName.Length()==0) c.SaveAs("dirplots/mh"+mh+"_nj"+nj+"/"+plot[pl]+extension);
+    else c.SaveAs("dirplots/mh"+mh+"_nj"+nj+"/"+plot[pl]+"_"+cutName+extension);
     delete plotmc;
-    delete plotData; 
+    if (plotData) delete plotData; 
     delete hs;
     delete leg;
     //delete plotDataEPS;
