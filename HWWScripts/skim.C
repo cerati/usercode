@@ -83,7 +83,7 @@ using namespace std;
 //###################
 //# main function
 //###################
-void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/", TString fileName = "zz.root", TString outputDir = "rawsmurfdata/", TString cutstring = "ZZ") {
+void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/", TString fileName = "zz.root", TString outputDir = "rawsmurfdata/", TString cutstring = "") {
 
   TFile* fin = new TFile(smurfFDir+fileName);
   TTree* ch=(TTree*)fin->Get("tree"); 
@@ -162,12 +162,16 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
     if ( dilep_->mass() < 12.0) continue;
     
     //this is for dy
-    if ((cuts_ & wwSelNoZVNoMet) != wwSelNoZVNoMet) continue;
-    if (min(pmet_,pTrackMet_)<20.0) continue;
+    if (cutstring="dy") {
+      if ((cuts_ & wwSelNoZVNoMet) != wwSelNoZVNoMet) continue;
+      if (min(pmet_,pTrackMet_)<20.0) continue;
+    }
 
     //this is for top/ww
-    //if ((cuts_ & wwSelNoLepNoTV) != wwSelNoLepNoTV) continue;
-        
+    if (cutstring="topww") {
+      if ((cuts_ & wwSelNoLepNoTV) != wwSelNoLepNoTV) continue;
+    }
+
     evt_tree->Fill();
   }   //nevent
   
@@ -177,16 +181,20 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
   newfile->Close();
 }  
 
-void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/", TString outputDir = "/smurf/cerati/skims/") {
-  smurfproducer(smurfFDir,"dymm.root",outputDir);
-  smurfproducer(smurfFDir,"dyee.root",outputDir);
-  smurfproducer(smurfFDir,"dytt.root",outputDir);
-  smurfproducer(smurfFDir,"qqww.root",outputDir);
-  smurfproducer(smurfFDir,"ggww.root",outputDir);
-  smurfproducer(smurfFDir,"ttbar.root",outputDir);
-  smurfproducer(smurfFDir,"tw.root",outputDir);
-  smurfproducer(smurfFDir,"wjets.root",outputDir);
-  smurfproducer(smurfFDir,"wz.root",outputDir);
-  smurfproducer(smurfFDir,"zz.root",outputDir);
-  smurfproducer(smurfFDir,"data.root",outputDir);
+void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/", TString outputDir = "/smurf/cerati/skims/", TString cut = "topww") {
+  if (cut!="dy" && cut!="topww") {
+    cout << "cut not supported. please use dy or topww" << endl;
+    return; 
+  }
+  smurfproducer(smurfFDir,"dymm.root",outputDir,cut);
+  smurfproducer(smurfFDir,"dyee.root",outputDir,cut);
+  smurfproducer(smurfFDir,"dytt.root",outputDir,cut);
+  smurfproducer(smurfFDir,"qqww.root",outputDir,cut);
+  smurfproducer(smurfFDir,"ggww.root",outputDir,cut);
+  smurfproducer(smurfFDir,"ttbar.root",outputDir,cut);
+  smurfproducer(smurfFDir,"tw.root",outputDir,cut);
+  smurfproducer(smurfFDir,"wjets.root",outputDir,cut);
+  smurfproducer(smurfFDir,"wz.root",outputDir,cut);
+  smurfproducer(smurfFDir,"zz.root",outputDir,cut);
+  smurfproducer(smurfFDir,"data.root",outputDir,cut);
 }
