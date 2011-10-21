@@ -491,11 +491,10 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( region.Contains("lep2pt15allfs") && (dataEvent->lep2_.pt()<15.) ) continue;
     if ( region.Contains("ptll45") && ( dataEvent->dilep_.pt()<45.) ) continue;
     //cuts for Rout/in
-    if ( region.Contains("met2022") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>22.0) ) continue;
-    if ( region.Contains("met2226") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<22.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>26.0) ) continue;
-    if ( region.Contains("met2631") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<26.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>31.0) ) continue;
-    if ( region.Contains("met3140") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<31.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>40.0) ) continue;
-    if ( region.Contains("met40up") &&  min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0 ) continue;
+    if ( region.Contains("met2025") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>25.0) ) continue;
+    if ( region.Contains("met2530") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<25.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>30.0) ) continue;
+    if ( region.Contains("met3037") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<30.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>37.0) ) continue;
+    if ( region.Contains("met37up") &&  min(dataEvent->pmet_,dataEvent->pTrackMet_)<37.0 ) continue;
     //cuts on btag
     if ( region.Contains("btag1or2")  && dataEvent->jet1Btag_<2.1 && dataEvent->jet2Btag_<2.1 ) continue;
     if ( region.Contains("btag1and2") && (dataEvent->jet1Btag_<2.1 || dataEvent->jet2Btag_<2.1) ) continue;
