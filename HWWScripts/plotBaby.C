@@ -39,7 +39,7 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
   unsigned int wwSelection = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|TopVeto|ExtraLeptonVeto;
   unsigned int wwSelectionNoTV = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|ExtraLeptonVeto;
   
-  Float_t lumi = 1.545;//fb-1
+  Float_t lumi = 2.121;//fb-1
 
   TString mh = Form("%i",mass); 
   TString nj = Form("%i",njets); 
@@ -124,11 +124,12 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
   TCut baseNTV(Form("(cuts & %i)==%i",wwSelectionNoTV,wwSelectionNoTV));
   TCut notTagNotInJets(Form("(cuts & %i)!=%i",TopTagNotInJets,TopTagNotInJets));
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
-  TCut newcuts = "type==1 || type==2 || ( min(pmet,pTrackMet)>40 && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
+  TCut newcuts = "type==1 || type==2 || ( lep2.pt()>15. && min(pmet,pTrackMet)>(37.+nvtx/2.) && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
+  TCut kincuts = "dilep.pt()>45.";
   TCut njcut(Form("njets==%i",njets));
   if (njets==-1) njcut = "";
 
-  TCut cut = base&&njcut&&newcuts&&sigreg&&trig;
+  TCut cut = base&&njcut&&newcuts&&sigreg&&trig&&kincuts;
   cut.SetName("mh"+mh+"_nj"+nj);
 
   TString plot[]    = {
@@ -163,10 +164,12 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
 //   TString binning[] = {"40,0.,300."};
 //   TString xtitle[]  = {"m_{l,l} [GeV]"};
 
+  //TString mcs[] = {"wz_py"};
+  //int  colors[] = {kBlue};
   TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma"};
   int  colors[] = {kCyan,kCyan,kGreen,kGreen,kGreen,kYellow,kYellow,kBlue,kBlue,kGray,kGray};
-  float sfs0j[] = { 1.0,   1.0,   3.0,   3.0,   1.0,   1.5,    1.5, 1.0, 1.0, 1.1,    1.0};
-  float sfs1j[] = { 1.0,   1.0,   2.8,   2.8,   1.0,   1.2,    1.2, 1.0, 1.0, 2.5,    1.0};
+  float sfs0j[] = { 1.0,   1.0,   3.3,   3.3,   1.0,   1.0,    1.0, 1.0, 1.0, 2.5,    1.0};
+  float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.0,    1.0, 1.0, 1.0, 3.4,    1.0};
   float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0};
   float* sfs;
   if (njets==0) sfs = sfs0j;
@@ -179,7 +182,7 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
   //float sig_correction = 10.;
   //if (lumi>0.) signal->SetWeight(lumi*sig_correction);
 
-  TFile *_data = TFile::Open("/smurf/data/LP2011/tas/data.root");
+  TFile *_data = TFile::Open("/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/data.root");
   TTree * data = (TTree*) _data->Get("tree");
 
   bool allleg = false;
@@ -205,7 +208,7 @@ void plotBaby(int njets=0, int mass=0, bool logy=0){
     leg->SetFillColor(kWhite);
     leg->SetNColumns(3);
     for (int i=0;i<nMC;++i){    
-      TFile *_mc = TFile::Open("/smurf/data/LP2011/mitf/"+mcs[i]+".root");
+      TFile *_mc = TFile::Open("/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/"+mcs[i]+".root");
       TTree * mc = (TTree*) _mc->Get("tree");
       float correction = sfs[i];
       if (lumi>0.) mc->SetWeight(lumi*correction);

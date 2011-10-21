@@ -1,8 +1,8 @@
-void makeTable(int njets=0, int mass=0, bool dodata=false){
+void makeTable(int njets=0, int mass=0, bool useSF=false, bool dodata=false){
 
   gROOT->Reset();
 
-  Float_t lumi = 1.545;//fb-1
+  Float_t lumi = 2.121;//fb-1
 
   TCut lep1pt,lep2pt,dPhi,mll,mt,himass;
   if (mass==0) {
@@ -120,9 +120,11 @@ void makeTable(int njets=0, int mass=0, bool dodata=false){
   TCut baseNTV(Form("(cuts & %i)==%i",wwSelectionNoTV,wwSelectionNoTV));
   TCut notTagNotInJets(Form("(cuts & %i)!=%i",TopTagNotInJets,TopTagNotInJets));
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
-  TCut newcuts = "type==1 || type==2 || ( min(pmet,pTrackMet)>40 && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
+  TCut newcuts = "type==1 || type==2 || ( lep2.pt()>15. && min(pmet,pTrackMet)>(37.+nvtx/2.) && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
+  TCut kincuts = "dilep.pt()>45.";
 
-  TCut cut = base&&"njets==0"&&newcuts&&sigreg&&trig;
+  TCut cut = base&&"njets==0"&&newcuts&&sigreg&&trig&&kincuts;
+  //cout << "cut: " << cut.GetTitle() << endl;
 
   TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma"};
   int  colors[] = {kCyan,kCyan,kGreen,kGreen,kGreen,kYellow,kYellow,kBlue,kBlue,kGray,kGray};
@@ -130,11 +132,12 @@ void makeTable(int njets=0, int mass=0, bool dodata=false){
   float sfs1j[] = { 1.0,   1.0,   2.8,   2.8,   1.0,   1.2,    1.2, 1.0, 1.0, 2.5,    1.0};
   float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0};
   float* sfs;
-  if (njets==0) sfs = sfs0j;
-  else if (njets==1) sfs = sfs1j;
+  if (useSF&&njets==0) sfs = sfs0j;
+  else if (useSF&&njets==1) sfs = sfs1j;
   else sfs = nosfs;
 
-  TString dir = "/smurf/data/LP2011/mitf/";
+  TString dir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-alljets/";
+  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/";
   TString data_file = "/smurf/data/LP2011/tas/data.root";
   int nMC = sizeof(mcs)/sizeof(TString);
 
