@@ -54,15 +54,15 @@ pair<float, float> computeRoutinMC(unsigned int cut, unsigned int veto, int mass
   float z_out = zee_out + zmm_out;
   float z_out_err = sqrt( pow(zee_out_err,2) + pow(zmm_out_err,2) );
   float r_all = z_out/z_in;
-  float r_all_err = sqrt( pow(z_out_err,2)/pow(z_in,2) + z_out*pow(z_in_err,2)/pow(z_in,4) );
+  float r_all_err = r_all*sqrt( pow(z_out_err/z_out,2) + pow(z_in_err/z_in,2) );
   if (printAll) {
     cout << "computing Rout/in for metcut: " << metcut << endl;
     cout << "Nin mm, ee, all: " << zmm_in << "+/-" << zmm_in_err << " " << zee_in << "+/-" << zee_in_err << " " << z_in << "+/-" << z_in_err << endl;
     cout << "Nout mm, ee, all: " << zmm_out << "+/-" << zmm_out_err << " " << zee_out << "+/-" << zee_out_err << " " << z_out << "+/-" << z_out_err << endl;
     float rmm_all = zmm_out/zmm_in;
-    float rmm_all_err = sqrt( pow(zmm_out_err,2)/pow(zmm_in,2) + zmm_out*pow(zmm_in_err,2)/pow(zmm_in,4) );
+    float rmm_all_err = rmm_all*sqrt( pow(zmm_out_err/zmm_out,2) + pow(zmm_in_err/zmm_in,2) );
     float ree_all = zee_out/zee_in;
-    float ree_all_err = sqrt( pow(zee_out_err,2)/pow(zee_in,2) + zee_out*pow(zee_in_err,2)/pow(zee_in,4) );
+    float ree_all_err = ree_all*sqrt( pow(zee_out_err/zee_out,2) + pow(zee_in_err/zee_in,2) );
     cout << "R(out/in) mm, ee, all: " << rmm_all << "+/-" << rmm_all_err << " " << ree_all << "+/-" << ree_all_err << " " << r_all << "+/-" << r_all_err << endl;
   }
   return make_pair<float, float>(r_all,r_all_err);
@@ -71,32 +71,23 @@ pair<float, float> computeRoutinMC(unsigned int cut, unsigned int veto, int mass
 pair<float, float> computeRoutinMCwithSyst(unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString regionIn, TString regionOut, float lumi, 
 					   bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false)  {
   bool printAll = 0;
-  pair<float, float> r2022 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met2022", lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> r2226 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met2226", lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> r2631 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met2631", lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> r3140 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met3140", lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> r40up = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met40up", lumi, useJson, applyEff, doFake, doPUw);
-  float r_all = r40up.first;
-  float r_all_stat_err = r40up.second;
-  float r_all_syst_err = max(fabs(r_all-r40up.first),max(fabs(r_all-r3140.first),max(fabs(r_all-r2631.first),max(fabs(r_all-r2226.first),fabs(r_all-r2022.first)))));
+  pair<float, float> r2025 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met2025", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> r2530 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met2530", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> r3037 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met3037", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> r37up = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met37up", lumi, useJson, applyEff, doFake, doPUw);
+  float r_all = r37up.first;
+  float r_all_stat_err = r37up.second;
+  if (r_all_stat_err/r_all>0.65) {
+    r_all = r3037.first;
+    r_all_stat_err = r3037.second;
+  }
+  float r_all_syst_err = max(fabs(r_all-r3037.first),max(fabs(r_all-r2530.first),fabs(r_all-r2025.first)));
   float r_all_err = sqrt( pow(r_all_stat_err,2) + pow(r_all_syst_err,2) );
   if (printAll) {
-    cout << "r values in met bins: " << r2022.first << " " << r2226.first << " " << r2631.first << " " << r3140.first << " " << r40up.first << endl;
+    cout << "r values in met bins: " << r2025.first << " " << r2530.first << " " << r3037.first << " " << r37up.first << endl;
     cout << "r_all: " << r_all << "+/-" << r_all_stat_err << "+/-" << r_all_syst_err << endl;
   }
   return make_pair<float, float>(r_all,r_all_err);
-  /* OLD VERSION, FROM DATA
-  pair<float, float> r2022 = computeRoutinData(sample, veto, mass, njets, region, "met2022", kee, useJson);
-  pair<float, float> r2226 = computeRoutinData(sample, veto, mass, njets, region, "met2226", kee, useJson);
-  pair<float, float> r2631 = computeRoutinData(sample, veto, mass, njets, region, "met2631", kee, useJson);
-  pair<float, float> r3140 = computeRoutinData(sample, veto, mass, njets, region, "met3140", kee, useJson);
-  cout << "r values in met bins: " << r2022.first << " " << r2226.first << " " << r2631.first << " " << r3140.first << endl;
-  float r_all = r3140.first;
-  float r_all_stat_err = r3140.second;
-  float r_all_syst_err = max(fabs(r_all-r3140.first),max(fabs(r_all-r2631.first),max(fabs(r_all-r2226.first),fabs(r_all-r2022.first))));
-  if (printAll) cout << "r_all: " << r_all << "+/-" << r_all_stat_err << "+/-" << r_all_syst_err << endl;
-  float r_all_err = sqrt( pow(r_all_stat_err,2) + pow(r_all_syst_err,2) );
-  */
 }
 
 pair<float, float> getZYieldInData(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString regionIn, 
@@ -216,15 +207,15 @@ void makeDYTable(float lumi) {
   int jetbins[] = {0,1};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
-  //int masses[] = {120};
-  int masses[] = {0,120,160};
+  //int masses[] = {160};
+  int masses[] = {0,120,140,160,180,200};
   int nmasses = sizeof(masses)/sizeof(int);
 
   for (int j=0;j<njetbins;++j) {
 
     int njets = jetbins[j];
-    cout << "---------------------------------- " << njets << "-jet bin -----------------------------------------" << endl;
-    cout << Form("| %10s | %-15s | %-15s | %-15s | %-15s |","mass","Nin(data)","R_out/in","Nout(data)","Nout(MC)") << endl;
+    cout << "----------------------------------------------- " << njets << "-jet bin -----------------------------------------------" << endl;
+    cout << Form("| %10s | %-15s | %-15s | %-15s | %-15s | %-15s  |","mass","Nin(data)","R_out/in","Nout(data)","Nout(MC)","SF(Data/MC)") << endl;
 
     for (int jj=0;jj<nmasses;++jj) {
 
@@ -234,32 +225,37 @@ void makeDYTable(float lumi) {
       pair<float, float> dyeeMC   = getYield(dir_mc+"dyee",  wwSelection, noVeto, mass, njets, "eefs,minmetvtx,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
       
       pair<float, float> r = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
-      //pair<float, float> r = make_pair<float, float>(0.252045, 0.0743647);//this is 0-jet bin WW level, just to speed everything up
       
       pair<float, float> z = getZYieldInData(data_file, wwSelNoZVNoMet, noVeto, mass, njets, regionIn, lumi, useJson, applyEff, doFake, doPUw);
       
       //Z veto, full met and SF cuts are already applied in the method
       pair<float, float> dyData = dyBkgEstimation(data_file, wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, r.first, r.second, z.first, z.second, useJson, applyEff, doFake, doPUw);
-      
+
+      float sf = dyData.first/(dymmMC.first+dyeeMC.first);
+      float sf_err = sf*sqrt( pow(dyData.second/dyData.first,2) + pow(sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2))/(dymmMC.first+dyeeMC.first),2) );
+      float sf_percerr = 100.*sf_err/sf;
+
       if (mass==0) {
-	cout << Form("| %10s | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
+	cout << Form("| %10s | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
 		     "WW",
 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
 		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
-		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.) 
+		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
+		     round(100.*sf)/100.,round(10.*sf_percerr)/10.)
 	     << endl;
       } else {
-	cout << Form("| %6i GeV | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
+	cout << Form("| %6i GeV | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
 		     mass,
 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
 		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
-		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.) 
+		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
+		     round(100.*sf)/100.,round(10.*sf_percerr)/10.)
 	     << endl;
       }
     }
-    cout << "--------------------------------------------------------------------------------------" << endl;
+    cout << "---------------------------------------------------------------------------------------------------------" << endl;
   }
 
 }
