@@ -12,7 +12,7 @@ void makeFakeTable(float lumi) {
   bool doSpillage = 1;
 
   int mass = 0;
-  TString region = "minmet40,dphijet,dphireg";
+  TString region = "dphireg,dphijet,minmetvtx,lep2pt15,ptll45";
 
   int jetbins[] = {0,1};
   int njetbins = sizeof(jetbins)/sizeof(int);
