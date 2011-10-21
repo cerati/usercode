@@ -22,6 +22,7 @@
 #include "Smurf/Core/SmurfTree.h"
 #include <vector>
 #include "Smurf/Core/LeptonScaleLookup.cc"
+#include "CMS2/NtupleMacros/Tools/goodrun.cc"
 
 //copy here to avoid SmurfTree::
 enum Selection {
@@ -74,10 +75,10 @@ unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSe
 unsigned int noVeto          = 1UL<<31;
 unsigned int noCut           = 1UL<<0;
 
-// TString dir_mc         = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoMetNoZVminMET20/";
-// TString data_file      = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoMetNoZVminMET20/data.root";
-TString dir_mc         = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/";
-TString data_file      = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/data.root";
+TString dir_mc         = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoMetNoZVminMET20/";
+TString data_file      = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoMetNoZVminMET20/data.root";
+// TString dir_mc         = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/";
+// TString data_file      = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/data.root";
 
 // TString dir_mc_mit     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/mitf-alljets/";
 // TString dir_mc_tas     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/";
@@ -92,6 +93,7 @@ bool redoWeights  = 0;
 bool checkWeights = 0;
 
 bool passJson(int run, int lumi) {
+  //this is ok but slow: use goodrun.cc from tas
   ifstream ifs( "goodruns.txt" );
   string temp;
   istringstream instream;
@@ -452,6 +454,8 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 			             mFR->GetYaxis()->GetNbins(),mFR->GetYaxis()->GetXmin(),mFR->GetYaxis()->GetXmax());
   }
 
+  if (!isMC && useJson) set_goodrun_file("goodruns.txt");
+
   float weight = 1.;
   float yield = 0.;
   float error = 0.;
@@ -460,7 +464,8 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if (isMC) weight = lumi*dataEvent->scale1fb_;
     if (!isMC && (dataEvent->cuts_ & Trigger) != Trigger ) continue;
     //if (!isMC && dataEvent->run_<170826) continue;//FIXME
-    if (useJson && !passJson(dataEvent->run_,dataEvent->lumi_)) continue;    
+    //if (!isMC && useJson && !passJson(dataEvent->run_,dataEvent->lumi_)) continue;    
+    if (!isMC && useJson && !goodrun(dataEvent->run_,dataEvent->lumi_)) continue;    
     if ( dataEvent->njets_!=njets) continue;
     if ( (dataEvent->cuts_ & cut) != cut ) continue;
     if ( (dataEvent->cuts_ & veto) == veto ) continue;
