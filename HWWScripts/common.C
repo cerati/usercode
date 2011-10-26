@@ -24,6 +24,34 @@
 #include "Smurf/Core/LeptonScaleLookup.cc"
 #include "CMS2/NtupleMacros/Tools/goodrun.cc"
 
+TString main_dir    = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbNoWeights/";
+TString topww_dir   = "wwSelNoLepNoTV/";
+TString dy_dir      = "wwSelNoMetNoZVminMET20/";
+
+//2011A
+TString fr_file_mit    = "/smurf/data/Winter11/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
+TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011A.root";
+TString puw_file       = "/smurf/data/Winter11/auxiliar/PileupReweighting.Summer11DYmm_To_Run2011A.root";
+TString jsonFile       = "2011a.json.txt";
+
+//2011B
+// TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011B.root";
+// TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Run2011B.root";
+// TString jsonFile       = "2011b.json.txt";
+
+//Full2011
+//TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Full2011.root";
+//TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Full2011.root";
+//TString jsonFile       = "";
+
+//+++ deprecated
+TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
+TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
+//+++
+
+bool redoWeights  = 1;
+bool checkWeights = 0;
+
 //copy here to avoid SmurfTree::
 enum Selection {
   BaseLine          = 1UL<<0,  // pt(reco)>20/10, acceptance,!STA muon, mll>12
@@ -74,34 +102,6 @@ unsigned int wwSelNoLepNoTV  = BaseLine|ChargeMatch|FullMET|ZVeto|ExtraLeptonVet
 unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|ExtraLeptonVeto;
 unsigned int noVeto          = 1UL<<31;
 unsigned int noCut           = 1UL<<0;
-
-TString main_dir    = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbNoWeights/";
-TString topww_dir   = "wwSelNoLepNoTV/";
-TString dy_dir      = "wwSelNoMetNoZVminMET20/";
-
-//2011A
-TString fr_file_mit    = "/smurf/data/Winter11/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
-TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011A.root";
-TString puw_file       = "/smurf/data/Winter11/auxiliar/PileupReweighting.Summer11DYmm_To_Run2011A.root";
-TString jsonFile       = "2011a.json.txt";
-
-//2011B
-// TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011B.root";
-// TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Run2011B.root";
-// TString jsonFile       = "2011b.json.txt";
-
-//Full2011
-//TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Full2011.root";
-//TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Full2011.root";
-//TString jsonFile       = "";
-
-//+++ deprecated
-TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
-TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
-//+++
-
-bool redoWeights  = 1;
-bool checkWeights = 0;
 
 bool passJson(int run, int lumi) {
   //this is ok but slow: use goodrun.cc from tas
