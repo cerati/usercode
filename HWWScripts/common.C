@@ -75,21 +75,32 @@ unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSe
 unsigned int noVeto          = 1UL<<31;
 unsigned int noCut           = 1UL<<0;
 
-TString dir_mc         = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoMetNoZVminMET20/";
-TString data_file      = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoMetNoZVminMET20/data.root";
-// TString dir_mc         = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/";
-// TString data_file      = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/data.root";
+TString main_dir    = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbNoWeights/";
+TString topww_dir   = "wwSelNoLepNoTV/";
+TString dy_dir      = "wwSelNoMetNoZVminMET20/";
 
-// TString dir_mc_mit     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/mitf-alljets/";
-// TString dir_mc_tas     = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/";
+//2011A
+TString fr_file_mit    = "/smurf/data/Winter11/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
+TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011A.root";
+TString puw_file       = "/smurf/data/Winter11/auxiliar/PileupReweighting.Summer11DYmm_To_Run2011A.root";
+TString jsonFile       = "2011a.json.txt";
 
-TString fr_file_mit    = "/smurf/data/Winter11/auxiliar/FakeRates_SmurfMVAWithIPInfoElectron.root";
+//2011B
+// TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011B.root";
+// TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Run2011B.root";
+// TString jsonFile       = "2011b.json.txt";
+
+//Full2011
+//TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Full2011.root";
+//TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Full2011.root";
+//TString jsonFile       = "";
+
+//+++ deprecated
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
-TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_SmurfBDTGWithIPInfoElectrons.root";
-TString puw_file       = "/smurf/data/LP2011/auxiliar/puWeights_PU4_68mb.root";
+//+++
 
-bool redoWeights  = 0;
+bool redoWeights  = 1;
 bool checkWeights = 0;
 
 bool passJson(int run, int lumi) {
@@ -397,6 +408,8 @@ float getPileupReweightFactor(int nvtx, TH1F* puweights=0) {
 pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, 
 			    bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false) {
 
+  //cout << sample << " " << cut << " " << region << endl;
+
   float lep1pt=0.,lep2pt=0.,dPhi=0.,mll=0.,mtL=0.,mtH=0.,himass=0.;
   getCutValues(mass,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass);
 
@@ -454,7 +467,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 			             mFR->GetYaxis()->GetNbins(),mFR->GetYaxis()->GetXmin(),mFR->GetYaxis()->GetXmax());
   }
 
-  if (!isMC && useJson) set_goodrun_file("goodruns.txt");
+  if (!isMC && useJson) set_goodrun_file(jsonFile);
 
   float weight = 1.;
   float yield = 0.;

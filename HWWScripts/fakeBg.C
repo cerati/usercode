@@ -21,70 +21,70 @@ void makeFakeTable(float lumi) {
 
     int njets = jetbins[j];
 
-    pair<float, float> wjMC   = getYield(dir_mc+"wjets",  wwSelection, noVeto, mass, njets, region, lumi, useJson, applyTnPSF, false);
+    pair<float, float> wjMC   = getYield(main_dir+topww_dir+"wjets",  wwSelection, noVeto, mass, njets, region, lumi, useJson, applyTnPSF, false);
     
     //electron+fake electron
-    pair<float, float> wjData_ee1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",eefs", 0, useJson, false, true, false);
-    pair<float, float> wjData_ee2 = getYield(data_file, wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",eefs", 0, useJson, false, true, false);
-    //pair<float, float> wjData_ee1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection|Lep1LooseEleV4, Lep1FullSelection, mass, njets, region+",eefs", 0, useJson, false, true, false);
-    //pair<float, float> wjData_ee2 = getYield(data_file, wwSelectionNoLep|Lep1FullSelection|Lep2LooseEleV4, Lep2FullSelection, mass, njets, region+",eefs", 0, useJson, false, true, false);
+    pair<float, float> wjData_ee1 = getYield(main_dir+topww_dir+"data.root", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",eefs", 0, useJson, false, true, false);
+    pair<float, float> wjData_ee2 = getYield(main_dir+topww_dir+"data.root", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",eefs", 0, useJson, false, true, false);
+    //pair<float, float> wjData_ee1 = getYield(main_dir+topww_dir+"data.root", wwSelectionNoLep|Lep2FullSelection|Lep1LooseEleV4, Lep1FullSelection, mass, njets, region+",eefs", 0, useJson, false, true, false);
+    //pair<float, float> wjData_ee2 = getYield(main_dir+topww_dir+"data.root", wwSelectionNoLep|Lep1FullSelection|Lep2LooseEleV4, Lep2FullSelection, mass, njets, region+",eefs", 0, useJson, false, true, false);
     pair<float, float> wwFake_ee1 = make_pair<float, float>(0,0);
     pair<float, float> wwFake_ee2 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_ee1 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_ee2 = make_pair<float, float>(0,0);
     if (doSpillage) {
-      wwFake_ee1 = getYield(dir_mc+"qqww", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",eefs", lumi, useJson, applyTnPSF, true);
-      wwFake_ee2 = getYield(dir_mc+"qqww", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",eefs", lumi, useJson, applyTnPSF, true);
-      ttFake_ee1 = getYield(dir_mc+"ttbar", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",eefs", lumi, useJson, applyTnPSF, true);
-      ttFake_ee2 = getYield(dir_mc+"ttbar", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",eefs", lumi, useJson, applyTnPSF, true);
+      wwFake_ee1 = getYield(main_dir+topww_dir+"qqww", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",eefs", lumi, useJson, applyTnPSF, true);
+      wwFake_ee2 = getYield(main_dir+topww_dir+"qqww", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",eefs", lumi, useJson, applyTnPSF, true);
+      ttFake_ee1 = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",eefs", lumi, useJson, applyTnPSF, true);
+      ttFake_ee2 = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",eefs", lumi, useJson, applyTnPSF, true);
     }
     float ee = wjData_ee1.first+wjData_ee2.first-wwFake_ee1.first-wwFake_ee2.first-ttFake_ee1.first-ttFake_ee2.first;
     float ee_err = sqrt(pow(wjData_ee1.second,2)+pow(wjData_ee2.second,2)+pow(wwFake_ee1.second,2)+pow(wwFake_ee2.second,2)+pow(ttFake_ee1.second,2)+pow(ttFake_ee2.second,2));
     
     //muon+fake electron
-    pair<float, float> wjData_me1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",emfs", 0, useJson, false, true, false);
-    pair<float, float> wjData_me2 = getYield(data_file,  wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mefs", 0, useJson, false, true, false);
+    pair<float, float> wjData_me1 = getYield(main_dir+topww_dir+"data.root", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",emfs", 0, useJson, false, true, false);
+    pair<float, float> wjData_me2 = getYield(main_dir+topww_dir+"data.root",  wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mefs", 0, useJson, false, true, false);
     pair<float, float> wwFake_me1 = make_pair<float, float>(0,0);
     pair<float, float> wwFake_me2 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_me1 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_me2 = make_pair<float, float>(0,0);
     if (doSpillage) {
-      wwFake_me1 = getYield(dir_mc+"qqww", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",emfs", lumi, useJson, applyTnPSF, true);
-      wwFake_me2 = getYield(dir_mc+"qqww", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
-      ttFake_me1 = getYield(dir_mc+"ttbar", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
-      ttFake_me2 = getYield(dir_mc+"ttbar", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
+      wwFake_me1 = getYield(main_dir+topww_dir+"qqww", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",emfs", lumi, useJson, applyTnPSF, true);
+      wwFake_me2 = getYield(main_dir+topww_dir+"qqww", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
+      ttFake_me1 = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
+      ttFake_me2 = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
     }
     float me = wjData_me1.first+wjData_me2.first-wwFake_me1.first-wwFake_me2.first-ttFake_me1.first-ttFake_me2.first;
     float me_err = sqrt(pow(wjData_me1.second,2)+pow(wjData_me2.second,2)+pow(wwFake_me1.second,2)+pow(wwFake_me2.second,2)+pow(ttFake_me1.second,2)+pow(ttFake_me2.second,2));
     
     //electron+fake muon
-    pair<float, float> wjData_em1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", 0, useJson, false, true, false);
-    pair<float, float> wjData_em2 = getYield(data_file,  wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",emfs", 0, useJson, false, true, false);
+    pair<float, float> wjData_em1 = getYield(main_dir+topww_dir+"data.root", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", 0, useJson, false, true, false);
+    pair<float, float> wjData_em2 = getYield(main_dir+topww_dir+"data.root",  wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",emfs", 0, useJson, false, true, false);
     pair<float, float> wwFake_em1 = make_pair<float, float>(0,0);
     pair<float, float> wwFake_em2 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_em1 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_em2 = make_pair<float, float>(0,0);
     if (doSpillage) {
-      wwFake_em1 = getYield(dir_mc+"qqww", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
-      wwFake_em2 = getYield(dir_mc+"qqww", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",emfs", lumi, useJson, applyTnPSF, true);
-      ttFake_em1 = getYield(dir_mc+"ttbar", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
-      ttFake_em2 = getYield(dir_mc+"ttbar", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",emfs", lumi, useJson, applyTnPSF, true);
+      wwFake_em1 = getYield(main_dir+topww_dir+"qqww", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
+      wwFake_em2 = getYield(main_dir+topww_dir+"qqww", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",emfs", lumi, useJson, applyTnPSF, true);
+      ttFake_em1 = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mefs", lumi, useJson, applyTnPSF, true);
+      ttFake_em2 = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",emfs", lumi, useJson, applyTnPSF, true);
     }
     float em = wjData_em1.first+wjData_em2.first-wwFake_em1.first-wwFake_em2.first-ttFake_em1.first-ttFake_em2.first;
     float em_err = sqrt(pow(wjData_em1.second,2)+pow(wjData_em2.second,2)+pow(wwFake_em1.second,2)+pow(wwFake_em2.second,2)+pow(ttFake_em1.second,2)+pow(ttFake_em2.second,2));
     
     //muon+fake muon
-    pair<float, float> wjData_mm1 = getYield(data_file, wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mmfs", 0, useJson, false, true, false);
-    pair<float, float> wjData_mm2 = getYield(data_file, wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mmfs", 0, useJson, false, true, false);
+    pair<float, float> wjData_mm1 = getYield(main_dir+topww_dir+"data.root", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mmfs", 0, useJson, false, true, false);
+    pair<float, float> wjData_mm2 = getYield(main_dir+topww_dir+"data.root", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mmfs", 0, useJson, false, true, false);
     pair<float, float> wwFake_mm1 = make_pair<float, float>(0,0);
     pair<float, float> wwFake_mm2 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_mm1 = make_pair<float, float>(0,0);
     pair<float, float> ttFake_mm2 = make_pair<float, float>(0,0);
     if (doSpillage) {
-      wwFake_mm1 = getYield(dir_mc+"qqww", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mmfs", lumi, useJson, applyTnPSF, true);
-      wwFake_mm2 = getYield(dir_mc+"qqww", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mmfs", lumi, useJson, applyTnPSF, true);
-      ttFake_mm1 = getYield(dir_mc+"ttbar", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mmfs", lumi, useJson, applyTnPSF, true);
-      ttFake_mm2 = getYield(dir_mc+"ttbar", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mmfs", lumi, useJson, applyTnPSF, true);
+      wwFake_mm1 = getYield(main_dir+topww_dir+"qqww", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mmfs", lumi, useJson, applyTnPSF, true);
+      wwFake_mm2 = getYield(main_dir+topww_dir+"qqww", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mmfs", lumi, useJson, applyTnPSF, true);
+      ttFake_mm1 = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoLep|Lep2FullSelection, noVeto, mass, njets, region+",mmfs", lumi, useJson, applyTnPSF, true);
+      ttFake_mm2 = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoLep|Lep1FullSelection, noVeto, mass, njets, region+",mmfs", lumi, useJson, applyTnPSF, true);
     }
     float mm = wjData_mm1.first+wjData_mm2.first-wwFake_mm1.first-wwFake_mm2.first-ttFake_mm1.first-ttFake_mm2.first;
     float mm_err = sqrt(pow(wjData_mm1.second,2)+pow(wjData_mm2.second,2)+pow(wwFake_mm1.second,2)+pow(wwFake_mm2.second,2)+pow(ttFake_mm1.second,2)+pow(ttFake_mm2.second,2));
