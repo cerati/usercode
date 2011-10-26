@@ -163,13 +163,13 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
     if ( dilep_->mass() < 12.0) continue;
     
     //this is for dy
-    if (cutstring="dy") {
+    if (cutstring=="dy") {
       if ((cuts_ & wwSelNoZVNoMet) != wwSelNoZVNoMet) continue;
       if (min(pmet_,pTrackMet_)<20.0) continue;
     }
 
     //this is for top/ww
-    if (cutstring="topww") {
+    if (cutstring=="topww") {
       if ((cuts_ & wwSelNoLepNoTV) != wwSelNoLepNoTV) continue;
     }
 
@@ -187,8 +187,8 @@ void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-allj
     cout << "cut not supported. please use dy or topww" << endl;
     return; 
   }
-  if (cut=="topww") outputDir+="/wwSelNoLepNoTV/";
-  else if (cut=="dy") outputDir+="/wwSelNoMetNoZVminMET20/";
+  if (cut=="topww" && !outputDir.Contains("wwSelNoLepNoTV")) outputDir+="/wwSelNoLepNoTV/";
+  else if (cut=="dy" && !outputDir.Contains("wwSelNoMetNoZVminMET20")) outputDir+="/wwSelNoMetNoZVminMET20/";
   gSystem->Exec("mkdir -p "+outputDir);
   smurfproducer(smurfFDir,"dymm.root",outputDir,cut);
   smurfproducer(smurfFDir,"dyee.root",outputDir,cut);
