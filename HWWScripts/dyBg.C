@@ -91,7 +91,7 @@ pair<float, float> computeRoutinMCwithSyst(unsigned int cut, unsigned int veto, 
 pair<float, float> getZYieldInData(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString regionIn, 
 				   float lumi, bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false) {
 
-  bool printAll = 1;
+  bool printAll = 0;
   //sample is assumed to be data
   float lumiSample = 0.;
 
@@ -193,7 +193,7 @@ pair<float, float> dyBkgEstimation(TString sample, unsigned int cut, unsigned in
 
 void makeDYTable(float lumi) {
 
-  bool useJson  = false;
+  bool useJson  = true;
   bool applyEff = true;
   bool doFake   = false;
   bool doPUw    = true;
@@ -205,7 +205,7 @@ void makeDYTable(float lumi) {
   int jetbins[] = {0,1};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
-  //int masses[] = {160};
+  //int masses[] = {140};
   int masses[] = {0,120,140,160,180,200};
   int nmasses = sizeof(masses)/sizeof(int);
 
@@ -256,4 +256,8 @@ void makeDYTable(float lumi) {
     cout << "---------------------------------------------------------------------------------------------------------" << endl;
   }
 
+}
+
+void dyBg(float lumi) {
+  makeDYTable(lumi);
 }

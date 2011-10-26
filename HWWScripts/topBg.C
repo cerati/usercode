@@ -192,7 +192,7 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
 
 void makeTopTable(float lumi) {
 
-  bool useJson  = false;
+  bool useJson  = true;
   bool applyEff = true;
   bool doFake   = false;
   bool doPUw    = true;
@@ -273,4 +273,8 @@ void makeTopTable(float lumi) {
        << endl;
   cout << "--------------------------------------------------------------------------------" << endl;
 
+}
+
+void topBg(float lumi) {
+  makeTopTable(lumi);
 }

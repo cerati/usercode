@@ -169,7 +169,7 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
 
   float sideband_data = getYield(data_file, wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", 0., useJson, false, false, false).first;
 
-  pair<float,float> sb_bkg = getAllBkg(mass, njets, "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, eff_veto_data, eff_err_veto_data, false, applyEff, doPUw);
+  pair<float,float> sb_bkg = getAllBkg(mass, njets, "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, eff_veto_data, eff_err_veto_data, useJson, applyEff, doPUw);
 
   float sb_ww_meas_data = sideband_data-sb_bkg.first;
   float sb_ww_meas_err_data = sqrt(sideband_data + pow(sb_bkg.second,2));
@@ -206,7 +206,7 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
 
 void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
 
-  bool useJson  = false;
+  bool useJson  = true;
   bool applyEff = true;
   bool doPUw    = true;
 
@@ -220,7 +220,7 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
   //int masses[] = {115,120,130,140,150};
   //int masses[] = {115,130,150,170,190};
   int masses[] = {120,140,160,180,200};
-  //int masses[] = {120};
+  //int masses[] = {160};
   int nmasses = sizeof(masses)/sizeof(int);
 
   if (!doLatex) cout << "| m_H |   0-j meas    |   0-j exp     |      SF       |   1-j meas    |   1-j exp     |      SF       |" << endl;

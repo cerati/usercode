@@ -6,7 +6,7 @@ void makeFakeTable(float lumi) {
 
   bool printAll = 0;
 
-  bool useJson    = false;
+  bool useJson    = true;
   bool applyTnPSF = false;
 
   bool doSpillage = 1;
@@ -137,4 +137,8 @@ void makeFakeTable(float lumi) {
     cout << "-------------------------------------------------------" << endl;
   }
 
+}
+
+void fakeBg(float lumi) {
+  makeFakeTable(lumi);
 }
