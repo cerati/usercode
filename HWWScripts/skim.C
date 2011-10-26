@@ -23,6 +23,7 @@
 #include "TAxis.h"
 #include "TMath.h"
 #include "TCut.h"
+#include <TSystem.h>
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector; 
 
@@ -186,6 +187,9 @@ void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-allj
     cout << "cut not supported. please use dy or topww" << endl;
     return; 
   }
+  if (cut=="topww") outputDir+="/wwSelNoLepNoTV/";
+  else if (cut=="dy") outputDir+="/wwSelNoMetNoZVminMET20/";
+  gSystem->Exec("mkdir -p "+outputDir);
   smurfproducer(smurfFDir,"dymm.root",outputDir,cut);
   smurfproducer(smurfFDir,"dyee.root",outputDir,cut);
   smurfproducer(smurfFDir,"dytt.root",outputDir,cut);
