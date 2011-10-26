@@ -202,10 +202,10 @@ void makeDYTable(float lumi) {
   TString regionOut = "dphijet,leppts,dphicut,masscut,ptll45,lep2pt15";
 
   //int jetbins[] = {0};
-  int jetbins[] = {0,1};
+  int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
-  //int masses[] = {140};
+  //int masses[] = {0};
   int masses[] = {0,120,140,160,180,200};
   int nmasses = sizeof(masses)/sizeof(int);
 
@@ -218,6 +218,7 @@ void makeDYTable(float lumi) {
     for (int jj=0;jj<nmasses;++jj) {
 
       int mass = masses[jj];
+      if (njets==2 && mass>0) continue;
 
       pair<float, float> dymmMC   = getYield(main_dir+dy_dir+"dymm",  wwSelection, noVeto, mass, njets, "mmfs,minmetvtx,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
       pair<float, float> dyeeMC   = getYield(main_dir+dy_dir+"dyee",  wwSelection, noVeto, mass, njets, "eefs,minmetvtx,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
