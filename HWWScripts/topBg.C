@@ -36,11 +36,11 @@ pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned in
   //assume these scale factors for DY 
   float dySF = 1.;
   if (njets==0){
-    dySF=3.27;
+    dySF=dysf0j;
   } else if (njets==1) {
-    dySF=4.17;
+    dySF=dysf1j;
   }else if (njets==2) {
-    dySF=6.49;
+    dySF=dysf2j;
   }
 
   float qqww = getYield(dir+"qqww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
