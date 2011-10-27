@@ -28,21 +28,30 @@ TString main_dir    = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbNoWe
 TString topww_dir   = "wwSelNoLepNoTV/";
 TString dy_dir      = "wwSelNoMetNoZVminMET20/";
 
-//2011A
 TString fr_file_mit    = "/smurf/data/Winter11/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
+//2011A
 TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011A.root";
 TString puw_file       = "/smurf/data/Winter11/auxiliar/PileupReweighting.Summer11DYmm_To_Run2011A.root";
 TString jsonFile       = "2011a.json.txt";
+float   dysf0j = 2.92;
+float   dysf1j = 3.78;
+float   dysf2j = 6.79;
 
 //2011B
 // TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011B.root";
 // TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Run2011B.root";
 // TString jsonFile       = "2011b.json.txt";
+// float   dysf0j = 3.89;
+// float   dysf1j = 4.55;
+// float   dysf2j = 6.19;
 
 //Full2011
-//TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Full2011.root";
-//TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Full2011.root";
-//TString jsonFile       = "";
+// TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Full2011.root";
+// TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Full2011.root";
+// TString jsonFile       = "";
+// float   dysf0j = 3.39;
+// float   dysf1j = 4.24;
+// float   dysf2j = 6.35;
 
 //+++ deprecated
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
@@ -467,7 +476,8 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 			             mFR->GetYaxis()->GetNbins(),mFR->GetYaxis()->GetXmin(),mFR->GetYaxis()->GetXmax());
   }
 
-  if (!isMC && useJson) set_goodrun_file(jsonFile);
+  if (!isMC && useJson && jsonFile!="") set_goodrun_file(jsonFile);
+  else if (jsonFile=="") useJson=false;
 
   float weight = 1.;
   float yield = 0.;
