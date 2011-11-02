@@ -3,67 +3,96 @@ void makeTable(float lumi=2.121, int njets=0, int mass=0, bool useSF=false, bool
 
   gROOT->Reset();
 
+  TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma",Form("hww%i",mass)};
+  float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0, 1.0};
+
+  TCut runrange("run>0");//Full2011
+  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoLepNoTV/";
+  float sfs0j[] = { 1.0,   1.0,   3.4,   3.4,   1.0,   1.4,    1.4, 1.0, 1.0, 2.8,    1.0, 1.0};
+  float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.2,    1.2, 1.0, 1.0, 2.8,    1.0, 1.0};
+  TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoMetNoZVminMET20/";
+
+  //TCut runrange("run<=172802");//LP
+  //float sfs0j[] = { 1.0,   1.0,   3.2,   3.2,   1.0,   1.0,    1.0, 1.0, 1.0, 2.7,    1.0};
+  //float sfs1j[] = { 1.0,   1.0,   4.0,   4.0,   1.0,   1.1,    1.1, 1.0, 1.0, 3.2,    1.0};
+  //TCut runrange("run<=173692");//2011A
+  //float sfs0j[] = { 1.0,   1.0,   2.9,   2.9,   1.0,   0.9,    0.9, 1.0, 1.0, 2.7,    1.0};
+  //float sfs1j[] = { 1.0,   1.0,   3.8,   3.8,   1.0,   1.1,    1.1, 1.0, 1.0, 3.3,    1.0};
+  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011A/wwSelNoLepNoTV/";
+
+  //TCut runrange("run>173692");//2011B
+  //float sfs0j[] = { 1.0,   1.0,   3.9,   3.9,   1.0,   2.1,    2.1, 1.0, 1.0, 3.2,    1.0};
+  //float sfs1j[] = { 1.0,   1.0,   4.6,   4.6,   1.0,   1.3,    1.3, 1.0, 1.0, 2.4,    1.0};
+  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011B/wwSelNoLepNoTV/";
+
   TCut lep1pt,lep2pt,dPhi,mll,mt,himass;
   if (mass==0) {
     lep1pt = "lep1.pt()>20.";
     lep2pt = "lep2.pt()>10.";
-    dPhi = "dPhi<TMath::Pi()*180./180.";
+    dPhi = "dPhi<180.*TMath::Pi()/180.";
     mll = "dilep.mass()<999";
     mt = "mt>0&&mt<999";
+    himass = "dilep.mass()>100.";
+  } else if (mass==115) {
+    lep1pt = "lep1.pt()>20.";
+    lep2pt = "lep2.pt()>10.";
+    dPhi = "dPhi<115.*TMath::Pi()/180.";
+    mll = "dilep.mass()<40";
+    mt = "mt>70&&mt<110";
     himass = "dilep.mass()>100.";
   } else if (mass==120) {
     lep1pt = "lep1.pt()>20.";
     lep2pt = "lep2.pt()>10.";
-    dPhi = "dPhi<2.0";
+    dPhi = "dPhi<115.*TMath::Pi()/180.";
     mll = "dilep.mass()<40";
     mt = "mt>70&&mt<120";
     himass = "dilep.mass()>100.";
   } else if (mass==130) {
     lep1pt = "lep1.pt()>25.";
     lep2pt = "lep2.pt()>10.";
-    dPhi = "dPhi<1.5";
+    dPhi = "dPhi<90.*TMath::Pi()/180.";
     mll = "dilep.mass()<45";
     mt = "mt>75&&mt<125";
     himass = "dilep.mass()>100.";
   } else if (mass==140) {
     lep1pt = "lep1.pt()>25.";
     lep2pt = "lep2.pt()>15.";
-    dPhi = "dPhi<1.57";
+    dPhi = "dPhi<90.*TMath::Pi()/180.";
     mll = "dilep.mass()<45";
     mt = "mt>80&&mt<130";
     himass = "dilep.mass()>100.";
   } else if (mass==150) {
     lep1pt = "lep1.pt()>27.";
     lep2pt = "lep2.pt()>25.";
-    dPhi = "dPhi<1.57";
+    dPhi = "dPhi<90.*TMath::Pi()/180.";
     mll = "dilep.mass()<50";
     mt = "mt>80&&mt<150";
     himass = "dilep.mass()>100.";
   } else if (mass==160) {
     lep1pt = "lep1.pt()>30.";
     lep2pt = "lep2.pt()>25.";
-    dPhi = "dPhi<TMath::Pi()*60./180.";
+    dPhi = "dPhi<60.*TMath::Pi()/180.";
     mll = "dilep.mass()<50";
     mt = "mt>90&&mt<160";
     himass = "dilep.mass()>100.";
   } else if (mass==200) {
     lep1pt = "lep1.pt()>40.";
     lep2pt = "lep2.pt()>25.";
-    dPhi = "dPhi<TMath::Pi()*100./180.";
+    dPhi = "dPhi<100.*TMath::Pi()/180.";
     mll = "dilep.mass()<90";
     mt = "mt>120&&mt<200";
     himass = "dilep.mass()>100.";
   } else if (mass==250) {
     lep1pt = "lep1.pt()>55.";
     lep2pt = "lep2.pt()>25.";
-    dPhi = "dPhi<2.44";
+    dPhi = "dPhi<140.*TMath::Pi()/180.";
     mll = "dilep.mass()<150";
     mt = "mt>120&&mt<250";
     himass = "dilep.mass()>100.";
   } else if (mass==300) {
     lep1pt = "lep1.pt()>70.";
     lep2pt = "lep2.pt()>25.";
-    dPhi = "dPhi<3.05";
+    dPhi = "dPhi<175.*TMath::Pi()/180.";
     mll = "dilep.mass()<200";
     mt = "mt>120&&mt<300";
     himass = "dilep.mass()>100.";
@@ -122,23 +151,15 @@ void makeTable(float lumi=2.121, int njets=0, int mass=0, bool useSF=false, bool
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
   TCut newcuts = "type==1 || type==2 || ( lep2.pt()>15. && min(pmet,pTrackMet)>(37.+nvtx/2.) && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
   TCut kincuts = "dilep.pt()>45.";
+  //TCut kincuts = "dilep.pt()>45. && ( type==1 || type==2 || dilep.mass()>20.)";
 
   TCut cut = base&&jets&&newcuts&&sigreg&&trig&&kincuts;
   //cout << "cut: " << cut.GetTitle() << endl;
 
-  TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma"};
-  int  colors[] = {kCyan,kCyan,kGreen,kGreen,kGreen,kYellow,kYellow,kBlue,kBlue,kGray,kGray};
-  float sfs0j[] = { 1.0,   1.0,   3.0,   3.0,   1.0,   1.5,    1.5, 1.0, 1.0, 1.1,    1.0};
-  float sfs1j[] = { 1.0,   1.0,   2.8,   2.8,   1.0,   1.2,    1.2, 1.0, 1.0, 2.5,    1.0};
-  float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0};
   float* sfs;
   if (useSF&&njets==0) sfs = sfs0j;
   else if (useSF&&njets==1) sfs = sfs1j;
   else sfs = nosfs;
-
-  TString dir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-alljets/";
-  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/";
-  TString data_file = "/smurf/data/LP2011/tas/data.root";
   int nMC = sizeof(mcs)/sizeof(TString);
 
   TCanvas c;
@@ -150,6 +171,7 @@ void makeTable(float lumi=2.121, int njets=0, int mass=0, bool useSF=false, bool
   TString line = TString("--------------------------------------------------------------------------------------------");
   cout << line << endl;
   for (int i=0;i<nMC;++i){    
+    if (mcs[i].Contains("hww") && mass==0) continue;
     TFile *_mc = TFile::Open(dir+mcs[i]+".root");
     TTree * mc = (TTree*) _mc->Get("tree");
     float correction = sfs[i];
@@ -185,9 +207,9 @@ void makeTable(float lumi=2.121, int njets=0, int mass=0, bool useSF=false, bool
   cout << line << endl;
 
   if (dodata) {
-    TFile *_data = TFile::Open(data_file);
+    TFile *_data = TFile::Open(dir+"/data.root");
     TTree * data = (TTree*) _data->Get("tree");
-    data->Draw("type>>plotdata(4,0,4)",cut,"g");
+    data->Draw("type>>plotdata(4,0,4)",cut&&runrange,"g");
     int ndataMuMu = plotdata->GetBinContent(1);
     int ndataMuEl = plotdata->GetBinContent(2);
     int ndataElMu = plotdata->GetBinContent(3);
