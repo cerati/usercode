@@ -4,6 +4,29 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
   gROOT->Reset();
   gStyle->SetOptStat(0);
 
+  bool wjetsFromData=1;
+
+  bool compareData = 0;
+
+  TCut runrange("run>0");//Full2011
+  TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoLepNoTV/";
+  float sfs0j[] = { 1.0,   1.0,   3.4,   3.4,   1.0,   1.4,    1.4, 1.0, 1.0, 2.8,    1.0};
+  float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.2,    1.2, 1.0, 1.0, 2.8,    1.0};
+  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoMetNoZVminMET20/";
+
+  //TCut runrange("run<=172802");//LP
+  //float sfs0j[] = { 1.0,   1.0,   3.2,   3.2,   1.0,   1.0,    1.0, 1.0, 1.0, 2.7,    1.0};
+  //float sfs1j[] = { 1.0,   1.0,   4.0,   4.0,   1.0,   1.1,    1.1, 1.0, 1.0, 3.2,    1.0};
+  //TCut runrange("run<=173692");//2011A
+  //float sfs0j[] = { 1.0,   1.0,   2.9,   2.9,   1.0,   0.9,    0.9, 1.0, 1.0, 2.7,    1.0};
+  //float sfs1j[] = { 1.0,   1.0,   3.8,   3.8,   1.0,   1.1,    1.1, 1.0, 1.0, 3.3,    1.0};
+  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011A/wwSelNoLepNoTV/";
+
+  //TCut runrange("run>173692");//2011B
+  //float sfs0j[] = { 1.0,   1.0,   3.9,   3.9,   1.0,   2.1,    2.1, 1.0, 1.0, 3.2,    1.0};
+  //float sfs1j[] = { 1.0,   1.0,   4.6,   4.6,   1.0,   1.3,    1.3, 1.0, 1.0, 2.4,    1.0};
+  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011B/wwSelNoLepNoTV/";
+
   enum Selection {
     BaseLine          = 1UL<<0,  // pt(reco)>20/10, acceptance,!STA muon, mll>12
     ChargeMatch       = 1UL<<1,  // q1*q2<0
@@ -37,8 +60,7 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
     Lep3LooseMuV2     = 1UL<<29, // muon fakeable object selection (relIso<0.4)
     Trigger           = 1UL<<30  // passed a set of triggers
   };
-  unsigned int wwSelection = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|TopVeto|ExtraLeptonVeto;
-  unsigned int wwSelectionNoTV = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|ExtraLeptonVeto;
+  unsigned int wwSelNoLep = BaseLine|ChargeMatch|FullMET|ZVeto|TopVeto|ExtraLeptonVeto;
   
   TString mh = Form("%i",mass); 
   TString nj = Form("%i",njets); 
@@ -118,8 +140,10 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
   TCut mtside   = lep1pt && lep2pt && himass && mt;
   TCut dphiside = lep1pt && lep2pt && himass && mt && dPhi;
 
-  TCut base(Form("(cuts & %i)==%i",wwSelection,wwSelection));
-  TCut baseNTV(Form("(cuts & %i)==%i",wwSelectionNoTV,wwSelectionNoTV));
+  TCut base(Form("(cuts & %i)==%i",wwSelNoLep,wwSelNoLep));
+  TCut leps(Form("(cuts & %i)==%i && (cuts & %i)==%i",Lep1FullSelection,Lep1FullSelection,Lep2FullSelection,Lep2FullSelection));
+  TCut lplusf(Form("(((cuts & %i)==%i && (cuts & %i)!=%i)||((cuts & %i)!=%i && (cuts & %i)==%i))",
+		   Lep1FullSelection,Lep1FullSelection,Lep2FullSelection,Lep2FullSelection,Lep1FullSelection,Lep1FullSelection,Lep2FullSelection,Lep2FullSelection));
   TCut notTagNotInJets(Form("(cuts & %i)!=%i",TopTagNotInJets,TopTagNotInJets));
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
   TCut newcuts = "type==1 || type==2 || ( lep2.pt()>15. && min(pmet,pTrackMet)>(37.+nvtx/2.) && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
@@ -146,7 +170,7 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
     "4,0,4",
     "20,0.,200.","20,0.,200.",
     "30,0.,300.",
-    "20,0.,200."
+    "75,0.,150."
   };
   TString xtitle[]  = {
     "#Delta#phi_{l,l}",
@@ -158,16 +182,14 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
     "pT_{j1} [GeV]"
   };
 
-//   TString plot[]    = {"dilep.mass()"};
-//   TString binning[] = {"40,0.,300."};
-//   TString xtitle[]  = {"m_{l,l} [GeV]"};
-
+  //TString plot[]    = {"type"};
+  //TString binning[] = {"4,0,4"};
+  //TString xtitle[]  = {"type"};
   //TString mcs[] = {"wz_py"};
   //int  colors[] = {kBlue};
+
   TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma"};
   int  colors[] = {kCyan,kCyan,kGreen,kGreen,kGreen,kYellow,kYellow,kBlue,kBlue,kGray,kGray};
-  float sfs0j[] = { 1.0,   1.0,   3.3,   3.3,   1.0,   1.0,    1.0, 1.0, 1.0, 2.5,    1.0};
-  float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.0,    1.0, 1.0, 1.0, 3.4,    1.0};
   float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0};
   float* sfs;
   if (useSF&&njets==0) sfs = sfs0j;
@@ -180,7 +202,7 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
   //float sig_correction = 10.;
   //if (lumi>0.) signal->SetWeight(lumi*sig_correction);
 
-  TFile *_data = TFile::Open("/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/data.root");
+  TFile *_data = TFile::Open(dir+"/data.root");
   TTree * data = (TTree*) _data->Get("tree");
 
   bool allleg = false;
@@ -205,78 +227,61 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
     TLegend* leg = new TLegend(0.1,0.9,0.9,1.);
     leg->SetFillColor(kWhite);
     leg->SetNColumns(3);
-    for (int i=0;i<nMC;++i){    
-      TFile *_mc = TFile::Open("/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/2121ipb/wwSelNoLepNoTV/"+mcs[i]+".root");
-      TTree * mc = (TTree*) _mc->Get("tree");
-      float correction = sfs[i];
-      if (lumi>0.) mc->SetWeight(lumi*correction);
-      //cout << mcs[i] << endl;
-      TH1F* plotmc = new TH1F("plotmc_"+mcs[i],"plotmc",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
-      mc->Draw(plot[pl]+">>plotmc_"+mcs[i],Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",cut.GetTitle()),"g");	
-      float integral = plotmc->Integral(0,plotmc->GetNbinsX()+1);//integral includes under/over flow bins
-      plotmc->SetLineColor(colors[i]);
-      plotmc->SetFillColor(colors[i]);
-      hs->Add(plotmc);
-      //if (allleg) leg->AddEntry(plotmc,TString(mcs[i]+": "+Form("%.2f",integral)),"f");
-    }
-    if (logy) {
-      c.SetLogy();
-      hs->SetMinimum(0.1);
-    }
-    hs->SetTitle();
-    hs->Draw();
-    hs->GetYaxis()->SetTitle(Form("events/%.1f",hs->GetXaxis()->GetBinWidth(1)));
-    hs->GetXaxis()->SetTitle(xtitle[pl]);
-    hs->SetMaximum(hs->GetMaximum()*1.5.);
-    if (logy) {
-      hs->SetMaximum(hs->GetMaximum()*1.5);
-    }
-    hs->Draw();
 
-    ////if we want to plot signal
-    //signal->Draw(plot[pl]+">>plotSignal("+binning[pl]+")",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",cut.GetTitle()),"same");
-    //plotSignal->SetLineWidth(2);
-    //plotSignal->SetLineStyle(1);
-
-    TH1F* plotData = 0;
-    if (dodata) {
-      plotData = new TH1F("plotData","plotData",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
-      data->Draw(plot[pl]+">>plotData",cut,"EP,same");
+    if (!compareData) {
+      //standard plots
+      for (int i=0;i<nMC;++i){    
+	TFile *_mc = TFile::Open(dir+"/"+mcs[i]+".root");
+	TTree * mc = (TTree*) _mc->Get("tree");
+	float correction = sfs[i];
+	if (lumi>0.) mc->SetWeight(lumi*correction);
+	//cout << mcs[i] << endl;
+	TH1F* plotmc = new TH1F("plotmc_"+mcs[i],"plotmc",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+	if (mcs[i]!="wjets" || wjetsFromData==0) {
+	  mc->Draw(plot[pl]+">>plotmc_"+mcs[i],Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s && %s)",cut.GetTitle(),leps.GetTitle()),"g");	
+	} else {
+	  data->Draw(plot[pl]+">>plotmc_"+mcs[i],Form("sfWeightFR*(%s && %s && %s)",cut.GetTitle(),lplusf.GetTitle(),runrange.GetTitle()),"EP,same");
+	  //cout << plotmc->Integral(0,plotmc->GetNbinsX()+1) << endl;
+	}
+	float integral = plotmc->Integral(0,plotmc->GetNbinsX()+1);//integral includes under/over flow bins
+	//cout << integral << endl;
+	plotmc->SetLineColor(colors[i]);
+	plotmc->SetFillColor(colors[i]);
+	hs->Add(plotmc);
+	//if (allleg) leg->AddEntry(plotmc,TString(mcs[i]+": "+Form("%.2f",integral)),"f");
+      }
+      if (logy) {
+	c.SetLogy();
+	hs->SetMinimum(0.1);
+      }
+      hs->SetTitle();
+      hs->Draw();
+      hs->GetYaxis()->SetTitle(Form("events/%.1f",hs->GetXaxis()->GetBinWidth(1)));
+      hs->GetXaxis()->SetTitle(xtitle[pl]);
+      hs->SetMaximum(hs->GetMaximum()*1.5.);
+      if (logy) {
+	hs->SetMaximum(hs->GetMaximum()*1.5);
+      }
+      hs->Draw();
+      ////if we want to plot signal
+      //signal->Draw(plot[pl]+">>plotSignal("+binning[pl]+")",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",cut.GetTitle()),"same");
+      //plotSignal->SetLineWidth(2);
+      //plotSignal->SetLineStyle(1);
+      TH1F* plotData = 0;
+      if (dodata) {
+	plotData = new TH1F("plotData","plotData",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+      data->Draw(plot[pl]+">>plotData",cut&&leps&&runrange,"EP,same");//Full2011
       c.Update();  
       plotData->SetMarkerStyle(20);
       int maxb=plotData->GetMaximumBin();
       double max=plotData->GetBinContent(maxb);
+      if (max>(hs->GetMaximum()*1.5)) {
+	hs->SetMaximum(max*1.5);
+	hs->Draw();
+	plotData->Draw("EP,same");
+      }
       leg->AddEntry(plotData,"data","p");
     }
-
-    ////if we want to compare two different data samples
-    //TH1F* plotDataEPS = new TH1F("plotDataEPS","",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
-    //data->Draw(plot[pl]+">>plotDataEPS",cut+"run<170826","EP");
-    //plotDataEPS->SetLineWidth(2);
-    //int maxbEPS=plotDataEPS->GetMaximumBin();
-    //double maxEPS=plotDataEPS->GetBinContent(maxbEPS);
-    //TH1F* plotDataLP = new TH1F("plotDataLP","",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
-    //data->Draw(plot[pl]+">>plotDataLP",cut+"run>=170826","EP");
-    //plotDataLP->SetMarkerStyle(21);
-    //plotDataLP->SetMarkerColor(kRed);
-    //int maxbLP=plotDataLP->GetMaximumBin();
-    //double maxLP=plotDataLP->GetBinContent(maxbLP);
-    //plotDataEPS->Sumw2();
-    //plotDataLP->Sumw2();
-    //plotDataEPS->Scale(1./1.143);
-    //plotDataLP->Scale(1./0.402);
-    //plotDataEPS->GetYaxis()->SetRangeUser(0,TMath::Max(maxEPS,maxLP)*1.3);
-    //plotDataEPS->GetYaxis()->SetTitle("events/fb");
-    //plotDataEPS->GetXaxis()->SetTitle(xtitle[pl]);
-    //for (int b = 1;b<=plotDataEPS->GetXaxis()->GetNbins();++b) {
-    //  plotDataLP->SetBinError(b,sqrt( pow(plotDataLP->GetBinError(b),2) + pow(plotDataEPS->GetBinError(b),2) ));
-    //  plotDataEPS->SetBinError(b,0.);
-    //}
-    //plotDataEPS->Draw("");
-    //plotDataLP->Draw("same,EP");
-    //leg->AddEntry(plotDataEPS,"EPS data","l");
-    //leg->AddEntry(plotDataLP,"post EPS data","p");
-
     if (!allleg) {
       //TH1F h1("h1","h1",2,0,2);h1.SetFillColor(kBlack); h1.SetLineColor(kBlack); h1.SetLineWidth(2); h1.SetLineStyle(1); leg->AddEntry(&h1,"H("+mh+")#rightarrow WW x 10","f");
       TH1F h2("h2","h2",2,0,2);h2.SetFillColor(kCyan); leg->AddEntry(&h2,"WW","f");
@@ -285,10 +290,6 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
       TH1F h5("h5","h5",2,0,2);h5.SetFillColor(kBlue); leg->AddEntry(&h5,"di-boson","f");
       TH1F h6("h6","h6",2,0,2);h6.SetFillColor(kGray); leg->AddEntry(&h6,"W+jets","f");
     }
-
-    leg->Draw();
-    //hs->SetMaximum(31);  
-
     labelcms  = new TPaveText(0.28,0.85,0.28,0.85,"NDCBR");
     labelcms->SetTextAlign(12);
     labelcms->SetTextSize(0.05);
@@ -298,6 +299,40 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
     labelcms->SetTextFont(132);
     labelcms->SetLineWidth(2);
     labelcms->Draw();
+    } else {
+        //if we want to compare two different data samples
+        TH1F* plotData2011A = new TH1F("plotData2011A","",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+        data->Draw(plot[pl]+">>plotData2011A",leps&&cut+"run<=173692","EP");
+        plotData2011A->SetLineWidth(2);
+        TH1F* plotData2011B = new TH1F("plotData2011B","",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+        data->Draw(plot[pl]+">>plotData2011B",leps&&cut+"run>173692","EP");
+        plotData2011B->SetMarkerStyle(21);
+        plotData2011B->SetMarkerColor(kRed);
+        plotData2011A->Sumw2();
+        plotData2011B->Sumw2();
+        plotData2011A->Scale(1.);
+        plotData2011B->Scale(1.*1.2);
+        int maxb2011A=plotData2011A->GetMaximumBin();
+        double max2011A=plotData2011A->GetBinContent(maxb2011A);
+        int maxb2011B=plotData2011B->GetMaximumBin();
+        double max2011B=plotData2011B->GetBinContent(maxb2011B);
+        //cout << max2011A << " " << max2011B << endl;
+        plotData2011A->GetYaxis()->SetRangeUser(0,TMath::Max(max2011A,max2011B)*1.3);
+        plotData2011A->GetYaxis()->SetTitle("events scaled to 2011A");
+        plotData2011A->GetXaxis()->SetTitle(xtitle[pl]);
+        for (int b = 1;b<=plotData2011A->GetXaxis()->GetNbins();++b) {
+          plotData2011B->SetBinError(b,sqrt( pow(plotData2011B->GetBinError(b),2) + pow(plotData2011A->GetBinError(b),2) ));
+          //cout << plotData2011A->GetBinContent(b) << " " << plotData2011B->GetBinContent(b) << " " << plotData2011B->GetBinError(b) << endl;
+          plotData2011A->SetBinError(b,0.);
+        }
+        plotData2011A->Draw("");
+        plotData2011B->Draw("same,EP");
+        leg->AddEntry(plotData2011A,"2011A data","l");
+        leg->AddEntry(plotData2011B,"2011B data","p");
+    }
+
+    leg->Draw();
+    //hs->SetMaximum(31);  
 
     c.Update();  
 
@@ -310,12 +345,15 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
     if (logy) extension="_log"+extension;
     if (cutName.Length()==0) c.SaveAs("dirplots/mh"+mh+"_nj"+nj+"/"+plot[pl]+extension);
     else c.SaveAs("dirplots/mh"+mh+"_nj"+nj+"/"+plot[pl]+"_"+cutName+extension);
-    delete plotmc;
-    if (plotData) delete plotData; 
-    delete hs;
+    if (!compareData) {
+      delete plotmc;
+      if (plotData) delete plotData; 
+      delete hs;
+    } else {
+      delete plotData2011A;
+      delete plotData2011B;
+    }
     delete leg;
-    //delete plotDataEPS;
-    //delete plotDataLP;
   }
 
 }
