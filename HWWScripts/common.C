@@ -29,13 +29,18 @@ TString topww_dir   = "wwSelNoLepNoTV/";
 TString dy_dir      = "wwSelNoMetNoZVminMET20/";
 
 TString fr_file_mit    = "/smurf/data/Winter11/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
-//2011A
-TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011A.root";
-TString puw_file       = "/smurf/data/Winter11/auxiliar/PileupReweighting.Summer11DYmm_To_Run2011A.root";
-TString jsonFile       = "2011a.json.txt";
-float   dysf0j = 2.92;
-float   dysf1j = 3.78;
-float   dysf2j = 6.79;
+// //2011A
+// TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011A.root";
+// TString puw_file       = "/smurf/data/Winter11/auxiliar/PileupReweighting.Summer11DYmm_To_Run2011A.root";
+// TString jsonFile       = "2011a.json.txt";
+// float   dysf0j = 2.92;
+// float   dysf1j = 3.78;
+// float   dysf2j = 6.79;
+
+// //LP
+// float   dysf0j = 3.21;
+// float   dysf1j = 3.96;
+// float   dysf2j = 7.02;
 
 //2011B
 // TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Run2011B.root";
@@ -46,12 +51,12 @@ float   dysf2j = 6.79;
 // float   dysf2j = 6.19;
 
 //Full2011
-// TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Full2011.root";
-// TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Full2011.root";
-// TString jsonFile       = "";
-// float   dysf0j = 3.39;
-// float   dysf1j = 4.24;
-// float   dysf2j = 6.35;
+TString eff_file       = "/smurf/data/Winter11/auxiliar/efficiency_results_v7_42x_Full2011.root";
+TString puw_file       = "/smurf/sixie/Pileup/weights/PileupReweighting.Summer11DYmm_To_Full2011.root";
+TString jsonFile       = "";
+float   dysf0j = 3.39945;
+float   dysf1j = 4.23166;
+float   dysf2j = 6.92333;
 
 //+++ deprecated
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
@@ -417,7 +422,7 @@ float getPileupReweightFactor(int nvtx, TH1F* puweights=0) {
 pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, 
 			    bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false) {
 
-  //cout << sample << " " << cut << " " << region << endl;
+  //cout << sample << " " << cut << " " << veto << " " << mass << " " << njets << " " << region << " " << lumi << " " << useJson << " " << applyEff << " " << doFake << " " << doPUw << endl;
 
   float lep1pt=0.,lep2pt=0.,dPhi=0.,mll=0.,mtL=0.,mtH=0.,himass=0.;
   getCutValues(mass,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass);
@@ -486,12 +491,14 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     dataEvent->tree_->GetEntry(n);
     if (isMC) weight = lumi*dataEvent->scale1fb_;
     if (!isMC && (dataEvent->cuts_ & Trigger) != Trigger ) continue;
-    //if (!isMC && dataEvent->run_<170826) continue;//FIXME
+    //if (!isMC && dataEvent->run_>172802) continue;//FIXME LP TEST
     //if (!isMC && useJson && !passJson(dataEvent->run_,dataEvent->lumi_)) continue;    
     if (!isMC && useJson && !goodrun(dataEvent->run_,dataEvent->lumi_)) continue;    
     if ( dataEvent->njets_!=njets) continue;
     if ( (dataEvent->cuts_ & cut) != cut ) continue;
     if ( (dataEvent->cuts_ & veto) == veto ) continue;
+    //test mll>20 cut
+    //if (dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.mass()<20.) continue;
     //WARNING: do not define region names that are subset of others!!!!!!!
     //final states
     if ( region.Contains("mmfs") && dataEvent->type_!=0 ) continue;
@@ -506,12 +513,16 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( (region.Contains("mtside")||region.Contains("dphiside")||region.Contains("mtreg")||region.Contains("mtcut")||region.Contains("dphireg")) 
 	 && (dataEvent->mt_<mtL || dataEvent->mt_>mtH) ) continue;
     if ( (region.Contains("dphiside")||region.Contains("dphireg")||region.Contains("dphicut")) && (dataEvent->dPhi_>dPhi*TMath::Pi()/180.) ) continue;
-    if ( (region.Contains("zregion")) && fabs(dataEvent->dilep_.mass()-91.1876)>15. ) continue;
+    if ( (region.Contains("zregion")) && fabs(dataEvent->dilep_.mass()-91.1876)>7.5 ) continue;
     if ( (region.Contains("zvetoall")) && fabs(dataEvent->dilep_.mass()-91.1876)<15. ) continue;
     //additional higgs cuts
-    if ( region.Contains("dphijet")   && ( dataEvent->type_!=1 && dataEvent->type_!=2 && (dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.)) ) continue;
+    if ( region.Contains("dphijet")   && ( dataEvent->type_!=1 && dataEvent->type_!=2 &&
+					   ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.) || 
+					     (dataEvent->njets_==2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) )
+					   ) ) continue;
     if ( region.Contains("minmet40")  && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0)) continue;
-    if ( region.Contains("dpjallfs")  && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) continue;
+    if ( region.Contains("dpjallfs")  ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) ||
+					(dataEvent->njets_==2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) ) continue;
     if ( region.Contains("mm40allfs") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0 ) continue;
     if ( region.Contains("minmetvtx") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) continue;
     if ( region.Contains("mmvtxallfs") && ( min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) continue;
