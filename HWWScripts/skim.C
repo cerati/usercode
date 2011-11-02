@@ -202,5 +202,15 @@ void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-allj
   smurfproducer(smurfFDir,"wz.root",outputDir,cut);
   smurfproducer(smurfFDir,"zz.root",outputDir,cut);
   smurfproducer(smurfFDir,"data.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww115.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww120.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww130.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww140.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww150.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww160.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww170.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww180.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww190.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww200.root",outputDir,cut);
   return;
 }
