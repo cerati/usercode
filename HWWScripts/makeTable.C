@@ -1,4 +1,4 @@
-void makeTable(float lumi=2.121, int njets=0, int mass=0, bool useSF=false, bool dodata=false){
+void makeTable(float lumi=4.0, int njets=0, int mass=0, bool useSF=false, bool dodata=false){
   //lumi is in /fb
 
   gROOT->Reset();
@@ -7,23 +7,23 @@ void makeTable(float lumi=2.121, int njets=0, int mass=0, bool useSF=false, bool
   float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0, 1.0};
 
   TCut runrange("run>0");//Full2011
-  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoLepNoTV/";
+  TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoLepNoTV/";
   float sfs0j[] = { 1.0,   1.0,   3.4,   3.4,   1.0,   1.4,    1.4, 1.0, 1.0, 2.8,    1.0, 1.0};
   float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.2,    1.2, 1.0, 1.0, 2.8,    1.0, 1.0};
-  TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoMetNoZVminMET20/";
+  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoMetNoZVminMET20/";
 
   //TCut runrange("run<=172802");//LP
   //float sfs0j[] = { 1.0,   1.0,   3.2,   3.2,   1.0,   1.0,    1.0, 1.0, 1.0, 2.7,    1.0};
   //float sfs1j[] = { 1.0,   1.0,   4.0,   4.0,   1.0,   1.1,    1.1, 1.0, 1.0, 3.2,    1.0};
-  //TCut runrange("run<=173692");//2011A
-  //float sfs0j[] = { 1.0,   1.0,   2.9,   2.9,   1.0,   0.9,    0.9, 1.0, 1.0, 2.7,    1.0};
-  //float sfs1j[] = { 1.0,   1.0,   3.8,   3.8,   1.0,   1.1,    1.1, 1.0, 1.0, 3.3,    1.0};
-  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011A/wwSelNoLepNoTV/";
+//   TCut runrange("run<=173692");//2011A
+//   float sfs0j[] = { 1.0,   1.0,   2.9,   2.9,   1.0,   0.9,    0.9, 1.0, 1.0, 2.7,    1.0};
+//   float sfs1j[] = { 1.0,   1.0,   3.8,   3.8,   1.0,   1.1,    1.1, 1.0, 1.0, 3.3,    1.0};
+//   TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011A/wwSelNoLepNoTV/";
 
-  //TCut runrange("run>173692");//2011B
-  //float sfs0j[] = { 1.0,   1.0,   3.9,   3.9,   1.0,   2.1,    2.1, 1.0, 1.0, 3.2,    1.0};
-  //float sfs1j[] = { 1.0,   1.0,   4.6,   4.6,   1.0,   1.3,    1.3, 1.0, 1.0, 2.4,    1.0};
-  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011B/wwSelNoLepNoTV/";
+//   TCut runrange("run>173692");//2011B
+//   float sfs0j[] = { 1.0,   1.0,   3.9,   3.9,   1.0,   2.1,    2.1, 1.0, 1.0, 3.2,    1.0};
+//   float sfs1j[] = { 1.0,   1.0,   4.6,   4.6,   1.0,   1.3,    1.3, 1.0, 1.0, 2.4,    1.0};
+//   TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011B/wwSelNoLepNoTV/";
 
   TCut lep1pt,lep2pt,dPhi,mll,mt,himass;
   if (mass==0) {
@@ -170,6 +170,7 @@ void makeTable(float lumi=2.121, int njets=0, int mass=0, bool useSF=false, bool
   cout << header << endl;
   TString line = TString("--------------------------------------------------------------------------------------------");
   cout << line << endl;
+
   for (int i=0;i<nMC;++i){    
     if (mcs[i].Contains("hww") && mass==0) continue;
     TFile *_mc = TFile::Open(dir+mcs[i]+".root");
@@ -177,7 +178,7 @@ void makeTable(float lumi=2.121, int njets=0, int mass=0, bool useSF=false, bool
     float correction = sfs[i];
     if (lumi>0.) mc->SetWeight(lumi*correction);
     //cout << scale1fb_ << endl;
-    mc->Draw("type>>plotmc(4,0,4)",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",cut.GetTitle()),"g");
+    mc->Draw("type>>plotmc(4,0,4)",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*sfWeightHPt*(%s)",cut.GetTitle()),"g");
     float nMuMu = plotmc->GetBinContent(1);
     float nElMu = plotmc->GetBinContent(2);
     float nMuEl = plotmc->GetBinContent(3);
