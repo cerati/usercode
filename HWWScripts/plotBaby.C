@@ -1,4 +1,4 @@
-void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool useSF=false, bool logy=0){
+void plotBaby(float lumi=4.0, int njets=0, int mass=0, bool dodata=1, bool useSF=true, bool logy=0){
   //lumi is in /fb
 
   gROOT->Reset();
@@ -8,9 +8,14 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
 
   bool compareData = 0;
 
+  bool doSignal = 0;
+
+  TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma"};
+  int  colors[] = {kCyan,kCyan,kGreen,kGreen,kGreen,kYellow,kYellow,kBlue,kBlue,kGray,kGray};
+
   TCut runrange("run>0");//Full2011
   TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoLepNoTV/";
-  float sfs0j[] = { 1.0,   1.0,   3.4,   3.4,   1.0,   1.4,    1.4, 1.0, 1.0, 2.8,    1.0};
+  float sfs0j[] = { 1.0,   1.0,   2.8,   2.8,   1.0,   1.4,    1.4, 1.0, 1.0, 2.8,    1.0};
   float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.2,    1.2, 1.0, 1.0, 2.8,    1.0};
   //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoMetNoZVminMET20/";
 
@@ -155,8 +160,9 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
   cut.SetName("mh"+mh+"_nj"+nj);
 
   TString plot[]    = {
+    "dilep.mass()",
     "dPhi",
-    "dilep.mass()","dilep.pt()",
+    "dilep.pt()",
     "lep1.pt()","lep2.pt()",
     "type",
     "pmet","pTrackMet",
@@ -164,8 +170,9 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
     "jet1.pt()"
   };
   TString binning[] = {
+    "60,0.,300.",
     "10,0.,3.2",
-    "30,0.,300.","20,0.,200.",
+    "20,0.,200.",
     "20,0.,200.","20,0.,200.",
     "4,0,4",
     "20,0.,200.","20,0.,200.",
@@ -185,22 +192,20 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
   //TString plot[]    = {"type"};
   //TString binning[] = {"4,0,4"};
   //TString xtitle[]  = {"type"};
-  //TString mcs[] = {"wz_py"};
-  //int  colors[] = {kBlue};
 
-  TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma"};
-  int  colors[] = {kCyan,kCyan,kGreen,kGreen,kGreen,kYellow,kYellow,kBlue,kBlue,kGray,kGray};
+  //if we want to plot signal
+  TFile *_signal = 0;
+  TTree * signal = 0;
+  if (doSignal) {
+    _signal = TFile::Open(dir+"/hww120.root");
+    signal = (TTree*) _signal->Get("tree");
+  }
+
   float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0};
   float* sfs;
   if (useSF&&njets==0) sfs = sfs0j;
   else if (useSF&&njets==1) sfs = sfs1j;
   else sfs = nosfs;
-
-  ////if we want to plot signal
-  //TFile *_signal = TFile::Open("/smurf/data/Run2011_Spring11_SmurfV3/tas-alljets/hww"+mh+".root");
-  //TTree * signal = (TTree*) _signal->Get("tree");
-  //float sig_correction = 10.;
-  //if (lumi>0.) signal->SetWeight(lumi*sig_correction);
 
   TFile *_data = TFile::Open(dir+"/data.root");
   TTree * data = (TTree*) _data->Get("tree");
@@ -263,10 +268,18 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
 	hs->SetMaximum(hs->GetMaximum()*1.5);
       }
       hs->Draw();
-      ////if we want to plot signal
-      //signal->Draw(plot[pl]+">>plotSignal("+binning[pl]+")",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",cut.GetTitle()),"same");
-      //plotSignal->SetLineWidth(2);
-      //plotSignal->SetLineStyle(1);
+
+      TH1F* plotSignal = 0;
+      if (doSignal) {
+	//if we want to plot signal
+	plotSignal = new TH1F("plotSignal","plotSignal",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+	signal->Draw(plot[pl]+">>plotSignal",Form("10*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*sfWeightHPt*(%s && %s)",cut.GetTitle(),leps.GetTitle()),"same");
+	plotSignal->SetLineWidth(2);
+	plotSignal->SetLineStyle(1);
+	plotSignal->SetLineColor(kRed);
+	leg->AddEntry(plotSignal,"10xHWW120","l");
+      }
+
       TH1F* plotData = 0;
       if (dodata) {
 	plotData = new TH1F("plotData","plotData",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
@@ -277,10 +290,44 @@ void plotBaby(float lumi=2.121, int njets=0, int mass=0, bool dodata=1, bool use
       double max=plotData->GetBinContent(maxb);
       if (max>(hs->GetMaximum()*1.5)) {
 	hs->SetMaximum(max*1.5);
-	hs->Draw();
-	plotData->Draw("EP,same");
       }
+
+      TPad *pad1 = new TPad("pad1","pad1",0,0.3,1,1);
+      pad1->SetBottomMargin(0.01);
+      pad1->Draw();
+      pad1->cd();
+      hs->Draw();
+      plotData->Draw("EP,same");
+      c.cd();
+      TPad *pad2 = new TPad("pad2","pad2",0,0,1,0.3);
+      pad2->SetBottomMargin(0.2);
+      pad2->SetTopMargin(0.);
+      pad2->Draw();
+      pad2->cd();
+
+      TH1F* ratio = new TH1F("ratio","",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+      for (unsigned int ibin=1;ibin<=nbins.Atoi();ibin++) {
+	if (plotData->GetBinContent(ibin)!=0) {
+	  float den = ((TH1*)(hs->GetStack()->Last()))->GetBinContent(ibin);
+	  float num = plotData->GetBinContent(ibin);
+	  ratio->SetBinContent(ibin,num/den);
+	  ratio->SetBinError(ibin,plotData->GetBinError(ibin)/den);
+	} 
+      }
+      ratio->GetXaxis()->SetTitle(xtitle[pl]);
+      ratio->GetXaxis()->SetTitleSize(0.08);
+      ratio->GetXaxis()->SetLabelSize(0.08);
+      ratio->GetYaxis()->SetLabelSize(0.08);
+      ratio->GetYaxis()->SetTitle("Data/MC");
+      ratio->GetYaxis()->SetTitleOffset(0.5);
+      ratio->GetYaxis()->SetTitleSize(0.08);
+      pad2->SetGridy();
+      ratio->SetMarkerStyle(21);
+      ratio->Draw("EP");
+      c.cd();
+
       leg->AddEntry(plotData,"data","p");
+
     }
     if (!allleg) {
       //TH1F h1("h1","h1",2,0,2);h1.SetFillColor(kBlack); h1.SetLineColor(kBlack); h1.SetLineWidth(2); h1.SetLineStyle(1); leg->AddEntry(&h1,"H("+mh+")#rightarrow WW x 10","f");
