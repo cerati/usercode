@@ -32,7 +32,7 @@ TString fr_file_mit    = "/smurf/data/Winter11_4000ipb/auxiliar/FakeRates_CutBas
 
 TString eff_file       = "/smurf/data/Winter11_4700ipb/auxiliar/efficiency_results_v7_42x_Full2011_4700ipb.root";
 TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
-TString jsonFile       = "hww.Full2011.json";
+TString jsonFile       = "";//"hww.Full2011.json";
 float   dysf0j = 3.08;
 float   dysf1j = 3.82;
 float   dysf2j = 9.01;
