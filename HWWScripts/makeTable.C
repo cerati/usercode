@@ -3,11 +3,14 @@ void makeTable(float lumi=4.0, int njets=0, int mass=0, bool useSF=false, bool d
 
   gROOT->Reset();
 
+  bool doMC = true;
+
   TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma",Form("hww%i",mass)};
   float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0, 1.0};
 
   TCut runrange("run>0");//Full2011
-  TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoLepNoTV/";
+  TString dir = "/smurf/cerati/TestNtuples/default/";
+  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoLepNoTV/";
   float sfs0j[] = { 1.0,   1.0,   3.4,   3.4,   1.0,   1.4,    1.4, 1.0, 1.0, 2.8,    1.0, 1.0};
   float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.2,    1.2, 1.0, 1.0, 2.8,    1.0, 1.0};
   //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoMetNoZVminMET20/";
@@ -171,41 +174,43 @@ void makeTable(float lumi=4.0, int njets=0, int mass=0, bool useSF=false, bool d
   TString line = TString("--------------------------------------------------------------------------------------------");
   cout << line << endl;
 
-  for (int i=0;i<nMC;++i){    
-    if (mcs[i].Contains("hww") && mass==0) continue;
-    TFile *_mc = TFile::Open(dir+mcs[i]+".root");
-    TTree * mc = (TTree*) _mc->Get("tree");
-    float correction = sfs[i];
-    if (lumi>0.) mc->SetWeight(lumi*correction);
-    //cout << scale1fb_ << endl;
-    mc->Draw("type>>plotmc(4,0,4)",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*sfWeightHPt*(%s)",cut.GetTitle()),"g");
-    float nMuMu = plotmc->GetBinContent(1);
-    float nElMu = plotmc->GetBinContent(2);
-    float nMuEl = plotmc->GetBinContent(3);
-    float nElEl = plotmc->GetBinContent(4);
-    float nAll  = nMuMu+nElMu+nMuEl+nElEl;
-    string test = mcs[i];
-    TString print = "";
-    print = Form("%25s | %10.2f | %10.2f | %10.2f | %10.2f | %10.2f |",test.c_str(),nMuMu,nElMu,nMuEl,nElEl,nAll);
-    cout << print << endl;
-    if (mcs[i].Contains("hww")) {
-      nSigMuMu+=nMuMu;
-      nSigElMu+=nElMu;
-      nSigMuEl+=nMuEl;
-      nSigElEl+=nElEl;
-      nSigAll +=nAll;
-    } else {
-      nBckMuMu+=nMuMu;
-      nBckElMu+=nElMu;
-      nBckMuEl+=nMuEl;
-      nBckElEl+=nElEl;
-      nBckAll +=nAll;
+  if (doMC) {
+    for (int i=0;i<nMC;++i){    
+      if (mcs[i].Contains("hww") && mass==0) continue;
+      TFile *_mc = TFile::Open(dir+mcs[i]+".root");
+      TTree * mc = (TTree*) _mc->Get("tree");
+      float correction = sfs[i];
+      if (lumi>0.) mc->SetWeight(lumi*correction);
+      //cout << scale1fb_ << endl;
+      mc->Draw("type>>plotmc(4,0,4)",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*sfWeightHPt*(%s)",cut.GetTitle()),"g");
+      float nMuMu = plotmc->GetBinContent(1);
+      float nElMu = plotmc->GetBinContent(2);
+      float nMuEl = plotmc->GetBinContent(3);
+      float nElEl = plotmc->GetBinContent(4);
+      float nAll  = nMuMu+nElMu+nMuEl+nElEl;
+      string test = mcs[i];
+      TString print = "";
+      print = Form("%25s | %10.2f | %10.2f | %10.2f | %10.2f | %10.2f |",test.c_str(),nMuMu,nElMu,nMuEl,nElEl,nAll);
+      cout << print << endl;
+      if (mcs[i].Contains("hww")) {
+	nSigMuMu+=nMuMu;
+	nSigElMu+=nElMu;
+	nSigMuEl+=nMuEl;
+	nSigElEl+=nElEl;
+	nSigAll +=nAll;
+      } else {
+	nBckMuMu+=nMuMu;
+	nBckElMu+=nElMu;
+	nBckMuEl+=nMuEl;
+	nBckElEl+=nElEl;
+	nBckAll +=nAll;
+      }
     }
+    cout << line << endl;
+    TString bck = TString(Form("%25s | %10.2f | %10.2f | %10.2f | %10.2f | %10.2f |","tot. bck.",nBckMuMu,nBckElMu,nBckMuEl,nBckElEl,nBckAll));
+    cout << bck << endl;
+    cout << line << endl;
   }
-  cout << line << endl;
-  TString bck = TString(Form("%25s | %10.2f | %10.2f | %10.2f | %10.2f | %10.2f |","tot. bck.",nBckMuMu,nBckElMu,nBckMuEl,nBckElEl,nBckAll));
-  cout << bck << endl;
-  cout << line << endl;
 
   if (dodata) {
     TFile *_data = TFile::Open(dir+"/data.root");
