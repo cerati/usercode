@@ -73,13 +73,13 @@ pair<float, float> computeRoutinMCwithSyst(unsigned int cut, unsigned int veto, 
   pair<float, float> r2530 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met2530", lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> r3037 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met3037", lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> r37up = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met37up", lumi, useJson, applyEff, doFake, doPUw);
-  float r_all = r37up.first;
-  float r_all_stat_err = r37up.second;
-  if (r_all_stat_err/r_all>0.65) {
-    r_all = r3037.first;
-    r_all_stat_err = r3037.second;
+  if (r37up.second/r37up.first>0.40) {
+    //do not consider the last bin
+    r37up = make_pair<float, float>(r3037.first,r3037.second);
   }
-  float r_all_syst_err = max(fabs(r_all-r3037.first),max(fabs(r_all-r2530.first),fabs(r_all-r2025.first)));
+  float r_all = r3037.first;
+  float r_all_stat_err = r3037.second;
+  float r_all_syst_err = max(fabs(r_all-r37up.first),max(fabs(r_all-r2530.first),fabs(r_all-r2025.first)));
   float r_all_err = sqrt( pow(r_all_stat_err,2) + pow(r_all_syst_err,2) );
   if (printAll) {
     cout << "r values in met bins: " << r2025.first << " " << r2530.first << " " << r3037.first << " " << r37up.first << endl;
@@ -91,7 +91,7 @@ pair<float, float> computeRoutinMCwithSyst(unsigned int cut, unsigned int veto, 
 pair<float, float> getZYieldInData(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString regionIn, 
 				   float lumi, bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false) {
 
-  bool printAll = 0;
+  bool printAll = 1;
   //sample is assumed to be data
   float lumiSample = 0.;
 
@@ -111,10 +111,10 @@ pair<float, float> getZYieldInData(TString sample, unsigned int cut, unsigned in
   float zeeofs_err = sqrt( zee + 0.25*(zme+zem)*pow(kee,2) );
   float zofs = zmmofs+zeeofs;
   float zofs_err = sqrt( zmm + zee + 0.25*(zme+zem)*pow(kee+1./kee,2) );
-  pair<float, float> wzmm_p = getYield(main_dir+dy_dir+"wz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> zzmm_p = getYield(main_dir+dy_dir+"zz", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> wzee_p = getYield(main_dir+dy_dir+"wz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> zzee_p = getYield(main_dir+dy_dir+"zz", FullMET|cut, veto, mass, njets, "zregion,eefs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> wzmm_p = getYield(main_dir+dy_dir+"wz",    FullMET|cut, veto, mass, njets, "zregion,mmfs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> zzmm_p = getYield(main_dir+dy_dir+"zz_py", FullMET|cut, veto, mass, njets, "zregion,mmfs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> wzee_p = getYield(main_dir+dy_dir+"wz",    FullMET|cut, veto, mass, njets, "zregion,eefs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> zzee_p = getYield(main_dir+dy_dir+"zz_py", FullMET|cut, veto, mass, njets, "zregion,eefs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
   float wzmm = wzmm_p.first;
   float wzmm_stat_err = wzmm_p.second;
   float wzmm_syst_err = 0.1*(wzmm);//assume 10% syst
@@ -199,14 +199,15 @@ void makeDYTable(float lumi) {
   bool doPUw    = true;
 
   TString regionIn  = "dpjallfs,leppts,dphicut,ptll45,lep2pt15allfs";
-  TString regionOut = "dphijet,leppts,dphicut,masscut,ptll45,lep2pt15";
+  TString regionOut = "dphijet,leppts,dphicut,masscut,ptll45,lep2pt15,mll20";
 
-  //int jetbins[] = {0};
+  //int jetbins[] = {2};
   int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
   //int masses[] = {0};
-  int masses[] = {0,120,140,160,180,200};
+  //int masses[] = {0,120,140,160,180,200};
+  int masses[] = {0,115,120,130,140,150,160,170,180,190,200};
   int nmasses = sizeof(masses)/sizeof(int);
 
   for (int j=0;j<njetbins;++j) {
@@ -235,22 +236,26 @@ void makeDYTable(float lumi) {
       float sf_percerr = 100.*sf_err/sf;
 
       if (mass==0) {
-	cout << Form("| %10s | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
+	//cout << Form("| %10s | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
+	cout << Form("| %10s | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
 		     "WW",
 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
 		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
 		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
-		     round(100.*sf)/100.,round(10.*sf_percerr)/10.)
+		     //round(100.*sf)/100.,round(10.*sf_percerr)/10.)
+		     round(100.*sf)/100.,round(100.*sf_err)/100.)
 	     << endl;
       } else {
-	cout << Form("| %6i GeV | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
+	//cout << Form("| %6i GeV | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
+	cout << Form("| %6i GeV | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
 		     mass,
 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
 		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
 		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
-		     round(100.*sf)/100.,round(10.*sf_percerr)/10.)
+		     //round(100.*sf)/100.,round(10.*sf_percerr)/10.)
+		     round(100.*sf)/100.,round(100.*sf_err)/100.)
 	     << endl;
       }
     }
