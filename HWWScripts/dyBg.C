@@ -91,7 +91,7 @@ pair<float, float> computeRoutinMCwithSyst(unsigned int cut, unsigned int veto, 
 pair<float, float> getZYieldInData(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString regionIn, 
 				   float lumi, bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false) {
 
-  bool printAll = 1;
+  bool printAll = 0;
   //sample is assumed to be data
   float lumiSample = 0.;
 
