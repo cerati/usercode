@@ -182,7 +182,7 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
   newfile->Close();
 }  
 
-void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/", TString outputDir = "/smurf/cerati/skims/", TString cut = "topww") {
+void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-alljets_Full2011/", TString outputDir = "/smurf/cerati/skims/", TString cut = "topww") {
   if (cut!="dy" && cut!="topww") {
     cout << "cut not supported. please use dy or topww" << endl;
     return; 
@@ -201,6 +201,7 @@ void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-allj
   smurfproducer(smurfFDir,"wgamma.root",outputDir,cut);
   smurfproducer(smurfFDir,"wz.root",outputDir,cut);
   smurfproducer(smurfFDir,"zz.root",outputDir,cut);
+  smurfproducer(smurfFDir,"zz_py.root",outputDir,cut);
   smurfproducer(smurfFDir,"data.root",outputDir,cut);
   smurfproducer(smurfFDir,"hww115.root",outputDir,cut);
   smurfproducer(smurfFDir,"hww120.root",outputDir,cut);
