@@ -202,7 +202,7 @@ void makeDYTable(float lumi) {
   TString regionIn  = "dpjallfs,leppts,dphicut,ptll45,lep2pt15allfs";
   TString regionOut = "dphijet,leppts,dphicut,masscut,ptll45,lep2pt15,mll20";
 
-  //int jetbins[] = {2};
+  //int jetbins[] = {0};
   int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
@@ -215,7 +215,7 @@ void makeDYTable(float lumi) {
 
     int njets = jetbins[j];
     cout << "----------------------------------------------- " << njets << "-jet bin -----------------------------------------------" << endl;
-    cout << Form("| %10s | %-15s | %-15s | %-15s | %-15s | %-15s  |","mass","Nin(data)","R_out/in","Nout(data)","Nout(MC)","SF(Data/MC)") << endl;
+    cout << Form("| %10s | %-16s | %-15s | %-15s | %-15s | %-14s  |","mass","Nin(data)","R_out/in","Nout(data)","Nout(MC)","SF(Data/MC)") << endl;
 
     for (int jj=0;jj<nmasses;++jj) {
 
@@ -241,8 +241,8 @@ void makeDYTable(float lumi) {
       float sf_percerr = 100.*sf_err/sf;
 
       if (mass==0) {
-	//cout << Form("| %10s | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
-	cout << Form("| %10s | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
+	//cout << Form("| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
+	cout << Form("| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
 		     "WW",
 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
@@ -252,8 +252,8 @@ void makeDYTable(float lumi) {
 		     round(100.*sf)/100.,round(100.*sf_err)/100.)
 	     << endl;
       } else {
-	//cout << Form("| %6i GeV | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
-	cout << Form("| %6i GeV | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
+	//cout << Form("| %6i GeV | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
+	cout << Form("| %6i GeV | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
 		     mass,
 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
