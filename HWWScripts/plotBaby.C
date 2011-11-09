@@ -14,9 +14,10 @@ void plotBaby(float lumi=4.0, int njets=0, int mass=0, bool dodata=1, bool useSF
   int  colors[] = {kCyan,kCyan,kGreen,kGreen,kGreen,kYellow,kYellow,kBlue,kBlue,kGray,kGray};
 
   TCut runrange("run>0");//Full2011
+  //TString dir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-alljets_Full2011/";
   TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoLepNoTV/";
-  float sfs0j[] = { 1.0,   1.0,   2.8,   2.8,   1.0,   1.4,    1.4, 1.0, 1.0, 2.8,    1.0};
-  float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.2,    1.2, 1.0, 1.0, 2.8,    1.0};
+  float sfs0j[] = { 1.1,   1.2,   2.8,   2.8,   1.0,   1.4,    1.4, 1.0, 1.0, 2.8,    1.0};
+  float sfs1j[] = { 1.1,   1.2,   4.2,   4.2,   1.0,   1.2,    1.2, 1.0, 1.0, 2.8,    1.0};
   //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoMetNoZVminMET20/";
 
   //TCut runrange("run<=172802");//LP
@@ -113,6 +114,13 @@ void plotBaby(float lumi=4.0, int njets=0, int mass=0, bool dodata=1, bool useSF
     mll = "dilep.mass()<50";
     mt = "mt>90&&mt<160";
     himass = "dilep.mass()>100.";
+  } else if (mass==180) {
+    lep1pt = "lep1.pt()>36.";
+    lep2pt = "lep2.pt()>25.";
+    dPhi   = "dPhi<TMath::Pi()*70./180.";
+    mll    = "dilep.mass()<60.";
+    mt     = "mt>120&&mt<180";
+    himass = "dilep.mass()>100.";
   } else if (mass==200) {
     lep1pt = "lep1.pt()>40.";
     lep2pt = "lep2.pt()>25.";
@@ -156,18 +164,23 @@ void plotBaby(float lumi=4.0, int njets=0, int mass=0, bool dodata=1, bool useSF
   TCut njcut(Form("njets==%i",njets));
   if (njets==-1) njcut = "";
 
-  TCut cut = base&&njcut&&newcuts&&sigreg&&trig&&kincuts;
+  TCut flav = "";
+  TCut sf = "type!=1 && type!=2";
+  TCut of = "type!=0 && type!=3";
+  //flav = of;
+
+  TCut cut = base&&njcut&&newcuts&&sigreg&&trig&&kincuts&&flav;
   cut.SetName("mh"+mh+"_nj"+nj);
 
   TString plot[]    = {
-    "dilep.mass()",
-    "dPhi",
-    "dilep.pt()",
-    "lep1.pt()","lep2.pt()",
-    "type",
-    "pmet","pTrackMet",
-    "mt",
-    "jet1.pt()"
+    "dilep.mass()"// ,
+//     "dPhi",
+//     "dilep.pt()",
+//     "lep1.pt()","lep2.pt()",
+//     "type",
+//     "pmet","pTrackMet",
+//     "mt",
+//     "jet1.pt()"
   };
   TString binning[] = {
     "60,0.,300.",
@@ -197,7 +210,7 @@ void plotBaby(float lumi=4.0, int njets=0, int mass=0, bool dodata=1, bool useSF
   TFile *_signal = 0;
   TTree * signal = 0;
   if (doSignal) {
-    _signal = TFile::Open(dir+"/hww120.root");
+    _signal = TFile::Open(Form("%s/hww%i.root",dir,mh));
     signal = (TTree*) _signal->Get("tree");
   }
 
@@ -277,7 +290,7 @@ void plotBaby(float lumi=4.0, int njets=0, int mass=0, bool dodata=1, bool useSF
 	plotSignal->SetLineWidth(2);
 	plotSignal->SetLineStyle(1);
 	plotSignal->SetLineColor(kRed);
-	leg->AddEntry(plotSignal,"10xHWW120","l");
+	leg->AddEntry(plotSignal,Form("10xHWW%i",mh),"l");
       }
 
       TH1F* plotData = 0;
@@ -292,15 +305,8 @@ void plotBaby(float lumi=4.0, int njets=0, int mass=0, bool dodata=1, bool useSF
 	hs->SetMaximum(max*1.5);
       }
 
-      TPad *pad1 = new TPad("pad1","pad1",0,0.3,1,1);
-      pad1->SetBottomMargin(0.01);
-      pad1->Draw();
-      pad1->cd();
-      hs->Draw();
-      plotData->Draw("EP,same");
-      c.cd();
-      TPad *pad2 = new TPad("pad2","pad2",0,0,1,0.3);
-      pad2->SetBottomMargin(0.2);
+      TPad *pad2 = new TPad("pad2","pad2",0,0,1,0.25);
+      pad2->SetBottomMargin(0.3);
       pad2->SetTopMargin(0.);
       pad2->Draw();
       pad2->cd();
@@ -315,15 +321,28 @@ void plotBaby(float lumi=4.0, int njets=0, int mass=0, bool dodata=1, bool useSF
 	} 
       }
       ratio->GetXaxis()->SetTitle(xtitle[pl]);
-      ratio->GetXaxis()->SetTitleSize(0.08);
-      ratio->GetXaxis()->SetLabelSize(0.08);
-      ratio->GetYaxis()->SetLabelSize(0.08);
+      ratio->GetXaxis()->SetTitleSize(0.12);
+      ratio->GetXaxis()->SetLabelSize(0.12);
+      ratio->GetYaxis()->SetLabelSize(0.12);
       ratio->GetYaxis()->SetTitle("Data/MC");
-      ratio->GetYaxis()->SetTitleOffset(0.5);
-      ratio->GetYaxis()->SetTitleSize(0.08);
+      ratio->GetYaxis()->SetTitleOffset(0.3);
+      ratio->GetYaxis()->SetTitleSize(0.12);
       pad2->SetGridy();
       ratio->SetMarkerStyle(21);
       ratio->Draw("EP");
+      TLine line(0,1,300,1);
+      line.SetLineColor(kRed);
+      line.Draw("same");
+      c.cd();
+
+      TPad *pad1 = new TPad("pad1","pad1",0,0.25,1,1);
+      pad1->SetBottomMargin(0.);
+      pad1->Draw();
+      pad1->cd();
+      hs->GetXaxis()->SetTitle("");
+      hs->GetXaxis()->SetLabelSize(0.);
+      hs->Draw();
+      plotData->Draw("EP,same");
       c.cd();
 
       leg->AddEntry(plotData,"data","p");
