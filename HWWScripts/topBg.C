@@ -27,7 +27,7 @@ pair<float, float> fakeBgEstimation(unsigned int cut, unsigned int veto, int mas
   pair<float, float> dymmFake  = getYield(main_dir+topww_dir+"dymm", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
   pair<float, float> dyeeFake  = getYield(main_dir+topww_dir+"dyee", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
   pair<float, float> wzFake    = getYield(main_dir+topww_dir+"wz", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  pair<float, float> zzFake    = getYield(main_dir+topww_dir+"zz", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
+  pair<float, float> zzFake    = getYield(main_dir+topww_dir+"zz_py", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
   float fakeYield = dataFake.first-qqwwFake.first-ggwwFake.first-ttbarFake.first-twFake.first-wzFake.first-zzFake.first-dySF*dymmFake.first-dySF*dyeeFake.first;
   //assume 35% syst uncertainty
   float fakeError = sqrt(pow(dataFake.second,2)+pow(qqwwFake.second,2)+pow(ggwwFake.second,2)+pow(ttbarFake.second,2)+pow(twFake.second,2)+
@@ -62,7 +62,7 @@ pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned in
   float dymm = dySF*getYield(dir+"dymm",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
   float dyee = dySF*getYield(dir+"dyee",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
   float dytt = getYield(dir+"dytt",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
-  float zz   = getYield(dir+"zz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float zz   = getYield(dir+"zz_py",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
   float wz   = getYield(dir+"wz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
   float wg   = getYield(dir+"wgamma",cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
 
@@ -182,7 +182,7 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
                             getYield(main_dir+topww_dir+"dymm",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
                             getYield(main_dir+topww_dir+"dyee",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
                             getYield(main_dir+topww_dir+"dytt",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
-                            getYield(main_dir+topww_dir+"zz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+                            getYield(main_dir+topww_dir+"zz_py",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
                             getYield(main_dir+topww_dir+"wz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first;
     cout << "sb tag mc top, mc other: " << sb_mc_top_tag << " " << sb_mc_other_tag << endl;
     cout << "sb tag data unc, bkg, data corr: " << sideband_data_tag+sb_tag_bkg.first << " " << sb_tag_bkg.first << " " << sideband_data_tag << endl;
@@ -202,7 +202,7 @@ void makeTopTable(float lumi) {
   bool doFake   = false;
   bool doPUw    = true;
 
-  TString anaRegion = "dphijet,minmetvtx,lep2pt15,ptll45";
+  TString anaRegion = "dphijet,minmetvtx,lep2pt15,ptll45,mll20";
 
   int mass = 0;
 

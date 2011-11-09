@@ -24,46 +24,25 @@
 #include "Smurf/Core/LeptonScaleLookup.cc"
 #include "CMS2/NtupleMacros/Tools/goodrun.cc"
 
-TString main_dir    = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbNoWeights/";
+TString main_dir    = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/";
 TString topww_dir   = "wwSelNoLepNoTV/";
 TString dy_dir      = "wwSelNoMetNoZVminMET20/";
 
 TString fr_file_mit    = "/smurf/data/Winter11_4000ipb/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
-// //2011A
-// TString eff_file       = "/smurf/data/Winter11_4000ipb/auxiliar/efficiency_results_v7_42x_Run2011A.root";
-// TString puw_file       = "/smurf/data/Winter11_4000ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Run2011A.root";
-// TString jsonFile       = "2011a.json.txt";
-// float   dysf0j = 2.92;
-// float   dysf1j = 3.78;
-// float   dysf2j = 6.79;
 
-// //LP
-// float   dysf0j = 3.21;
-// float   dysf1j = 3.96;
-// float   dysf2j = 7.02;
-
-//2011B
-// TString eff_file       = "/smurf/data/Winter11_4000ipb/auxiliar/efficiency_results_v7_42x_Run2011B.root";
-// TString puw_file       = "/smurf/data/Winter11_4000ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Run2011B.root";
-// TString jsonFile       = "2011b.json.txt";
-// float   dysf0j = 3.89;
-// float   dysf1j = 4.55;
-// float   dysf2j = 6.19;
-
-// //Full2011
-TString eff_file       = "/smurf/data/Winter11_4000ipb/auxiliar/efficiency_results_v7_42x_Full2011.root";
-TString puw_file       = "/smurf/data/Winter11_4000ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
-TString jsonFile       = "";
-float   dysf0j = 3.39945;
-float   dysf1j = 4.23166;
-float   dysf2j = 6.92333;
+TString eff_file       = "/smurf/data/Winter11_4700ipb/auxiliar/efficiency_results_v7_42x_Full2011_4700ipb.root";
+TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
+TString jsonFile       = "hww.Full2011.json";
+float   dysf0j = 3.08;
+float   dysf1j = 3.82;
+float   dysf2j = 9.01;
 
 //+++ deprecated
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
 //+++
 
-bool redoWeights  = 1;
+bool redoWeights  = 0;
 bool checkWeights = 0;
 
 //copy here to avoid SmurfTree::
@@ -268,7 +247,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 9999.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 9999.;
       himass = 100.;
     } else if (mass==115) {
@@ -276,7 +255,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 70.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else if (mass==120) {
@@ -284,7 +263,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 70.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else if (mass==130) {
@@ -292,7 +271,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 80.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else if (mass==140) {
@@ -300,7 +279,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 90.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else if (mass==150) {
@@ -308,7 +287,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 100.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else if (mass==160) {
@@ -316,7 +295,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 100.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else if (mass==170) {
@@ -324,7 +303,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 100.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else if (mass==180) {
@@ -332,7 +311,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 110.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else if (mass==190) {
@@ -340,7 +319,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 120.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else if (mass==200) {
@@ -348,7 +327,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 130.;
-      mtL    = 0.;
+      mtL    = 80.;
       mtH    = 999.;
       himass = 100.;
     } else {
@@ -422,8 +401,8 @@ float getPileupReweightFactor(int nvtx, TH1F* puweights=0) {
 pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, 
 			    bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false) {
 
-  //cout << sample << " " << cut << " " << veto << " " << mass << " " << njets << " " << region << " " << lumi << " " << 
-  //useJson << " " << applyEff << " " << doFake << " " << doPUw << endl;
+  //cout << sample << " " << cut << " " << veto << " " << mass << " " << njets << " " << region << " " << lumi << " " 
+  //     << useJson << " " << applyEff << " " << doFake << " " << doPUw << endl;
 
   float lep1pt=0.,lep2pt=0.,dPhi=0.,mll=0.,mtL=0.,mtH=0.,himass=0.;
   getCutValues(mass,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass);
@@ -501,7 +480,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if (!isMC && useJson && !goodrun(dataEvent->run_,dataEvent->lumi_)) continue;    
     if ( dataEvent->njets_!=njets) continue;
     if ( (dataEvent->cuts_ & cut) != cut ) continue;
-    if ( (dataEvent->cuts_ & veto) == veto ) continue;
+    if ( veto!=noVeto && (dataEvent->cuts_ & veto) == veto ) continue;
     //WARNING: do not define region names that are subset of others!!!!!!!
     //final states
     if ( region.Contains("mmfs") && dataEvent->type_!=0 ) continue;

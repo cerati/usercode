@@ -19,8 +19,8 @@ pair<float, float> getSpillage(TString dir, unsigned int cut, unsigned int veto,
   pair<float, float> wzFake_1 = getYield(dir+"wz",cut|Lep2FullSelection, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> wzFake_2 = getYield(dir+"wz",cut|Lep1FullSelection, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
 
-  pair<float, float> zzFake_1 = getYield(dir+"zz",cut|Lep2FullSelection, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> zzFake_2 = getYield(dir+"zz",cut|Lep1FullSelection, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> zzFake_1 = getYield(dir+"zz_py",cut|Lep2FullSelection, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> zzFake_2 = getYield(dir+"zz_py",cut|Lep1FullSelection, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
 
   //cout << "qqww: " << qqwwFake_1.first+qqwwFake_2.first << " ggww: " << ggwwFake_1.first+ggwwFake_2.first << " ttbar: " << ttbarFake_1.first+ttbarFake_2.first 
   //     << " tw: " << twFake_1.first+twFake_2.first << " wz: " << wzFake_1.first+wzFake_2.first << " zz: " << zzFake_1.first+zzFake_2.first << endl;
@@ -189,7 +189,7 @@ void makeSSTable(float lumi) {
     pair<float, float> ssWz = getYield(dir+"wz",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     cout << "SS wz: " << ssWz.first << " +/- " << ssWz.second << endl;
 
-    pair<float, float> ssZz = getYield(dir+"zz",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ssZz = getYield(dir+"zz_py",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     cout << "SS zz: " << ssZz.first << " +/- " << ssZz.second << endl;
 
     cout << "total expected: " << ssFake.first-spill.first+ssWw.first+ssTtbar.first+ssWgamma.first+ssWz.first+ssZz.first << " +/- " 

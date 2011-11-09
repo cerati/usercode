@@ -1,4 +1,5 @@
 #include "common.C"
+#include "Smurf/Analysis/HWWlvlv/DYRoutinValues.h"
 
 pair<float, float> computeRoutinData(TString sample, unsigned int veto, int mass, unsigned int njets, TString region, TString metcut, float kee, bool useJson=0)  {
   cout << "computeRoutinData: WARNING, THIS METHOD IS OUTDATED" << endl;
@@ -224,15 +225,19 @@ void makeDYTable(float lumi) {
       pair<float, float> dymmMC   = getYield(main_dir+dy_dir+"dymm",  wwSelection, noVeto, mass, njets, "mmfs,minmetvtx,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
       pair<float, float> dyeeMC   = getYield(main_dir+dy_dir+"dyee",  wwSelection, noVeto, mass, njets, "eefs,minmetvtx,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
       
-      pair<float, float> r = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
-      
+      //pair<float, float> r = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
+      //take it from frozen values
+      pair<float, float> r = make_pair<float, float>(RoutinValue(mass,njets),sqrt(pow(RoutinStatError(mass,njets),2)+pow(RoutinSystError(mass,njets),2)));
+
       pair<float, float> z = getZYieldInData(main_dir+dy_dir+"data.root", wwSelNoZVNoMet, noVeto, mass, njets, regionIn, lumi, useJson, applyEff, doFake, doPUw);
       
       //Z veto, full met and SF cuts are already applied in the method
       pair<float, float> dyData = dyBkgEstimation(main_dir+dy_dir+"data.root", wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, r.first, r.second, z.first, z.second, useJson, applyEff, doFake, doPUw);
 
       float sf = dyData.first/(dymmMC.first+dyeeMC.first);
-      float sf_err = sf*sqrt( pow(dyData.second/dyData.first,2) + pow(sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2))/(dymmMC.first+dyeeMC.first),2) );
+      //mc uncertainty already included in the cards
+      float sf_err = dyData.second/(dymmMC.first+dyeeMC.first);
+      //float sf_err = sf*sqrt( pow(dyData.second/dyData.first,2) + pow(sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2))/(dymmMC.first+dyeeMC.first),2) );
       float sf_percerr = 100.*sf_err/sf;
 
       if (mass==0) {
