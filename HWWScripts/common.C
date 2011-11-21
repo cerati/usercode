@@ -24,6 +24,8 @@
 #include "Smurf/Core/LeptonScaleLookup.cc"
 #include "CMS2/NtupleMacros/Tools/goodrun.cc"
 #include "Smurf/Analysis/HWWlvlv/OtherBkgScaleFactors.h"  
+#include "Smurf/Analysis/HWWlvlv/DYBkgScaleFactors.h"  
+#include "Smurf/Analysis/HWWlvlv/TopBkgScaleFactors.h"	
 
 TString main_dir    = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/";
 TString topww_dir   = "wwSelNoLepNoTV/";
@@ -35,16 +37,13 @@ TString fr_file_mit    = "/smurf/data/Winter11_4700ipb/auxiliar/FakeRates_CutBas
 TString eff_file       = "/smurf/data/Winter11_4700ipb/auxiliar/efficiency_results_v7_42x_Full2011_4700ipb.root";
 TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
 TString jsonFile       = "";//"hww.Full2011.json";
-float   dysf0j = 3.08;
-float   dysf1j = 3.82;
-float   dysf2j = 9.01;
 
 //+++ deprecated
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
 //+++
 
-bool redoWeights  = 1;
+bool redoWeights  = 0;
 bool checkWeights = 0;
 
 //copy here to avoid SmurfTree::
