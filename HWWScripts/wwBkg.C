@@ -41,13 +41,14 @@ pair<float,float> getAllBkg(int mass=160, unsigned int njets=0, string region=""
 
   //********* get top **********
   pair<float, float> top = topBgEstimation(mass, njets, lumi, region, eff_veto_data, eff_err_veto_data, useJson, applyEff, false, doPUw);
-  //test fixme
-  //float topSF = 1.39;
-  //if (njets==1) topSF = 1.09;
-  //pair<float, float> tt = getYield(main_dir+topww_dir+"ttbar", wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
-  //pair<float, float> tw = getYield(main_dir+topww_dir+"tw",    wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
-  //pair<float, float> top = make_pair<float, float>(topSF*(tt.first+tw.first),sqrt( pow(topSF*tt.second,2) + pow(topSF*tw.second,2) ));
-  //test
+  bool useTopSF = false;
+  if (useTopSF) {
+    //check error...
+    float topSF = TopBkgScaleFactor(njets);
+    pair<float, float> tt = getYield(main_dir+topww_dir+"ttbar", wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+    pair<float, float> tw = getYield(main_dir+topww_dir+"tw",    wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+    top = make_pair<float, float>(topSF*(tt.first+tw.first),sqrt( pow(topSF*tt.second,2) + pow(topSF*tw.second,2) ));
+  }
   float num_top_data = top.first;
   float num_top_err_data = top.second;
   //********* get top **********
@@ -68,8 +69,8 @@ pair<float,float> getAllBkg(int mass=160, unsigned int njets=0, string region=""
   float sideband_dyee          = sb_dyee.first;
   //float sideband_dymm_err      = sb_dymm.second;
   //float sideband_dyee_err      = sb_dyee.second;
-  float dySF = dysf0j;
-  if (njets==1) dySF = dysf1j;
+  //get scale factors for DY
+  float dySF = DYBkgScaleFactor(0,njets);
   float num_dy_data = (sideband_dyee+sideband_dymm)*dySF;
   float num_dy_err_data = num_dy_data;
   //********* get DY **********
@@ -253,41 +254,47 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
   if (!doLatex) cout << "-------------------------------------------------------------------------------------------------------------" << endl;
 
   if (nmasses==9) {
-    //printf("Double_t WWBkgScaleFactorCutBased(Int_t mH, Int_t jetBin) {\n");
-    printf("Double_t WWBkgScaleFactorMVA(Int_t mH, Int_t jetBin) {\n");
-    printf("assert(jetBin >= 0 && jetBin <= 1);\n");
-    printf("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
-    printf("  Double_t WWBkgScaleFactorHiggsSelection[2][9] = { \n");
-    printf("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f},\n",vsf0j[0],vsf0j[1],vsf0j[2],vsf0j[3],vsf0j[4],vsf0j[5],vsf0j[6],vsf0j[7],vsf0j[8]);
-    printf("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f} };\n",vsf1j[0],vsf1j[1],vsf1j[2],vsf1j[3],vsf1j[4],vsf1j[5],vsf1j[6],vsf1j[7],vsf1j[8]);
-    printf("  Int_t massIndex = -1;\n");
-    printf("  for (UInt_t m=0; m < 9 ; ++m) {\n");
-    printf("    if (mH == mHiggs[m]) massIndex = m;\n");
-    printf("  }\n");
-    printf("  if (massIndex >= 0) {\n");
-    printf("    return WWBkgScaleFactorHiggsSelection[jetBin][massIndex];\n");
-    printf("  } else {\n");
-    printf("    return 1.0;\n");
-    printf("  }\n");
-    printf("}\n");
+
+    ofstream myfile;
+    TString fname = "WWBkgScaleFactors.h";
+    myfile.open(fname);
+    ostream &out = myfile;
+
+    out << Form("Double_t WWBkgScaleFactorCutBased(Int_t mH, Int_t jetBin) {\n");
+    //out << Form("Double_t WWBkgScaleFactorMVA(Int_t mH, Int_t jetBin) {\n");
+    out << Form("assert(jetBin >= 0 && jetBin <= 1);\n");
+    out << Form("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
+    out << Form("  Double_t WWBkgScaleFactorHiggsSelection[2][9] = { \n");
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f},\n",vsf0j[0],vsf0j[1],vsf0j[2],vsf0j[3],vsf0j[4],vsf0j[5],vsf0j[6],vsf0j[7],vsf0j[8]);
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f} };\n",vsf1j[0],vsf1j[1],vsf1j[2],vsf1j[3],vsf1j[4],vsf1j[5],vsf1j[6],vsf1j[7],vsf1j[8]);
+    out << Form("  Int_t massIndex = -1;\n");
+    out << Form("  for (UInt_t m=0; m < 9 ; ++m) {\n");
+    out << Form("    if (mH == mHiggs[m]) massIndex = m;\n");
+    out << Form("  }\n");
+    out << Form("  if (massIndex >= 0) {\n");
+    out << Form("    return WWBkgScaleFactorHiggsSelection[jetBin][massIndex];\n");
+    out << Form("  } else {\n");
+    out << Form("    return 1.0;\n");
+    out << Form("  }\n");
+    out << Form("}\n");
     
-    //printf("Double_t WWBkgScaleFactorKappaCutBased(Int_t mH, Int_t jetBin) {\n");
-    printf("Double_t WWBkgScaleFactorKappaMVA(Int_t mH, Int_t jetBin) {\n");
-    printf("assert(jetBin >= 0 && jetBin <= 1);\n");
-    printf("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
-    printf("  Double_t WWBkgScaleFactorKappaHiggsSelection[2][9] = { \n");
-    printf("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f},\n",vk0j[0],vk0j[1],vk0j[2],vk0j[3],vk0j[4],vk0j[5],vk0j[6],vk0j[7],vk0j[8]);
-    printf("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f} };\n",vk1j[0],vk1j[1],vk1j[2],vk1j[3],vk1j[4],vk1j[5],vk1j[6],vk1j[7],vk1j[8]);
-    printf("  Int_t massIndex = -1;\n");
-    printf("  for (UInt_t m=0; m < 9 ; ++m) {\n");
-    printf("    if (mH == mHiggs[m]) massIndex = m;\n");
-    printf("  }\n");
-    printf("  if (massIndex >= 0) {\n");
-    printf("    return WWBkgScaleFactorKappaHiggsSelection[jetBin][massIndex];\n");
-    printf("  } else {\n");
-    printf("    return 1.0;\n");
-    printf("  }\n");
-    printf("}\n");
+    out << Form("Double_t WWBkgScaleFactorKappaCutBased(Int_t mH, Int_t jetBin) {\n");
+    //out << Form("Double_t WWBkgScaleFactorKappaMVA(Int_t mH, Int_t jetBin) {\n");
+    out << Form("assert(jetBin >= 0 && jetBin <= 1);\n");
+    out << Form("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
+    out << Form("  Double_t WWBkgScaleFactorKappaHiggsSelection[2][9] = { \n");
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f},\n",vk0j[0],vk0j[1],vk0j[2],vk0j[3],vk0j[4],vk0j[5],vk0j[6],vk0j[7],vk0j[8]);
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f} };\n",vk1j[0],vk1j[1],vk1j[2],vk1j[3],vk1j[4],vk1j[5],vk1j[6],vk1j[7],vk1j[8]);
+    out << Form("  Int_t massIndex = -1;\n");
+    out << Form("  for (UInt_t m=0; m < 9 ; ++m) {\n");
+    out << Form("    if (mH == mHiggs[m]) massIndex = m;\n");
+    out << Form("  }\n");
+    out << Form("  if (massIndex >= 0) {\n");
+    out << Form("    return WWBkgScaleFactorKappaHiggsSelection[jetBin][massIndex];\n");
+    out << Form("  } else {\n");
+    out << Form("    return 1.0;\n");
+    out << Form("  }\n");
+    out << Form("}\n");
   }
 
 }

@@ -7,15 +7,8 @@ pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned in
 
   bool debug = 0;
 
-  //get scale factors for DY  from common.C
-  float dySF = 1.;
-  if (njets==0){
-    dySF=dysf0j;
-  } else if (njets==1) {
-    dySF=dysf1j;
-  }else if (njets==2) {
-    dySF=dysf2j;
-  }
+  //get scale factors for DY
+  float dySF = DYBkgScaleFactor(0,njets);
 
   float qqww = getYield(dir+"qqww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
   float ggww = getYield(dir+"ggww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
@@ -79,7 +72,7 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   float fttbar=0.,fttbar_err=0.,twlikett=0.;
   if (njets==0) {
     float wwntv1j_tw  = getYield(main_dir+topww_dir+"tw", wwSelectionNoTV,                 veto, mass, 1, region_top,    lumi, false, applyEff, false, doPUw).first;    
-    float wwtt1j_tw   = getYield(main_dir+topww_dir+"tw", wwSelectionNoTV|TopTagNotInJets, veto, mass, 1, region_toptag, lumi, false, applyEff, false, doPUw).first;    
+     float wwtt1j_tw   = getYield(main_dir+topww_dir+"tw", wwSelectionNoTV|TopTagNotInJets, veto, mass, 1, region_toptag, lumi, false, applyEff, false, doPUw).first;    
     twlikett = wwtt1j_tw/wwntv1j_tw;
     //float twlikett_err = 0.;//fixme
     float sideband_ttbar  = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoTV, veto, mass, njets, region, lumi, false, applyEff, false, doPUw).first;
@@ -185,7 +178,7 @@ void makeTopTable(float lumi) {
   pair<float, float> topData1j = topBgEstimation(mass, 1, lumi, anaRegion, vetoEff1j.first, vetoEff1j.second, useJson, applyEff, doFake, doPUw);
   float sf1j = topData1j.first/sigreg_top_1j.first;
   float sf1jerr = sf1j*sqrt(pow(topData1j.second/topData1j.first,2)+pow(sigreg_top_1j.second/sigreg_top_1j.first,2));
-  float sf1jpercerr = 100*sqrt(pow(topData1j.second/topData1j.first,2)+pow(sigreg_top_1j.second/sigreg_top_1j.first,2));
+  //float sf1jpercerr = 100*sqrt(pow(topData1j.second/topData1j.first,2)+pow(sigreg_top_1j.second/sigreg_top_1j.first,2));
 
   ///////////////////////////////////////// 0-JET BIN /////////////////////////////////////////
   pair<float, float> sigreg_ttbar_0j = getYield(main_dir+topww_dir+"ttbar",    wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
@@ -202,7 +195,7 @@ void makeTopTable(float lumi) {
   pair<float, float> topData0j = topBgEstimation(mass, 0, lumi, anaRegion, vetoEff0j.first, vetoEff0j.second, useJson, applyEff, doFake, doPUw);
   float sf0j = topData0j.first/sigreg_top_0j.first;
   float sf0jerr = sf0j*sqrt(pow(topData0j.second/topData0j.first,2)+pow(sigreg_top_0j.second/sigreg_top_0j.first,2));
-  float sf0jpercerr = 100*sqrt(pow(topData0j.second/topData0j.first,2)+pow(sigreg_top_0j.second/sigreg_top_0j.first,2));
+  //float sf0jpercerr = 100*sqrt(pow(topData0j.second/topData0j.first,2)+pow(sigreg_top_0j.second/sigreg_top_0j.first,2));
 
   bool doLatex = false;
 
@@ -249,11 +242,27 @@ void makeTopTable(float lumi) {
 	       "Scale factors",
 	       round(100.*sf0j)/100.,round(100.*sf0jerr)/100.,
 	       round(100.*sf1j)/100.,round(100.*sf1jerr)/100.) 
-               //round(100.*sf0j)/100.,round(100.*sf0jpercerr)/100.,
-               //round(100.*sf1j)/100.,round(100.*sf1jpercerr)/100.) 
        << endl;
   if (!doLatex) cout << "--------------------------------------------------------------------------------" << endl;
   else cout << "\\hline" << endl;
+
+  ofstream myfile;
+  TString fname = "TopBkgScaleFactors.h";
+  myfile.open(fname);
+  ostream &out = myfile;
+
+  out << Form("Double_t TopBkgScaleFactor(Int_t jetBin) {\n");
+  out << Form("  assert(jetBin >=0 && jetBin <= 2);\n");
+  out << Form("  Double_t TopBkgScaleFactor[3] = { %7.5f,%7.5f,%7.5f   };\n",sf0j,sf1j,1.);
+  out << Form("  return TopBkgScaleFactor[jetBin];\n");
+  out << Form("}\n");
+  
+  out << Form("Double_t TopBkgScaleFactorKappa(Int_t jetBin) {\n");
+  out << Form("  assert(jetBin >=0 && jetBin <= 2);\n");
+  out << Form("  Double_t TopBkgScaleFactorKappa[3] = { %7.5f,%7.5f,%7.5f   };\n",1.+sf0jerr/sf0j,1.+sf1jerr/sf1j,1.);
+  out << Form("  return TopBkgScaleFactorKappa[jetBin];\n");
+  out << Form("}\n");
+
 }
 
 void topBg(float lumi) {

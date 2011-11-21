@@ -6,15 +6,9 @@ pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int
 
   bool debug = 0;
   region = region+=",spill";
-  //get scale factors for DY  from common.C
-  float dySF = 1.;
-  if (njets==0){
-    dySF=dysf0j;
-  } else if (njets==1) {
-    dySF=dysf1j;
-  }else if (njets==2) {
-    dySF=dysf2j;
-  }
+  //get scale factors for DY
+  float dySF = DYBkgScaleFactor(0,njets);
+
   //correct for spillage...
   pair<float, float> qqwwFake    = getYield(main_dir+"wwSelNoLepNoTV/"+"qqww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);//FIXME
   pair<float, float> ggwwFake    = getYield(dir+"ggww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
@@ -75,13 +69,13 @@ pair<float, float> fakeBgEstimationWithSyst(TString dir, unsigned int cut, unsig
 
 void makeFakeTable(float lumi) {
 
-  bool printAll = 0;
+  //bool printAll = 0;
 
   bool useJson    = true;
   bool applyTnPSF = true;
   bool doPUw = true;
 
-  bool doSpillage = 1;
+  //bool doSpillage = 1;
 
   int mass = 0;
   TString region = "dphireg,dphijet,minmetvtx,lep2pt15,ptll45,mll20";
@@ -99,8 +93,8 @@ void makeFakeTable(float lumi) {
     //pair<float, float> wjMC_em   = getYield(main_dir+topww_dir+"/wjets",  wwSelection, noVeto, mass, njets, region+"emfs", lumi, useJson, applyTnPSF, false, doPUw);
     //pair<float, float> wjMC_me   = getYield(main_dir+topww_dir+"/wjets",  wwSelection, noVeto, mass, njets, region+"mefs", lumi, useJson, applyTnPSF, false, doPUw);
     //pair<float, float> wjMC_ee   = getYield(main_dir+topww_dir+"/wjets",  wwSelection, noVeto, mass, njets, region+"eefs", lumi, useJson, applyTnPSF, false, doPUw);
-    bool newversion = true;
-    bool doLatex = true;
+
+    bool doLatex = false;
 
     pair<float, float> wjdatamm = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"mmfs", lumi, useJson, applyTnPSF,doPUw);
     pair<float, float> wjdatame = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"mefs", lumi, useJson, applyTnPSF,doPUw);

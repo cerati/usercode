@@ -208,10 +208,17 @@ void makeDYTable(float lumi) {
 
   //int masses[] = {0};
   //int masses[] = {0,120,140,160,180,200};
-  int masses[] = {0,115,120,130,140,150,160,170,180,190,200};
+  int masses[] = {0,115,120,130,140,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
 
   bool doLatex = false;
+
+  vector<float> vsf0j;
+  vector<float> vk0j;
+  vector<float> vsf1j;
+  vector<float> vk1j;
+  vector<float> vsf2j;
+  vector<float> vk2j;
 
   for (int j=0;j<njetbins;++j) {
 
@@ -246,8 +253,18 @@ void makeDYTable(float lumi) {
       float sf = dyData.first/(dymmMC.first+dyeeMC.first);
       //mc uncertainty already included in the cards
       float sf_err = dyData.second/(dymmMC.first+dyeeMC.first);
-      //float sf_err = sf*sqrt( pow(dyData.second/dyData.first,2) + pow(sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2))/(dymmMC.first+dyeeMC.first),2) );
-      float sf_percerr = 100.*sf_err/sf;
+      //float sf_percerr = 100.*sf_err/sf;
+
+      if (njets==0) {
+	vsf0j.push_back(sf);
+	vk0j.push_back(1.+sf_err/sf);
+      } else if (njets==1) {
+	vsf1j.push_back(sf);
+	vk1j.push_back(1.+sf_err/sf);
+      } else {
+	vsf2j.push_back(sf);
+	vk2j.push_back(1.+sf_err/sf);
+      }
 
       if (mass==0) {
 	TString formstr = "| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
@@ -277,6 +294,57 @@ void makeDYTable(float lumi) {
     }
     if (!doLatex) cout << "---------------------------------------------------------------------------------------------------------" << endl;
     else cout << "\\hline" << endl;
+  }
+
+  if (nmasses==13) {
+    ofstream myfile;
+    TString fname = "DYBkgScaleFactors.h";
+    myfile.open(fname);
+    ostream &out = myfile;
+
+    out << Form("Double_t DYBkgScaleFactor(Int_t mH, Int_t jetBin) {\n");
+    out << Form("  Int_t mHiggs[12] = {115,120,130,140,150,160,170,180,190,200,250,300};\n");
+    out << Form("  Double_t DYBkgScaleFactorWWPreselection[3] = { %7.5f,%7.5f,%7.5f  };\n",vsf0j[0],vsf1j[0],vsf2j[0]);
+    out << Form("  Double_t DYBkgScaleFactorHiggsSelection[3][12] = { \n");
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f },\n",
+	   vsf0j[1],vsf0j[2],vsf0j[3],vsf0j[4],vsf0j[5],vsf0j[6],vsf0j[7],vsf0j[8],vsf0j[9],vsf0j[10],vsf0j[11],vsf0j[12]);
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f },\n",
+	   vsf1j[1],vsf1j[2],vsf1j[3],vsf1j[4],vsf1j[5],vsf1j[6],vsf1j[7],vsf1j[8],vsf1j[9],vsf1j[10],vsf1j[11],vsf1j[12]);
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f } };\n",
+	   vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0]);
+    out << Form("  if(mH == 0) return DYBkgScaleFactorWWPreselection[jetBin];\n");
+    out << Form("  Int_t massIndex = -1;\n");
+    out << Form("  for (UInt_t m=0; m < 12 ; ++m) {\n");
+    out << Form("    if (mH == mHiggs[m]) massIndex = m;\n");
+    out << Form("  }\n");
+    out << Form("  if (massIndex >= 0) {\n");
+    out << Form("    return DYBkgScaleFactorHiggsSelection[jetBin][massIndex];\n");
+    out << Form("  } else {\n");
+    out << Form("    return DYBkgScaleFactorWWPreselection[jetBin];\n");
+    out << Form("  }\n");
+    out << Form("}\n");
+
+    out << Form("Double_t DYBkgScaleFactorKappa(Int_t mH, Int_t jetBin) {\n");
+    out << Form("  Int_t mHiggs[12] = {115,120,130,140,150,160,170,180,190,200,250,300};\n");
+    out << Form("  Double_t DYBkgScaleFactorWWPreselectionKappa[3] = { %7.5f,%7.5f,%7.5f  };\n",vk0j[0],vk1j[0],vk2j[0]);
+    out << Form("  Double_t DYBkgScaleFactorHiggsSelectionKappa[3][12] = { \n");
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f },\n",
+	   vk0j[1],vk0j[2],vk0j[3],vk0j[4],vk0j[5],vk0j[6],vk0j[7],vk0j[8],vk0j[9],vk0j[10],vk0j[11],vk0j[12]);
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f },\n",
+	   vk1j[1],vk1j[2],vk1j[3],vk1j[4],vk1j[5],vk1j[6],vk1j[7],vk1j[8],vk1j[9],vk1j[10],vk1j[11],vk1j[12]);
+    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f } };\n",
+	   vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0]);
+    out << Form("  if(mH == 0) return DYBkgScaleFactorWWPreselectionKappa[jetBin];\n");
+    out << Form("  Int_t massIndex = -1;\n");
+    out << Form("  for (UInt_t m=0; m < 12 ; ++m) {\n");
+    out << Form("    if (mH == mHiggs[m]) massIndex = m;\n");
+    out << Form("  }\n");
+    out << Form("  if (massIndex >= 0) {\n");
+    out << Form("    return DYBkgScaleFactorHiggsSelectionKappa[jetBin][massIndex];\n");
+    out << Form("  } else {\n");
+    out << Form("    return DYBkgScaleFactorWWPreselectionKappa[jetBin];\n");
+    out << Form("  }\n");
+    out << Form("}\n");
   }
 
 }
