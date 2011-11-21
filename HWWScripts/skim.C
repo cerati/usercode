@@ -213,5 +213,17 @@ void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-
   smurfproducer(smurfFDir,"hww180.root",outputDir,cut);
   smurfproducer(smurfFDir,"hww190.root",outputDir,cut);
   smurfproducer(smurfFDir,"hww200.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww250.root",outputDir,cut);
+  smurfproducer(smurfFDir,"hww300.root",outputDir,cut);
+  smurfproducer(smurfFDir,"qqww_py.root",outputDir,cut);
+  smurfproducer(smurfFDir,"ttbar_mg.root",outputDir,cut);
+  smurfproducer(smurfFDir,"tw_ds.root",outputDir,cut);
+  smurfproducer(smurfFDir,"wgamma_41x.root",outputDir,cut);
+  smurfproducer(smurfFDir,"ww_mcnlo.root",outputDir,cut);
+  smurfproducer(smurfFDir,"wz_py.root",outputDir,cut);
+  smurfproducer(smurfFDir,"wg3l.root",outputDir,cut);
+  smurfproducer(smurfFDir,"data-emb-tau123.root",outputDir,cut);
+  smurfproducer(smurfFDir,"data-emb-tau122.root",outputDir,cut);
+  smurfproducer(smurfFDir,"data-emb-tau121.root",outputDir,cut);
   return;
 }
