@@ -1,32 +1,17 @@
-void makeTable(float lumi=4.0, int njets=0, int mass=0, bool useSF=false, bool dodata=false){
+void makeTable(float lumi=4.7, int njets=0, int mass=0, bool useSF=false, bool dodata=false){
   //lumi is in /fb
 
   gROOT->Reset();
 
   bool doMC = true;
 
-  TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz","wjets","wgamma",Form("hww%i",mass)};
-  float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0, 1.0};
+  TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz_py","wjets","wgamma","wg3l",Form("hww%i",mass)};
+  float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0, 1.0, 1.0};
 
   TCut runrange("run>0");//Full2011
-  TString dir = "/smurf/cerati/TestNtuples/default/";
-  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoLepNoTV/";
-  float sfs0j[] = { 1.0,   1.0,   3.4,   3.4,   1.0,   1.4,    1.4, 1.0, 1.0, 2.8,    1.0, 1.0};
-  float sfs1j[] = { 1.0,   1.0,   4.2,   4.2,   1.0,   1.2,    1.2, 1.0, 1.0, 2.8,    1.0, 1.0};
-  //TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbFull2011/wwSelNoMetNoZVminMET20/";
-
-  //TCut runrange("run<=172802");//LP
-  //float sfs0j[] = { 1.0,   1.0,   3.2,   3.2,   1.0,   1.0,    1.0, 1.0, 1.0, 2.7,    1.0};
-  //float sfs1j[] = { 1.0,   1.0,   4.0,   4.0,   1.0,   1.1,    1.1, 1.0, 1.0, 3.2,    1.0};
-//   TCut runrange("run<=173692");//2011A
-//   float sfs0j[] = { 1.0,   1.0,   2.9,   2.9,   1.0,   0.9,    0.9, 1.0, 1.0, 2.7,    1.0};
-//   float sfs1j[] = { 1.0,   1.0,   3.8,   3.8,   1.0,   1.1,    1.1, 1.0, 1.0, 3.3,    1.0};
-//   TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011A/wwSelNoLepNoTV/";
-
-//   TCut runrange("run>173692");//2011B
-//   float sfs0j[] = { 1.0,   1.0,   3.9,   3.9,   1.0,   2.1,    2.1, 1.0, 1.0, 3.2,    1.0};
-//   float sfs1j[] = { 1.0,   1.0,   4.6,   4.6,   1.0,   1.3,    1.3, 1.0, 1.0, 2.4,    1.0};
-//   TString dir = "/smurf/cerati/skims/Run2011_Spring11_SmurfV7_42X/4ipbRun2011B/wwSelNoLepNoTV/";
+  TString dir = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/wwSelNoLepNoTV/";
+  float sfs0j[] = { 1.0,   1.0,   3.1,   3.1,   1.0,   1.4,    1.4, 1.0, 1.0, 2.6,    1.0, 1.5, 1.0};
+  float sfs1j[] = { 1.0,   1.0,   3.8,   3.8,   1.0,   1.1,    1.1, 1.0, 1.0, 2.4,    1.0, 1.5, 1.0};
 
   TCut lep1pt,lep2pt,dPhi,mll,mt,himass;
   if (mass==0) {
@@ -153,8 +138,7 @@ void makeTable(float lumi=4.0, int njets=0, int mass=0, bool useSF=false, bool d
   TCut notTagNotInJets(Form("(cuts & %i)!=%i",TopTagNotInJets,TopTagNotInJets));
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
   TCut newcuts = "type==1 || type==2 || ( lep2.pt()>15. && min(pmet,pTrackMet)>(37.+nvtx/2.) && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
-  TCut kincuts = "dilep.pt()>45.";
-  //TCut kincuts = "dilep.pt()>45. && ( type==1 || type==2 || dilep.mass()>20.)";
+  TCut kincuts = "dilep.pt()>45. && ( type==1 || type==2 || dilep.mass()>20.)";
 
   TCut cut = base&&jets&&newcuts&&sigreg&&trig&&kincuts;
   //cout << "cut: " << cut.GetTitle() << endl;
@@ -183,6 +167,7 @@ void makeTable(float lumi=4.0, int njets=0, int mass=0, bool useSF=false, bool d
       if (lumi>0.) mc->SetWeight(lumi*correction);
       //cout << scale1fb_ << endl;
       mc->Draw("type>>plotmc(4,0,4)",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*sfWeightHPt*(%s)",cut.GetTitle()),"g");
+      //mc->Draw("type>>plotmc(4,0,4)",Form("scale1fb*(%s)",cut.GetTitle()),"g");
       float nMuMu = plotmc->GetBinContent(1);
       float nElMu = plotmc->GetBinContent(2);
       float nMuEl = plotmc->GetBinContent(3);

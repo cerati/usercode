@@ -23,12 +23,14 @@
 #include <vector>
 #include "Smurf/Core/LeptonScaleLookup.cc"
 #include "CMS2/NtupleMacros/Tools/goodrun.cc"
+#include "Smurf/Analysis/HWWlvlv/OtherBkgScaleFactors.h"  
 
 TString main_dir    = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/";
 TString topww_dir   = "wwSelNoLepNoTV/";
+//TString topww_dir   = "Alternative/";
 TString dy_dir      = "wwSelNoMetNoZVminMET20/";
 
-TString fr_file_mit    = "/smurf/data/Winter11_4000ipb/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
+TString fr_file_mit    = "/smurf/data/Winter11_4700ipb/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
 
 TString eff_file       = "/smurf/data/Winter11_4700ipb/auxiliar/efficiency_results_v7_42x_Full2011_4700ipb.root";
 TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
@@ -42,7 +44,7 @@ TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLoos
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
 //+++
 
-bool redoWeights  = 0;
+bool redoWeights  = 1;
 bool checkWeights = 0;
 
 //copy here to avoid SmurfTree::
@@ -256,7 +258,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       dPhi   = 180.;
       mll    = 70.;
       mtL    = 80.;
-      mtH    = 999.;
+      mtH    = 115.;
       himass = 100.;
     } else if (mass==120) {
       lep1pt = 20.;
@@ -264,7 +266,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       dPhi   = 180.;
       mll    = 70.;
       mtL    = 80.;
-      mtH    = 999.;
+      mtH    = 120.;
       himass = 100.;
     } else if (mass==130) {
       lep1pt = 20.;
@@ -272,7 +274,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       dPhi   = 180.;
       mll    = 80.;
       mtL    = 80.;
-      mtH    = 999.;
+      mtH    = 130.;
       himass = 100.;
     } else if (mass==140) {
       lep1pt = 20.;
@@ -280,7 +282,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       dPhi   = 180.;
       mll    = 90.;
       mtL    = 80.;
-      mtH    = 999.;
+      mtH    = 140.;
       himass = 100.;
     } else if (mass==150) {
       lep1pt = 20.;
@@ -288,7 +290,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       dPhi   = 180.;
       mll    = 100.;
       mtL    = 80.;
-      mtH    = 999.;
+      mtH    = 150.;
       himass = 100.;
     } else if (mass==160) {
       lep1pt = 20.;
@@ -296,7 +298,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       dPhi   = 180.;
       mll    = 100.;
       mtL    = 80.;
-      mtH    = 999.;
+      mtH    = 160.;
       himass = 100.;
     } else if (mass==170) {
       lep1pt = 20.;
@@ -304,7 +306,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       dPhi   = 180.;
       mll    = 100.;
       mtL    = 80.;
-      mtH    = 999.;
+      mtH    = 170.;
       himass = 100.;
     } else if (mass==180) {
       lep1pt = 20.;
@@ -312,24 +314,24 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       dPhi   = 180.;
       mll    = 110.;
       mtL    = 80.;
-      mtH    = 999.;
-      himass = 100.;
+      mtH    = 180.;
+      himass = 110.;
     } else if (mass==190) {
       lep1pt = 20.;
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 120.;
       mtL    = 80.;
-      mtH    = 999.;
-      himass = 100.;
+      mtH    = 190.;
+      himass = 120.;
     } else if (mass==200) {
       lep1pt = 20.;
       lep2pt = 10.;
       dPhi   = 180.;
       mll    = 130.;
       mtL    = 80.;
-      mtH    = 999.;
-      himass = 100.;
+      mtH    = 200.;
+      himass = 130.;
     } else {
       cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
     }
@@ -361,7 +363,9 @@ void getCutMasks(unsigned int njets, unsigned int& baseline_toptag, unsigned int
     top_sel = noCut;
     ttag = noCut;//ttaghj
     veto = veto1j;
-  }  
+  } else if (njets==2) {
+    veto = veto0j;
+  }
   baseline_toptag = wwSelectionNoTV|ttag;
   control_top     = wwSelectionNoTV|top_sel;
   control_toptag  = control_top|ttag;
@@ -401,8 +405,8 @@ float getPileupReweightFactor(int nvtx, TH1F* puweights=0) {
 pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, 
 			    bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false) {
 
-  //cout << sample << " " << cut << " " << veto << " " << mass << " " << njets << " " << region << " " << lumi << " " 
-  //     << useJson << " " << applyEff << " " << doFake << " " << doPUw << endl;
+//   cout << sample << " " << cut << " " << veto << " " << mass << " " << njets << " " << region << " " << lumi << " " 
+//        << useJson << " " << applyEff << " " << doFake << " " << doPUw << endl;
 
   float lep1pt=0.,lep2pt=0.,dPhi=0.,mll=0.,mtL=0.,mtH=0.,himass=0.;
   getCutValues(mass,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass);
@@ -415,23 +419,10 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 
   bool isMC = lumi>1E-5;
 
-  //efficiency correction stuff
-  TFile *effs=0;
-  TH2F *effElSel=0,*effMuSel=0,*effElDbl=0,*effElSgl=0,*effMuDbl=0,*effMuSgl=0;
-  if (isMC&&applyEff) {
-    effs = TFile::Open(eff_file);
-    effElSel = (TH2F*) effs->Get("h2_results_electron_selection");
-    effMuSel = (TH2F*) effs->Get("h2_results_muon_selection");
-    effElDbl = (TH2F*) effs->Get("h2_results_electron_double");
-    effElSgl = (TH2F*) effs->Get("h2_results_electron_single");
-    effMuDbl = (TH2F*) effs->Get("h2_results_muon_double");
-    effMuSgl = (TH2F*) effs->Get("h2_results_muon_single");
-  }
-
   //PU reweighting
   TFile* puwf=0;
   TH1F* puweights=0;
-  if (isMC&&doPUw) {
+  if (isMC&&doPUw&&redoWeights) {
     puwf = TFile::Open(puw_file);
     puweights = (TH1F*) puwf->Get("puWeights");
   }
@@ -474,9 +465,11 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if (isMC) weight = lumi*dataEvent->scale1fb_;
     TString dataSetName(dataEvent->name(dataEvent->dstype_).c_str());
     if (dataSetName.Contains("hww")) weight*=dataEvent->sfWeightHPt_;
+    if (region.Contains("embed")) {
+      weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2);
+    }
     if (!isMC && (dataEvent->cuts_ & Trigger) != Trigger ) continue;
     //if (!isMC && dataEvent->run_>172802) continue;//FIXME LP TEST
-    //if (!isMC && useJson && !passJson(dataEvent->run_,dataEvent->lumi_)) continue;    
     if (!isMC && useJson && !goodrun(dataEvent->run_,dataEvent->lumi_)) continue;    
     if ( dataEvent->njets_!=njets) continue;
     if ( (dataEvent->cuts_ & cut) != cut ) continue;
@@ -528,18 +521,24 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     if ( region.Contains("nobJet2")   && dataEvent->jet2Btag_>2.1 ) continue;
     //check peaking at MC level
     if ( region.Contains("fromZ") && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) continue;
+    if ( region.Contains("notZ") && !(dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) continue;
     //spillage
     if ( region.Contains("spill") && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) continue;
+
     //mll>20 cut
     if ( region.Contains("mll20") && dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.mass()<20.) continue;
     //higgs processId
     if ( region.Contains("ggH") && ( dataEvent->processId_!=10010 ) ) continue;
     if ( region.Contains("qqH") && ( dataEvent->processId_!=10001 ) ) continue;
+    if ( region.Contains("ZH") && ( dataEvent->processId_!=24 ) ) continue;
+    if ( region.Contains("WH") && ( dataEvent->processId_!=26 ) ) continue;
 
-    //cout << "run, lumi, evt: " << dataEvent->run_ << " " << dataEvent->lumi_ << " " << dataEvent->event_;
-    //cout << " - nvtx, njets, dphi: " << dataEvent->nvtx_ << " " << dataEvent->njets_ << " " << ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_)*180.0/TMath::Pi();
-    //cout << " - pt1, pt2, pmet: " << dataEvent->lep1_.pt() << " " << dataEvent->lep2_.pt() << " " << dataEvent->pmet_;
-    //cout << " - mll, ptll, mt: " << dataEvent->dilep_.mass() << " " << dataEvent->dilep_.pt() << " " << dataEvent->mt_ << endl;
+//     cout << "run, lumi, evt: " << dataEvent->run_ << " " << dataEvent->lumi_ << " " << dataEvent->event_;
+//     cout << " - type, nvtx, njets: " << dataEvent->type_ << " " << dataEvent->nvtx_ << " " << dataEvent->njets_;
+//     cout << " - dphi: " << " " << ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_)*180.0/TMath::Pi();
+//     cout << " - pt1, pt2, pmet: " << dataEvent->lep1_.pt() << " " << dataEvent->lep2_.pt() << " " << dataEvent->pmet_;
+//     cout << " - mll, ptll, mt: " << dataEvent->dilep_.mass() << " " << dataEvent->dilep_.pt() << " " << dataEvent->mt_ << endl;
+//     cout << endl;
 
     float puw = 1.;
     if (isMC&&doPUw) {
@@ -557,44 +556,17 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
       float effSF=1.;
       if (isMC&&applyEff) {
 	if (redoWeights) {
-	  float selLep1=1.,selLep2=1.,dblLep1=1.,dblLep2=1.,sglLep1=1.,sglLep2=1.;
 	  float pt1 = min(dataEvent->lep1_.pt(),49.);
 	  float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
 	  float pt2 = min(dataEvent->lep2_.pt(),49.);
 	  float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
-	  if (abs(dataEvent->lid1_)==11) {
-	    selLep1 = effElSel->GetBinContent(effElSel->FindBin(pt1,eta1));
-	    dblLep1 = effElDbl->GetBinContent(effElDbl->FindBin(pt1,eta1));
-	    sglLep1 = effElSgl->GetBinContent(effElSgl->FindBin(pt1,eta1));
-	  } else {
-	    selLep1 = effMuSel->GetBinContent(effMuSel->FindBin(pt1,eta1));
-	    dblLep1 = effMuDbl->GetBinContent(effMuDbl->FindBin(pt1,eta1));
-	    sglLep1 = effMuSgl->GetBinContent(effMuSgl->FindBin(pt1,eta1));      
-	  }
-	  if (abs(dataEvent->lid2_)==11) {
-	    selLep2 = effElSel->GetBinContent(effElSel->FindBin(pt2,eta2));
-	    dblLep2 = effElDbl->GetBinContent(effElDbl->FindBin(pt2,eta2));
-	    sglLep2 = effElSgl->GetBinContent(effElSgl->FindBin(pt2,eta2));
-	  } else {
-	    selLep2 = effMuSel->GetBinContent(effMuSel->FindBin(pt2,eta2));
-	    dblLep2 = effMuDbl->GetBinContent(effMuDbl->FindBin(pt2,eta2));
-	    sglLep2 = effMuSgl->GetBinContent(effMuSgl->FindBin(pt2,eta2));      
-	  }
-	  float effSelSF = selLep1*selLep2;
-	  float effTrgSF = dblLep1*dblLep2+sglLep2*(1.-dblLep1)+sglLep1*(1.-dblLep2);
+	  LeptonScaleLookup lsl(&*eff_file);
+	  float effSelSF = lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)*lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_);
+	  float effTrgSF = lsl.GetExpectedTriggerEfficiency(eta1,pt1,eta2,pt2,dataEvent->lid1_,dataEvent->lid2_);
 	  effSF = effSelSF*effTrgSF;
 	  if (checkWeights) {
-	    //cout << dataEvent->sfWeightEff_ << " " << effSelSF << " pt1=" << pt1 << " eta1=" << eta1 << " pt2=" << pt2 << " eta2=" << eta2 << endl;;
 	    if (dataEvent->sfWeightEff_>0) assert(fabs((effSelSF-dataEvent->sfWeightEff_)/dataEvent->sfWeightEff_)<0.0001);
-	    if (fabs((effTrgSF-dataEvent->sfWeightTrig_)/dataEvent->sfWeightTrig_)>0.001) {
-	      //cout << effSelSF << " " << dataEvent->sfWeightEff_ << " - " << effTrgSF << " " << dataEvent->sfWeightTrig_ << " " 
-	      //<< dataEvent->type_ << " " << dataEvent->dstype_ << " " << dataEvent->run_ << " " << dataEvent->event_ << endl;
-	      //cout << "db1=" << dblLep1 << " db2=" << dblLep2 << " sg1=" << sglLep1 << " sg2=" << sglLep2 << endl;
-	      //LeptonScaleLookup lsl(&*eff_file);
-	      //cout << lsl.GetExpectedTriggerEfficiency(eta1,pt1,eta2,pt2,dataEvent->lid1_,dataEvent->lid2_) << endl;
-	    }
-	    //fixme
-	    //assert(fabs((effTrgSF-dataEvent->sfWeightTrig_)/dataEvent->sfWeightTrig_)<0.1);
+	    assert(fabs((effTrgSF-dataEvent->sfWeightTrig_)/dataEvent->sfWeightTrig_)<0.0001);
 	  }
 	} else {
 	  effSF = dataEvent->sfWeightEff_ * dataEvent->sfWeightTrig_;
@@ -693,8 +665,8 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     yield = elPFYield+muPFYield;
     error = sqrt(elPFError+muPFError);
   } else error = sqrt(error);
-  if (isMC&&applyEff) effs->Close();
-  if (isMC&&doPUw) puwf->Close();
+  //if (isMC&&applyEff&&redoWeights) effs->Close();
+  if (isMC&&doPUw&&redoWeights) puwf->Close();
   if (doFake) {
     delete eFR;
     delete mFR;
@@ -704,6 +676,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     fM->Close();
   }
   dataEvent->tree_->Delete();
+  delete dataEvent;
   //cout << yield << " " << error << endl;
   return make_pair<float, float>(yield,error);
 }

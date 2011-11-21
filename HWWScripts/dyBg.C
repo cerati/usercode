@@ -211,11 +211,20 @@ void makeDYTable(float lumi) {
   int masses[] = {0,115,120,130,140,150,160,170,180,190,200};
   int nmasses = sizeof(masses)/sizeof(int);
 
+  bool doLatex = false;
+
   for (int j=0;j<njetbins;++j) {
 
     int njets = jetbins[j];
-    cout << "----------------------------------------------- " << njets << "-jet bin -----------------------------------------------" << endl;
-    cout << Form("| %10s | %-16s | %-15s | %-15s | %-15s | %-14s  |","mass","Nin(data)","R_out/in","Nout(data)","Nout(MC)","SF(Data/MC)") << endl;
+    if (!doLatex) {
+      cout << "----------------------------------------------- " << njets << "-jet bin -----------------------------------------------" << endl;
+      cout << Form("| %10s | %-16s | %-15s | %-15s | %-15s | %-14s  |","mass","Nin(data)","R_out/in","Nout(data)","Nout(MC)","SF(Data/MC)") << endl;
+    } else {
+      cout << "\\hline" << endl;
+      cout << Form("\\multicolumn{6}{c}{%i-jet bin} \\\\",njets) << endl;
+      cout << "\\hline" << endl;
+      cout << Form(" %10s & %-16s & %-15s & %-15s & %-15s & %-14s  \\\\","mass","$N_{in}$(data)","$R_{out/in}$","$N_{out}$(data)","$N_{out}$(MC)","SF(Data/MC)") << endl;
+    }
 
     for (int jj=0;jj<nmasses;++jj) {
 
@@ -241,8 +250,9 @@ void makeDYTable(float lumi) {
       float sf_percerr = 100.*sf_err/sf;
 
       if (mass==0) {
-	//cout << Form("| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
-	cout << Form("| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
+	TString formstr = "| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
+	if (doLatex) formstr = " %10s & %6.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
+	cout << Form(formstr,
 		     "WW",
 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
@@ -252,8 +262,9 @@ void makeDYTable(float lumi) {
 		     round(100.*sf)/100.,round(100.*sf_err)/100.)
 	     << endl;
       } else {
-	//cout << Form("| %6i GeV | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.1f%% |",
-	cout << Form("| %6i GeV | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |",
+	TString formstr = "| %6i GeV | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
+	if (doLatex) formstr = " %6i \\GeVcc & %6.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
+	cout << Form(formstr,
 		     mass,
 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
@@ -264,7 +275,8 @@ void makeDYTable(float lumi) {
 	     << endl;
       }
     }
-    cout << "---------------------------------------------------------------------------------------------------------" << endl;
+    if (!doLatex) cout << "---------------------------------------------------------------------------------------------------------" << endl;
+    else cout << "\\hline" << endl;
   }
 
 }
