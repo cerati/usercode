@@ -22,25 +22,6 @@ pair<float,float> wwEstimationMC(int mass=160, unsigned int njets=0, float lumi 
 
 }
 
-pair<float, float> fakeBgEstimation(int mass=160, unsigned int njets=0, TString region="dphijet,minmetvtx,lep2pt15,ptll45,mll20", float lumi=0., 
-				    bool useJson=false, bool applyEff=true, bool doPUw=false)  {
-  bool debug = false;
-  pair<float, float> dataFake  = getYield(main_dir+topww_dir+"data.root", wwSelectionNoLep, noVeto, mass, njets, region, 0, useJson, false, true, false);
-  //correct for spillage...
-  pair<float, float> wwFake    = getYield(main_dir+topww_dir+"qqww",  wwSelectionNoLep, noVeto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  pair<float, float> ttbarFake = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoLep, noVeto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  float fakeYield = dataFake.first-wwFake.first-ttbarFake.first;
-  //assume 35% syst uncertainty
-  float fakeError = sqrt(pow(dataFake.second,2)+pow(wwFake.second,2)+pow(ttbarFake.second,2)+pow(0.35*fakeYield,2));
-  if (debug) {
-    cout << "fakes data, ww, ttbar: " << dataFake.first << "+/-" << dataFake.second << " " 
-	                              << wwFake.first << "+/-" << wwFake.second << " " 
-	                              << ttbarFake.first << "+/-" << ttbarFake.second << endl;
-    cout << "total estimate: " << fakeYield  << "+/-" << fakeError << endl;
-  }
-  return make_pair<float, float>(fakeYield,fakeError);
-}
-
 float ratioPoissErr(float nval, float nerr, float dval, float derr) {
   return sqrt( pow(nerr/dval,2) + pow(nval*derr/pow(dval,2),2) );
 }
@@ -61,18 +42,18 @@ pair<float,float> getAllBkg(int mass=160, unsigned int njets=0, string region=""
   //********* get top **********
   pair<float, float> top = topBgEstimation(mass, njets, lumi, region, eff_veto_data, eff_err_veto_data, useJson, applyEff, false, doPUw);
   //test fixme
-//   float topSF = 1.4;
-//   if (njets==1) topSF = 1.1;
-//   pair<float, float> tt = getYield(main_dir+topww_dir+"ttbar", wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
-//   pair<float, float> tw = getYield(main_dir+topww_dir+"tw",    wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
-//   pair<float, float> top = make_pair<float, float>(topSF*(tt.first+tw.first),sqrt( pow(topSF*tt.second,2) + pow(topSF*tw.second,2) ));
+  //float topSF = 1.39;
+  //if (njets==1) topSF = 1.09;
+  //pair<float, float> tt = getYield(main_dir+topww_dir+"ttbar", wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+  //pair<float, float> tw = getYield(main_dir+topww_dir+"tw",    wwSelection, veto, mass, njets,  "sideband,dphijet,minmetvtx,lep2pt15,ptll45", lumi, false, applyEff, false, doPUw);
+  //pair<float, float> top = make_pair<float, float>(topSF*(tt.first+tw.first),sqrt( pow(topSF*tt.second,2) + pow(topSF*tw.second,2) ));
   //test
   float num_top_data = top.first;
   float num_top_err_data = top.second;
   //********* get top **********
 
   //********* get w+jets **********
-  pair<float, float> wj = fakeBgEstimation(mass, njets, region, lumi, useJson, applyEff, doPUw);
+  pair<float, float> wj = fakeBgEstimationWithSyst(main_dir+topww_dir,wwSelection, veto, mass, njets, region, lumi, useJson, applyEff, doPUw);
   float num_wjets_data = wj.first;
   float num_wjets_err_data = wj.second;
   //********* get w+jets **********
@@ -201,6 +182,8 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
 	 << sb_qqww_l.first+sb_ggww_l.first << "+/-" << sqrt(pow(sb_qqww_l.second,2)+pow(sb_ggww_l.second,2)) << endl;
     pair<float,float> wwmc = wwEstimationMC(mass, njets, lumi, applyEff, doPUw);
     cout << "hr ww data, mc: " << sr_ww_meas_data << "+/-" << sr_ww_meas_err_data << " " << wwmc.first << "+/-" << wwmc.second << endl;
+    cout << "ratio (signal/side): " << rio_mg << "+/-" << rio_err_mg << endl;
+    cout << "sr eff mt, dphi: " << eff_mt_mr_mg << "+/-" << eff_err_mt_mr_mg << " " << eff_dp_mr_mg << "+/-" << eff_err_dp_mr_mg << endl;
   }
 
   return make_pair<float,float>(sr_ww_meas_data,sr_ww_meas_err_data);
@@ -218,18 +201,24 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
   //   cout << "topVeto eff 0j: " << tagEff0j.first << "+/-" << tagEff0j.second << endl;
   //   cout << "topVeto eff 1j: " << tagEff1j.first << "+/-" << tagEff1j.second << endl;
 
-  int masses[] = {115,120,130,140,150,160,170,180,190,200};
+  int masses[] = {115,120,130,140,150,160,170,180,190};
   //int masses[] = {115,120,130,140,150};
   //int masses[] = {115,130,150,170,190};
   //int masses[] = {120,140,160,180,200};
-  //int masses[] = {160};
+  //int masses[] = {115};
   int nmasses = sizeof(masses)/sizeof(int);
-
+  doLatex=false;
   if (!doLatex) {
     cout << "-------------------------------------------------------------------------------------------------------------" << endl;
     cout << "| m_H |    0-j meas    |    0-j exp     |       SF       |    1-j meas    |    1-j exp     |       SF       |" << endl;
     cout << "-------------------------------------------------------------------------------------------------------------" << endl;
   }
+
+  vector<float> vsf0j;
+  vector<float> vk0j;
+  vector<float> vsf1j;
+  vector<float> vk1j;
+
   for (int j=0;j<nmasses;++j) {
 
     int mass = masses[j];
@@ -238,33 +227,68 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
     pair<float,float> j1dd = wwEstimationData(mass,1,lumi,tagEff1j.first,tagEff1j.second,useJson,applyEff,doPUw);
     pair<float,float> j1mc = wwEstimationMC  (mass,1,lumi,applyEff,doPUw);
 
-    if (doLatex) {
-      cout << Form("%i & %5.1f $\\pm$ %4.1f & %5.1f $\\pm$ %4.1f & %4.2f $\\pm$ %4.2f & %5.1f $\\pm$ %4.1f & %5.1f $\\pm$ %4.1f & %4.2f $\\pm$ %4.2f \\\\",mass,
-		   round(j0dd.first*10.)/10.,round(j0dd.second*10.)/10.,
-		   round(j0mc.first*10.)/10.,round(j0mc.second*10.)/10.,
-		   round(j0dd.first/j0mc.first*100)/100.,
-		   round(sqrt(pow(j0dd.second/j0mc.first,2)+pow(j0dd.first*j0mc.second/pow(j0mc.first,2),2))*100)/100.,
-		   round(j1dd.first*10.)/10.,round(j1dd.second*10.)/10.,
-		   round(j1mc.first*10.)/10.,round(j1mc.second*10.)/10.,
-		   round(j1dd.first/j1mc.first*100)/100.,
-		   round(sqrt(pow(j1dd.second/j1mc.first,2)+pow(j1dd.first*j1mc.second/pow(j1mc.first,2),2))*100)/100.) 
-	   << endl;
-    } else {
-      cout << Form("| %i | %5.1f +/- %4.1f | %5.1f +/- %4.1f | %5.2f +/- %4.2f | %5.1f +/- %4.1f | %5.1f +/- %4.1f | %5.2f +/- %4.2f |",mass,
-		   round(j0dd.first*10.)/10.,round(j0dd.second*10.)/10.,
-		   round(j0mc.first*10.)/10.,round(j0mc.second*10.)/10.,
-		   round(j0dd.first/j0mc.first*100)/100.,
-		   round(sqrt(pow(j0dd.second/j0mc.first,2)+pow(j0dd.first*j0mc.second/pow(j0mc.first,2),2))*100)/100.,
-		   round(j1dd.first*10.)/10.,round(j1dd.second*10.)/10.,
-		   round(j1mc.first*10.)/10.,round(j1mc.second*10.)/10.,
-		   round(j1dd.first/j1mc.first*100)/100.,
-		   round(sqrt(pow(j1dd.second/j1mc.first,2)+pow(j1dd.first*j1mc.second/pow(j1mc.first,2),2))*100)/100.) 
-	   << endl;
-    }
-    
+    float sf0j  = j0dd.first/j0mc.first;
+    float sf0je = sqrt(pow(j0dd.second/j0mc.first,2)+pow(j0dd.first*j0mc.second/pow(j0mc.first,2),2));
+    float sf1j  = j1dd.first/j1mc.first;
+    float sf1je = sqrt(pow(j1dd.second/j1mc.first,2)+pow(j1dd.first*j1mc.second/pow(j1mc.first,2),2));
+
+    TString raw = "| %i | %5.1f +/- %4.1f | %5.1f +/- %4.1f | %5.2f +/- %4.2f | %5.1f +/- %4.1f | %5.1f +/- %4.1f | %5.2f +/- %4.2f |";
+    if (doLatex) raw = "%i & %5.1f $\\pm$ %4.1f & %5.1f $\\pm$ %4.1f & %4.2f $\\pm$ %4.2f & %5.1f $\\pm$ %4.1f & %5.1f $\\pm$ %4.1f & %4.2f $\\pm$ %4.2f \\\\";
+    cout << Form(raw.Data(),mass,
+		 round(j0dd.first*10.)/10.,round(j0dd.second*10.)/10.,
+		 round(j0mc.first*10.)/10.,round(j0mc.second*10.)/10.,
+		 round(sf0j*100)/100.,
+		 round(sf0je*100)/100.,
+		 round(j1dd.first*10.)/10.,round(j1dd.second*10.)/10.,
+		 round(j1mc.first*10.)/10.,round(j1mc.second*10.)/10.,
+		 round(sf1j*100)/100.,
+		 round(sf1je*100)/100.) 
+	 << endl;
+    vsf0j.push_back(sf0j);
+    vk0j.push_back(1.+sf0je/sf0j);
+    vsf1j.push_back(sf1j);
+    vk1j.push_back(1.+sf1je/sf1j);    
   }
 
   if (!doLatex) cout << "-------------------------------------------------------------------------------------------------------------" << endl;
+
+  if (nmasses==9) {
+    //printf("Double_t WWBkgScaleFactorCutBased(Int_t mH, Int_t jetBin) {\n");
+    printf("Double_t WWBkgScaleFactorMVA(Int_t mH, Int_t jetBin) {\n");
+    printf("assert(jetBin >= 0 && jetBin <= 1);\n");
+    printf("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
+    printf("  Double_t WWBkgScaleFactorHiggsSelection[2][9] = { \n");
+    printf("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f},\n",vsf0j[0],vsf0j[1],vsf0j[2],vsf0j[3],vsf0j[4],vsf0j[5],vsf0j[6],vsf0j[7],vsf0j[8]);
+    printf("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f} };\n",vsf1j[0],vsf1j[1],vsf1j[2],vsf1j[3],vsf1j[4],vsf1j[5],vsf1j[6],vsf1j[7],vsf1j[8]);
+    printf("  Int_t massIndex = -1;\n");
+    printf("  for (UInt_t m=0; m < 9 ; ++m) {\n");
+    printf("    if (mH == mHiggs[m]) massIndex = m;\n");
+    printf("  }\n");
+    printf("  if (massIndex >= 0) {\n");
+    printf("    return WWBkgScaleFactorHiggsSelection[jetBin][massIndex];\n");
+    printf("  } else {\n");
+    printf("    return 1.0;\n");
+    printf("  }\n");
+    printf("}\n");
+    
+    //printf("Double_t WWBkgScaleFactorKappaCutBased(Int_t mH, Int_t jetBin) {\n");
+    printf("Double_t WWBkgScaleFactorKappaMVA(Int_t mH, Int_t jetBin) {\n");
+    printf("assert(jetBin >= 0 && jetBin <= 1);\n");
+    printf("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
+    printf("  Double_t WWBkgScaleFactorKappaHiggsSelection[2][9] = { \n");
+    printf("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f},\n",vk0j[0],vk0j[1],vk0j[2],vk0j[3],vk0j[4],vk0j[5],vk0j[6],vk0j[7],vk0j[8]);
+    printf("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f} };\n",vk1j[0],vk1j[1],vk1j[2],vk1j[3],vk1j[4],vk1j[5],vk1j[6],vk1j[7],vk1j[8]);
+    printf("  Int_t massIndex = -1;\n");
+    printf("  for (UInt_t m=0; m < 9 ; ++m) {\n");
+    printf("    if (mH == mHiggs[m]) massIndex = m;\n");
+    printf("  }\n");
+    printf("  if (massIndex >= 0) {\n");
+    printf("    return WWBkgScaleFactorKappaHiggsSelection[jetBin][massIndex];\n");
+    printf("  } else {\n");
+    printf("    return 1.0;\n");
+    printf("  }\n");
+    printf("}\n");
+  }
 
 }
 
@@ -312,25 +336,29 @@ void printCutEffic(int mass=160, unsigned int njets=0, float lumi = 1./*fb-1*/,
   cout << "|   region   |      yield      |   N-1 effic(%)   ||   region   |      yield      |   N-1 effic(%)   ||   region   |      yield      |   N-1 effic(%)   |" << endl;
   cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
   cout << Form("|  ww MC sb  | %5.1f +/- %5.1f |  %5.1f +/- %5.1f |", sb_ww_true,sb_ww_true_err, 
-	       100*sb_ww_true/sb_ww_true,100*efficiencyErr(sb_ww_true/sb_ww_true,sb_ww_true));
+	       100*sb_ww_true/sb_ww_true,100*efficiencyErr(sb_ww_true/sb_ww_true,sb_ww_true/scale_qq));//assume error if only qqww
   cout << Form("|   data sb  | %5.1f +/- %5.1f |  %5.1f +/- %5.1f |", sb_data.first,sb_data.second,
 	       100*sb_data.first/sb_data.first,100*efficiencyErr(sb_data.first/sb_data.first,sb_data.first));
   cout << Form("| ww data sb | %5.1f +/- %5.1f |  %5.1f +/- %5.1f |", sb_ww.first,sb_ww.second,
 	       100*sb_ww.first/sb_ww.first,100*efficiencyErr(sb_ww.first/sb_ww.first,sb_ww.first)) << endl;
   cout << Form("|  ww MC mt  | %5.1f +/- %5.1f |  %5.1f +/- %5.1f |", mt_ww_true,mt_ww_true_err, 
-	       100*mt_ww_true/sb_ww_true,100*efficiencyErr(mt_ww_true/sb_ww_true,sb_ww_true));
+	       100*mt_ww_true/sb_ww_true,100*efficiencyErr(mt_ww_true/sb_ww_true,sb_ww_true/scale_qq));//assume error if only qqww
   cout << Form("|   data mt  | %5.1f +/- %5.1f |  %5.1f +/- %5.1f |",mt_data.first ,mt_data.second, 
 	       100*mt_data.first/sb_data.first,100*efficiencyErr(mt_data.first/sb_data.first,sb_data.first));
   cout << Form("| ww data mt | %5.1f +/- %5.1f |  %5.1f +/- %5.1f |",mt_ww.first ,mt_ww.second, 
 	       100*mt_ww.first/sb_ww.first,100*efficiencyErr(mt_ww.first/sb_ww.first,sb_ww.first)) << endl;
   cout << Form("|  ww MC dp  | %5.1f +/- %5.1f |  %5.1f +/- %5.1f |", dp_ww_true,dp_ww_true_err, 
-	       100*dp_ww_true/mt_ww_true,100*efficiencyErr(dp_ww_true/mt_ww_true,mt_ww_true));
+	       100*dp_ww_true/mt_ww_true,100*efficiencyErr(dp_ww_true/mt_ww_true,mt_ww_true/scale_qq));//assume error if only qqww
   cout << Form("|   data dp  | %5.1f +/- %5.1f |  %5.1f +/- %5.1f |", dp_data.first,dp_data.second, 
 	       100*dp_data.first/mt_data.first,100*efficiencyErr(dp_data.first/mt_data.first,mt_data.first));
   cout << Form("| ww data dp | %5.1f +/- %5.1f |  %5.1f +/- %5.1f |", dp_ww.first,dp_ww.second, 
 	       100*dp_ww.first/mt_ww.first,100*efficiencyErr(dp_ww.first/mt_ww.first,mt_ww.first)) << endl;
   cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
 
+  //cout << scale_qq << endl;
+  //cout << efficiencyErr(mt_ww.first/sb_ww.first,sb_ww.first) << endl;
+  //cout << ratioPoissErr(mt_ww.first,sqrt(mt_ww.first),sb_ww.first,sqrt(sb_ww.first)) << endl;
+  //cout << ratioPoissErr(mt_ww.first,mt_ww.second,sb_ww.first,sb_ww.second) << endl;
   return;
 
 }

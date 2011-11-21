@@ -1,45 +1,5 @@
 #include "common.C"
-
-pair<float, float> fakeBgEstimation(unsigned int cut, unsigned int veto, int mass, unsigned int njets=0, TString region="dphijet,minmet40", 
-				    float lumi=0., bool useJson=false, bool applyEff=true, bool doPUw=false)  {
-
-  bool debug = 0;
-
-  unsigned int cut_nolep = cut&~Lep1FullSelection;
-  cut_nolep = cut_nolep&~Lep2FullSelection;
-
-  //get scale factors for DY  from common.C
-  float dySF = 1.;
-  if (njets==0){
-    dySF=dysf0j;
-  } else if (njets==1) {
-    dySF=dysf1j;
-  }else if (njets==2) {
-    dySF=dysf2j;
-  }
-
-  pair<float, float> dataFake  = getYield(main_dir+topww_dir+"data.root", cut_nolep, veto, mass, njets, region, 0, useJson, false, true, false);
-  //correct for spillage...
-  pair<float, float> qqwwFake    = getYield(main_dir+topww_dir+"qqww",  cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  pair<float, float> ggwwFake    = getYield(main_dir+topww_dir+"ggww",  cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  pair<float, float> ttbarFake = getYield(main_dir+topww_dir+"ttbar", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  pair<float, float> twFake    = getYield(main_dir+topww_dir+"tw", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  pair<float, float> dymmFake  = getYield(main_dir+topww_dir+"dymm", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  pair<float, float> dyeeFake  = getYield(main_dir+topww_dir+"dyee", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  pair<float, float> wzFake    = getYield(main_dir+topww_dir+"wz", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  pair<float, float> zzFake    = getYield(main_dir+topww_dir+"zz_py", cut_nolep, veto, mass, njets, region+"spill", lumi, false, applyEff, true, doPUw);
-  float fakeYield = dataFake.first-qqwwFake.first-ggwwFake.first-ttbarFake.first-twFake.first-wzFake.first-zzFake.first-dySF*dymmFake.first-dySF*dyeeFake.first;
-  //assume 35% syst uncertainty
-  float fakeError = sqrt(pow(dataFake.second,2)+pow(qqwwFake.second,2)+pow(ggwwFake.second,2)+pow(ttbarFake.second,2)+pow(twFake.second,2)+
-			 pow(wzFake.second,2)+pow(zzFake.second,2)+pow(dySF*dymmFake.second,2)+pow(dySF*dyeeFake.second,2)+pow(0.35*fakeYield,2));
-  if (debug) {
-    cout << "fakes data, ww, ttbar: " << dataFake.first << "+/-" << dataFake.second << " " 
-	                              << qqwwFake.first << "+/-" << qqwwFake.second << " " 
-	                              << ttbarFake.first << "+/-" << ttbarFake.second << endl;
-    cout << "total estimate: " << fakeYield  << "+/-" << fakeError << endl;
-  }
-  return make_pair<float, float>(fakeYield,fakeError);
-}
+#include "fakeBg.C"
 
 pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned int veto, int mass, int njets, TString myRegion, float lumi, bool useJson=0, 
 				      bool applyEff=true, bool doFake=false, bool doPUw=false){
@@ -67,7 +27,7 @@ pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned in
   float wg   = getYield(dir+"wgamma",cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
 
   float mc_other = qqww + ggww + dymm + dyee + dytt + zz+ wz+wg;
-  pair<float, float> nwj = fakeBgEstimation(cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doPUw);
+  pair<float, float> nwj = fakeBgEstimationWithSyst(main_dir+topww_dir,cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doPUw);
 
   float background = mc_other+nwj.first;
   float backgr_err = sqrt(pow(0.5*mc_other,2)+pow(nwj.second,2));//take 50% for MC based
@@ -224,6 +184,7 @@ void makeTopTable(float lumi) {
   //this can be replaced with a simple count
   pair<float, float> topData1j = topBgEstimation(mass, 1, lumi, anaRegion, vetoEff1j.first, vetoEff1j.second, useJson, applyEff, doFake, doPUw);
   float sf1j = topData1j.first/sigreg_top_1j.first;
+  float sf1jerr = sf1j*sqrt(pow(topData1j.second/topData1j.first,2)+pow(sigreg_top_1j.second/sigreg_top_1j.first,2));
   float sf1jpercerr = 100*sqrt(pow(topData1j.second/topData1j.first,2)+pow(sigreg_top_1j.second/sigreg_top_1j.first,2));
 
   ///////////////////////////////////////// 0-JET BIN /////////////////////////////////////////
@@ -240,43 +201,59 @@ void makeTopTable(float lumi) {
   //this can be replaced with a simple count
   pair<float, float> topData0j = topBgEstimation(mass, 0, lumi, anaRegion, vetoEff0j.first, vetoEff0j.second, useJson, applyEff, doFake, doPUw);
   float sf0j = topData0j.first/sigreg_top_0j.first;
+  float sf0jerr = sf0j*sqrt(pow(topData0j.second/topData0j.first,2)+pow(sigreg_top_0j.second/sigreg_top_0j.first,2));
   float sf0jpercerr = 100*sqrt(pow(topData0j.second/topData0j.first,2)+pow(sigreg_top_0j.second/sigreg_top_0j.first,2));
 
-  cout << "--------------------------------------------------------------------------------" << endl;
-  cout << Form("| %40s | %-15s | %-15s |","Sample","0-jet","1-jet") << endl;
-  cout << "--------------------------------------------------------------------------------" << endl;
-  cout << Form("| %40s | %5.1f +/- %-5.1f | %5.1f +/- %-5.1f |",
+  bool doLatex = false;
+
+  if (!doLatex) {
+    cout << "--------------------------------------------------------------------------------" << endl;
+    cout << Form("| %40s | %-15s | %-15s |","Sample","0-jet","1-jet") << endl;
+    cout << "--------------------------------------------------------------------------------" << endl;
+  } else {
+    cout << "\\hline" << endl;
+    cout << Form(" %40s & %-15s & %-15s \\\\","Sample","0-jet","1-jet") << endl;
+    cout << "\\hline" << endl;
+  }
+
+  TString formstr = "| %40s | %5.1f +/- %-5.1f | %5.1f +/- %-5.1f |";
+  if (doLatex) formstr = " %40s & %5.1f $\\pm$ %-5.1f & %5.1f $\\pm$ %-5.1f \\\\";
+  cout << Form(formstr,
 	       "Estimated top events in simulation",
 	       round(10.*sigreg_top_0j.first)/10.,round(10.*sigreg_top_0j.second)/10.,
 	       round(10.*sigreg_top_1j.first)/10.,round(10.*sigreg_top_1j.second)/10.) 
        << endl;
-  cout << Form("| %40s | %5.1f +/- %-5.1f | %5.1f +/- %-5.1f |",
-	       "tagging efficiency (%)",
+  cout << Form(formstr,
+	       "tagging efficiency (\\%)",
 	       round(1000.*vetoEff0j.first)/10.,round(1000.*vetoEff0j.second)/10.,
 	       round(1000.*vetoEff1j.first)/10.,round(1000.*vetoEff1j.second)/10.) 
        << endl;
-  cout << Form("| %40s | %5.1f +/- %-5.1f | %5.1f +/- %-5.1f |",
+  cout << Form(formstr,
 	       "top-tagged events in data",
 	       round(10.*top_tag_data_0j.first)/10.,round(10.*top_tag_data_0j.second)/10.,
 	       round(10.*top_tag_data_1j.first)/10.,round(10.*top_tag_data_1j.second)/10.) 
        << endl;
-  cout << Form("| %40s | %5.1f +/- %-5.1f | %5.1f +/- %-5.1f |",
+  cout << Form(formstr,
 	       "background events in control region",
 	       round(10.*bkg_exp_cr_0j.first)/10.,round(10.*bkg_exp_cr_0j.second)/10.,
 	       round(10.*bkg_exp_cr_1j.first)/10.,round(10.*bkg_exp_cr_1j.second)/10.) 
        << endl;
-  cout << Form("| %40s | %5.1f +/- %-5.1f | %5.1f +/- %-5.1f |",
+  cout << Form(formstr,
 	       "Data-driven top background estimate",
 	       round(10.*topData0j.first)/10.,round(10.*topData0j.second)/10.,
 	       round(10.*topData1j.first)/10.,round(10.*topData1j.second)/10.) 
        << endl;
-  cout << Form("| %40s | %5.2f +/- %-4.1f%% | %5.2f +/- %-4.1f%% |",
+  formstr = "| %40s | %5.2f +/- %-4.1f%% | %5.2f +/- %-4.1f%% |";
+  if (doLatex)formstr = " %40s & %5.2f $\\pm$ %-4.2f & %5.2f $\\pm$ %-4.2f \\\\";
+  cout << Form(formstr,
 	       "Scale factors",
-	       round(100.*sf0j)/100.,round(100.*sf0jpercerr)/100.,
-	       round(100.*sf1j)/100.,round(100.*sf1jpercerr)/100.) 
+	       round(100.*sf0j)/100.,round(100.*sf0jerr)/100.,
+	       round(100.*sf1j)/100.,round(100.*sf1jerr)/100.) 
+               //round(100.*sf0j)/100.,round(100.*sf0jpercerr)/100.,
+               //round(100.*sf1j)/100.,round(100.*sf1jpercerr)/100.) 
        << endl;
-  cout << "--------------------------------------------------------------------------------" << endl;
-
+  if (!doLatex) cout << "--------------------------------------------------------------------------------" << endl;
+  else cout << "\\hline" << endl;
 }
 
 void topBg(float lumi) {
