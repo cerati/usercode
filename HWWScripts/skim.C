@@ -1,10 +1,6 @@
 /*
-   This script skims the common smurf ntuples to select 0-jet and ww preselections for the ME calculation  
-   smurfproducer(smurfFDir, "ww.root", outputDir)
-   0 - location of the smurf ntuples
-   1 - the sample to run over
-   2 - the location of the skimmed smurf files
- */
+from Yanyan Gao
+*/
 
 #include "TFile.h"
 #include "TTree.h"
