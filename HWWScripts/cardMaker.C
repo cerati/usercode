@@ -3,10 +3,6 @@
 #include "Smurf/Analysis/HWWlvlv/HiggsQCDScaleSystematics.h"
 #include "Smurf/Analysis/HWWlvlv/PSUESystematics.h"
 
-#include "Smurf/Analysis/HWWlvlv/DYBkgScaleFactors.h"  
-#include "Smurf/Analysis/HWWlvlv/TopBkgScaleFactors.h"	
-#include "Smurf/Analysis/HWWlvlv/WWBkgScaleFactors.h"
-
 #include "TSystem.h"
 
 void cardMaker(float lumi, int mass, unsigned int njets, TString fs, bool saveFile=false) {

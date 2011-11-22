@@ -26,6 +26,7 @@
 #include "Smurf/Analysis/HWWlvlv/OtherBkgScaleFactors.h"  
 #include "Smurf/Analysis/HWWlvlv/DYBkgScaleFactors.h"  
 #include "Smurf/Analysis/HWWlvlv/TopBkgScaleFactors.h"	
+#include "Smurf/Analysis/HWWlvlv/WWBkgScaleFactors.h"	
 
 TString main_dir    = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/";
 TString topww_dir   = "wwSelNoLepNoTV/";
