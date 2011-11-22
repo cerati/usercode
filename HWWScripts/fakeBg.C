@@ -31,21 +31,10 @@ pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int
 pair<float, float> fakeBgEstimation(TString dir, unsigned int cut, unsigned int veto, int mass, unsigned int njets=0, TString region="dphijet,minmet40", 
 				    float lumi=0., bool useJson=false, bool applyEff=true, bool doPUw=false)  {
 
-  //fixme integrate getSpillage
   bool debug = 0;
 
   unsigned int cut_nolep = cut&~Lep1FullSelection;
   cut_nolep = cut_nolep&~Lep2FullSelection;
-
-  //get scale factors for DY  from common.C
-  float dySF = 1.;
-  if (njets==0){
-    dySF=dysf0j;
-  } else if (njets==1) {
-    dySF=dysf1j;
-  }else if (njets==2) {
-    dySF=dysf2j;
-  }
 
   pair<float, float> dataFake  = getYield(dir+"data.root", cut_nolep, veto, mass, njets, region, 0, useJson, false, true, false);
   //correct for spillage...
