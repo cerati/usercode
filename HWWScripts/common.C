@@ -49,6 +49,7 @@ TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLoos
 
 bool redoWeights  = 0;
 bool checkWeights = 0;
+bool doMVA = 0;
 
 //copy here to avoid SmurfTree::
 enum Selection {
@@ -134,9 +135,7 @@ float getScale1fb(TString sample) {
   return result;
 }
 
-void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,float& mtL,float& mtH,float& himass, bool doMVA=false){
-
-  //doMVA=true;
+void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,float& mtL,float& mtH,float& himass/*, bool doMVA=false*/){
 
   if (mass==0) {
     lep1pt = 20.;

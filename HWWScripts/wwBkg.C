@@ -257,11 +257,12 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
 
     ofstream myfile;
     TString fname = "WWBkgScaleFactors.h";
-    myfile.open(fname);
+    if (!doMVA) myfile.open(fname);
+    else myfile.open(fname,ios::app);
     ostream &out = myfile;
 
-    out << Form("Double_t WWBkgScaleFactorCutBased(Int_t mH, Int_t jetBin) {\n");
-    //out << Form("Double_t WWBkgScaleFactorMVA(Int_t mH, Int_t jetBin) {\n");
+    if (!doMVA) out << Form("Double_t WWBkgScaleFactorCutBased(Int_t mH, Int_t jetBin) {\n");
+    else out << Form("Double_t WWBkgScaleFactorMVA(Int_t mH, Int_t jetBin) {\n");
     out << Form("assert(jetBin >= 0 && jetBin <= 1);\n");
     out << Form("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
     out << Form("  Double_t WWBkgScaleFactorHiggsSelection[2][9] = { \n");
@@ -278,8 +279,8 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
     out << Form("  }\n");
     out << Form("}\n");
     
-    out << Form("Double_t WWBkgScaleFactorKappaCutBased(Int_t mH, Int_t jetBin) {\n");
-    //out << Form("Double_t WWBkgScaleFactorKappaMVA(Int_t mH, Int_t jetBin) {\n");
+    if (!doMVA) out << Form("Double_t WWBkgScaleFactorKappaCutBased(Int_t mH, Int_t jetBin) {\n");
+    else out << Form("Double_t WWBkgScaleFactorKappaMVA(Int_t mH, Int_t jetBin) {\n");
     out << Form("assert(jetBin >= 0 && jetBin <= 1);\n");
     out << Form("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
     out << Form("  Double_t WWBkgScaleFactorKappaHiggsSelection[2][9] = { \n");
@@ -300,6 +301,9 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
 }
 
 void wwBkg(float lumi=1./*fb-1*/, bool doLatex=false) {
+  doMVA = false;
+  makeWWTable(lumi, doLatex);
+  doMVA = true;
   makeWWTable(lumi, doLatex);
 }
 
