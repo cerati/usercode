@@ -26,21 +26,21 @@ void makeTable(float lumi=4.7, int njets=0, int mass=0, bool useSF=false, bool d
     lep2pt = "lep2.pt()>10.";
     dPhi = "dPhi<115.*TMath::Pi()/180.";
     mll = "dilep.mass()<40";
-    mt = "mt>70&&mt<110";
+    mt = "mt>80&&mt<110";
     himass = "dilep.mass()>100.";
   } else if (mass==120) {
     lep1pt = "lep1.pt()>20.";
     lep2pt = "lep2.pt()>10.";
     dPhi = "dPhi<115.*TMath::Pi()/180.";
     mll = "dilep.mass()<40";
-    mt = "mt>70&&mt<120";
+    mt = "mt>80&&mt<120";
     himass = "dilep.mass()>100.";
   } else if (mass==130) {
     lep1pt = "lep1.pt()>25.";
     lep2pt = "lep2.pt()>10.";
     dPhi = "dPhi<90.*TMath::Pi()/180.";
     mll = "dilep.mass()<45";
-    mt = "mt>75&&mt<125";
+    mt = "mt>80&&mt<125";
     himass = "dilep.mass()>100.";
   } else if (mass==140) {
     lep1pt = "lep1.pt()>25.";

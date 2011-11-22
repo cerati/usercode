@@ -43,6 +43,10 @@ TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLoos
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
 //+++
 
+//fixme, Fall11 test
+// TString main_dir = "/smurf/cerati/skims/Run2011_Fall11_SmurfV7_42X/";
+// TString puw_file = "/smurf/sixie/Pileup/weights/PileupReweighting.Fall11_To_Full2011.root";
+
 bool redoWeights  = 0;
 bool checkWeights = 0;
 
@@ -147,7 +151,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     lep2pt = 10.;
     dPhi   = 115.;
     mll    = 40.;
-    mtL    = 70.;
+    mtL    = 80.;
     mtH    = 110.;
     himass = 100.;
   } else if (mass==120) {
@@ -155,7 +159,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     lep2pt = 10.;
     dPhi   = 115.;
     mll    = 40.;
-    mtL    = 70.;
+    mtL    = 80.;
     mtH    = 120.;
     himass = 100.;
   } else if (mass==130) {
@@ -163,7 +167,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     lep2pt = 10.;
     dPhi   = 90.;
     mll    = 45.;
-    mtL    = 75.;
+    mtL    = 80.;
     mtH    = 125.;
     himass = 100.;
   } else if (mass==140) {
