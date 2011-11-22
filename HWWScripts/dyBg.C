@@ -246,6 +246,8 @@ void makeDYTable(float lumi) {
       pair<float, float> r = make_pair<float, float>(RoutinValue(mass,njets),sqrt(pow(RoutinStatError(mass,njets),2)+pow(RoutinSystError(mass,njets),2)));
 
       pair<float, float> z = getZYieldInData(main_dir+dy_dir+"data.root", wwSelNoZVNoMet, noVeto, mass, njets, regionIn, lumi, useJson, applyEff, doFake, doPUw);
+      //avoid negative results putting a higher bound
+      if (z.first<0) z = make_pair<float, float>(1.0,1.0);
       
       //Z veto, full met and SF cuts are already applied in the method
       pair<float, float> dyData = dyBkgEstimation(main_dir+dy_dir+"data.root", wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, r.first, r.second, z.first, z.second, useJson, applyEff, doFake, doPUw);
