@@ -47,7 +47,7 @@ COREOBJECTS=$(CORESOURCES:.cc=.o)
 CORELIB=libCMS2NtupleMacrosCORE.so
 
 SOURCES = $(wildcard *.cc)
-OBJECTS = $(SOURCES:.cc=.o) LinkDef_out.o
+OBJECTS = $(SOURCES:.cc=.o) 
 LIB = liblooper.so
 
 LIBS = $(CORELIB) $(LIB)
@@ -63,11 +63,6 @@ $(CORELIB): $(COREOBJECTS)
 
 $(LIB):	$(OBJECTS) 
 	$(LINKER) $(LINKERFLAGS) -shared $(OBJECTS) -o $@
-
-LinkDef_out.cxx: LinkDef.h
-	$(QUIET) echo "Making CINT dictionaries"; \
-	rootcint -f LinkDef_out.cc -c -p $(INCLUDE) LinkDef.h; \
-	cat LinkDef.h LinkDef_out.cc > LinkDef_out.cxx; rm LinkDef_out.cc
 
 # General rule for making object files
 %.d:	%.cc
@@ -101,7 +96,6 @@ clean:
 	rm -f *.d \
 	rm -f *.cxx \
 	rm -f *.so \
-	rm -f LinkDef_out* \
 	rm -f ./CORE/*.o \
 	rm -f ./CORE/*.d \
 	rm -f ./CORE/*.cxx \
