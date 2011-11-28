@@ -6,7 +6,7 @@ all:
 	@echo "ROOTSYS is not set. Please set ROOT environment properly"; echo
 else
 
-all: 	build
+all: 	main
 help:
 	@echo "Available Targets:";\
 	cat Makefile | perl -ne 'printf("\t%-15s %s\n",$$1,$$2) if(/^(\S+):[^#]+(#.*)$$/)'
@@ -78,6 +78,10 @@ LinkDef_out.cxx: LinkDef.h
 	$(QUIET) echo "Compiling $<"; \
 	$(CC) $(CFLAGS) $< -c -o $@
 
+%.o: 	%.cc
+	$(QUIET) echo "Compiling $<"; \
+	$(CC) $(CFLAGS) $< -c -o $@
+
 %.o: 	%.cxx looper.h
 	$(QUIET) echo "Compiling $<"; \
 	$(CC) $(CFLAGS) $< -c -o $@
@@ -89,6 +93,9 @@ build: $(LIBS) # compile code
 	@#root -b -q ".L MyScanChain.C++"
 b: build
 
+main: build
+	$(CC) $(LIBS) $(shell root-config --libs) -lEG -lGenVector -o main
+
 clean:
 	rm -f *.o \
 	rm -f *.d \
@@ -98,6 +105,7 @@ clean:
 	rm -f ./CORE/*.o \
 	rm -f ./CORE/*.d \
 	rm -f ./CORE/*.cxx \
-	rm -f ./CORE/*.so
+	rm -f ./CORE/*.so \
+	rm main
 
 endif

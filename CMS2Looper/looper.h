@@ -38,10 +38,7 @@ class looper
   void CloseBabyNtuple () { babyFile_->cd();babyTree_->Write();babyFile_->Close();}
   
   void BookHistos(const char * name){
-    TDirectory *rootdir = gDirectory->GetDirectory("Rint:");
-    rootdir->cd();
     outf = TFile::Open(name,"RECREATE");
-    outf->cd();
     h_dummy = new TH1F("h_dummy","dummy",2,0.,2.);
   }
   void SaveHistos(){outf->cd();outf->Write();outf->Close();}

@@ -83,10 +83,8 @@ int looper::ScanChain( TChain* chain, const char* prefix, bool isData, int nEven
       weight_ = isData ? 1. : evt_scale1fb();
 
       for (unsigned int i_hyp = 0; i_hyp<hyp_p4().size(); i_hyp++) {
-
 	*p4_ = hyp_p4().at(i_hyp);
 	if (makebaby) FillBabyNtuple();
-	
       }
 
       //fill histos
@@ -114,10 +112,7 @@ void looper::printEvent(  ostream& ostr ){
 
 // Book the baby ntuple
 void looper::MakeBabyNtuple(const char *babyFilename) {
-  TDirectory *rootdir = gDirectory->GetDirectory("Rint:");
-  rootdir->cd();
   babyFile_ = new TFile(Form("%s", babyFilename), "RECREATE");
-  babyFile_->cd();
   babyTree_ = new TTree("tree", "A Baby Ntuple");
   
   babyTree_->Branch("run", &run_, "run/I");
@@ -130,6 +125,7 @@ void looper::MakeBabyNtuple(const char *babyFilename) {
 
 // Init the baby
 void looper::InitBabyNtuple() { 
+
   run_ = -9999;
   ls_ = -9999;
   evt_ = -9999;
