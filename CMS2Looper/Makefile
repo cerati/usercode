@@ -6,7 +6,7 @@ all:
 	@echo "ROOTSYS is not set. Please set ROOT environment properly"; echo
 else
 
-all: 	main
+all: 	build
 help:
 	@echo "Available Targets:";\
 	cat Makefile | perl -ne 'printf("\t%-15s %s\n",$$1,$$2) if(/^(\S+):[^#]+(#.*)$$/)'
@@ -26,10 +26,6 @@ CFLAGS = -Wall -Wno-unused-function -g -O2 -fPIC $(shell root-config --cflags) $
 LINKER = g++
 LINKERFLAGS = $(shell root-config --ldflags)
 
-ifeq ($(shell root-config --platform),macosx)
-	LINKERFLAGS = -dynamiclib -undefined dynamic_lookup -Wl,-x -O -Xlinker -bind_at_load -flat_namespace $(shell root-config --libs) -lEG -lGenVector
-endif
-
 CORESOURCES=./CORE/CMS2.cc \
 ./CORE/conversionTools.cc \
 ./CORE/electronSelections.cc \
@@ -48,58 +44,44 @@ CORELIB=libCMS2NtupleMacrosCORE.so
 
 SOURCES = $(wildcard *.cc)
 OBJECTS = $(SOURCES:.cc=.o) 
-LIB = liblooper.so
 
-LIBS = $(CORELIB) $(LIB)
+LIBS = $(CORELIB)
+
+DICT = LinkDef_out.cc
+
+EXE = main.exe
 
 #
 # how to make it
 #
 
-libs:	$(LIBS)
-
 $(CORELIB): $(COREOBJECTS)
 	$(LINKER) $(LINKERFLAGS) -shared $(COREOBJECTS) -o $@
 
-$(LIB):	$(OBJECTS) 
-	$(LINKER) $(LINKERFLAGS) -shared $(OBJECTS) -o $@
+$(DICT): LinkDef.h
+	rootcint -f $@ -c -p $(ROOTSYS)/include/Math/QuantFuncMathCore.h $(ROOTSYS)/include/TLorentzVector.h $(ROOTSYS)/include/Math/Vector4D.h LinkDef.h
 
-# General rule for making object files
-%.d:	%.cc
-	$(QUIET) echo "Checking dependencies for $<"; \
-	$(CC) -MM -MT $@ -MT ${@:.d=.o} $(CFLAGS) $< > $@; \
-                     [ -s $@ ] || rm -f $@
-%.o: 	%.cc %.h
-	$(QUIET) echo "Compiling $<"; \
-	$(CC) $(CFLAGS) $< -c -o $@
+%.exe: $(LIBS) $(DICT) looper.cc
+	$(CC) -o $@ `root-config --ldflags --cflags --libs` -lEG -lGenVector -L. -lCMS2NtupleMacrosCORE LinkDef_out.cc looper.cc ${@:.exe=.cc} 
 
 %.o: 	%.cc
 	$(QUIET) echo "Compiling $<"; \
 	$(CC) $(CFLAGS) $< -c -o $@
 
-%.o: 	%.cxx looper.h
-	$(QUIET) echo "Compiling $<"; \
-	$(CC) $(CFLAGS) $< -c -o $@
+libs:	$(LIBS)
 
-#
-# target to build
-#
-build: $(LIBS) # compile code
-	@#root -b -q ".L MyScanChain.C++"
+build:  $(EXE)
+
 b: build
-
-main: build
-	$(CC) $(LIBS) $(shell root-config --libs) -lEG -lGenVector -o main
 
 clean:
 	rm -f *.o \
-	rm -f *.d \
 	rm -f *.cxx \
+	rm -f *_out.* \
+	rm -f *.*~ \
 	rm -f *.so \
 	rm -f ./CORE/*.o \
-	rm -f ./CORE/*.d \
-	rm -f ./CORE/*.cxx \
 	rm -f ./CORE/*.so \
-	rm main
+	rm main.exe
 
 endif
