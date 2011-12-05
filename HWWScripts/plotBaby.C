@@ -12,12 +12,16 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
 
   bool doSignal = 0;
 
+  bool doRatio = false;
+
+  TString extension = ".png";
+
   TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz_py","wjets","wgamma","wg3l"};
   int  colors[] = {kAzure-9,kAzure-9,kGreen+2,kGreen+2,kGreen+2,kYellow,kYellow,kAzure-2,kAzure-2,kGray+1,kGray+1,kGray+1};
 
   TCut runrange("run>0");//Full2011
   TString dir = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/wwSelNoLepNoTV/";//wwSelNoMetNoZVminMET20
-  //dir = "/smurf/data/Run2011_Summer11_SmurfV7_42X/mitf-alljets/";
+  dir = "/smurf/data/Run2011_Summer11_SmurfV7_42X/mitf-alljets/";
   float sfs0j[] = { 1.14,  1.14,   3.1,   3.1,   1.0,   1.4,    1.4, 1.0, 1.0, 2.6,    1.0, 1.0, 1.5};
   float sfs1j[] = { 1.25,  1.25,   3.8,   3.8,   1.0,   1.1,    1.1, 1.0, 1.0, 2.4,    1.0, 1.0, 1.5};
   float sfs2j[] = { 1.0,   1.0,    9.0,   9.0,   1.0,   1.2,    1.2, 1.0, 1.0, 12.0,   1.0, 1.0, 1.5};
@@ -193,7 +197,7 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
   };
   TString binning[] = {
     "60,0.,300.",
-    "20,0.,3.2",
+    "40,0.,3.2",
     "40,0.,200.",
     "40,0.,200.","40,0.,200.",
     "4,0,4",
@@ -205,7 +209,7 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
   };
   TString xtitle[]  = {
     "m_{l,l} [GeV/c^{2}]",
-    "#Delta#phi_{l,l}",
+    "#Delta#phi_{l,l} [rad]",
     "pT_{l,l} [GeV/c]",
     "pT_{l1} [GeV/c]","pT_{l2} [GeV/c]",
     "type",
@@ -257,7 +261,7 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
 
     TCanvas c;
     THStack* hs = new THStack("hs",plot[pl]);
-    TLegend* leg = new TLegend(0.15,0.86,0.48,0.96);
+    TLegend* leg = new TLegend(0.15,0.84,0.48,0.94);
     leg->SetTextFont(42);
     leg->SetFillColor(kWhite);
     leg->SetNColumns(3);
@@ -335,46 +339,51 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
 	if (max>(hs->GetMaximum())) {
 	  hs->SetMaximum(max*1.3);
 	}
+
+	if (doRatio) {
+	  TPad *pad2 = new TPad("pad2","pad2",0,0,1,0.25);
+	  pad2->SetBottomMargin(0.4);
+	  pad2->SetTopMargin(0.);
+	  pad2->Draw();
+	  pad2->cd();
 	
-	TPad *pad2 = new TPad("pad2","pad2",0,0,1,0.25);
-	pad2->SetBottomMargin(0.4);
-	pad2->SetTopMargin(0.);
-	pad2->Draw();
-	pad2->cd();
+	  TH1F* ratio = new TH1F("ratio","",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+	  for (unsigned int ibin=1;ibin<=nbins.Atoi();ibin++) {
+	    float den = ((TH1*)(hs->GetStack()->Last()))->GetBinContent(ibin);
+	    float num = plotData->GetBinContent(ibin);
+	    if (den>0 && num>0) {
+	      if (plotData->GetBinError(ibin)/den<0.75*num/den || fabs(num/den-1.)<1.) {
+		ratio->SetBinContent(ibin,num/den);
+		ratio->SetBinError(ibin,plotData->GetBinError(ibin)/den);
+	      }
+	    } 
+	  }
+	  ratio->GetXaxis()->SetTitle(xtitle[pl]);
+	  ratio->GetXaxis()->SetTitleSize(0.15);
+	  ratio->GetXaxis()->SetLabelSize(0.15);
+	  ratio->GetYaxis()->SetTitle("Data/MC");
+	  ratio->GetYaxis()->SetTitleOffset(0.5);
+	  ratio->GetYaxis()->SetTitleSize(0.12);
+	  ratio->GetYaxis()->SetLabelSize(0.1);
+	  ratio->GetYaxis()->SetNdivisions(505);
+	  pad2->SetGridy();
+	  ratio->SetMarkerStyle(21);
+	  ratio->Draw("EP");
+	  TLine line(minbin.Atof(),1,maxbin.Atof(),1);
+	  line.SetLineColor(kRed);
+	  line.Draw("same");
+	  c.cd();
 	
-	TH1F* ratio = new TH1F("ratio","",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
-	for (unsigned int ibin=1;ibin<=nbins.Atoi();ibin++) {
-	  float den = ((TH1*)(hs->GetStack()->Last()))->GetBinContent(ibin);
-	  float num = plotData->GetBinContent(ibin);
-	  if (den>0 && num>0) {
-	    if (plotData->GetBinError(ibin)/den<0.75*num/den || fabs(num/den-1.)<1.) {
-	      ratio->SetBinContent(ibin,num/den);
-	      ratio->SetBinError(ibin,plotData->GetBinError(ibin)/den);
-	    }
-	  } 
+	  TPad *pad1 = new TPad("pad1","pad1",0,0.25,1,1);
+	  pad1->SetBottomMargin(0.);
+	  pad1->Draw();
+	  pad1->cd();
+	  hs->GetXaxis()->SetTitle("");
+	  hs->GetXaxis()->SetLabelSize(0.);
+	} else {
+	  c.SetBottomMargin(0.15);
+	  c.SetTopMargin(0.05);
 	}
-	ratio->GetXaxis()->SetTitle(xtitle[pl]);
-	ratio->GetXaxis()->SetTitleSize(0.15);
-	ratio->GetXaxis()->SetLabelSize(0.15);
-	ratio->GetYaxis()->SetTitle("Data/MC");
-	ratio->GetYaxis()->SetTitleOffset(0.5);
-	ratio->GetYaxis()->SetTitleSize(0.12);
-	ratio->GetYaxis()->SetLabelSize(0.1);
-	ratio->GetYaxis()->SetNdivisions(505);
-	pad2->SetGridy();
-	ratio->SetMarkerStyle(21);
-	ratio->Draw("EP");
-	TLine line(minbin.Atof(),1,maxbin.Atof(),1);
-	line.SetLineColor(kRed);
-	line.Draw("same");
-	c.cd();
-	
-	TPad *pad1 = new TPad("pad1","pad1",0,0.25,1,1);
-	pad1->SetBottomMargin(0.);
-	pad1->Draw();
-	pad1->cd();
-	hs->GetXaxis()->SetTitle("");
-	hs->GetXaxis()->SetLabelSize(0.);
 	hs->Draw();
 	if (dodata) plotData->Draw("EP,same");
 	if (doSignal) plotSignal->Draw("same");
@@ -391,15 +400,6 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
 	TH1F h5("h5","h5",2,0,2);h5.SetFillColor(kAzure-2); leg->AddEntry(&h5,"VZ","f");
 	TH1F h6("h6","h6",2,0,2);h6.SetFillColor(kGray+1); leg->AddEntry(&h6,"W+jets","f");
       }
-      labelcms  = new TPaveText(0.49,0.92,0.49,0.92,"NDCBR");
-      labelcms->SetTextAlign(12);
-      labelcms->SetTextSize(0.035);
-      labelcms->SetFillColor(kWhite);
-      labelcms->AddText(Form("CMS, #sqrt{s} = 7 TeV, L_{int} = %.2f fb^{-1}",lumi));
-      labelcms->SetBorderSize(0);
-      labelcms->SetTextFont(42);
-      labelcms->SetLineWidth(2);
-      labelcms->Draw();
     } else {
       //if we want to compare two different data samples
       TH1F* plotData2011A = new TH1F("plotData2011A","",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
@@ -433,7 +433,17 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
     }
     
     leg->Draw();
-    //hs->SetMaximum(31);  
+    if (!compareData) {
+      labelcms  = new TPaveText(0.48,0.91,0.48,0.91,"NDCBR");
+      labelcms->SetTextAlign(12);
+      labelcms->SetTextSize(0.035);
+      labelcms->SetFillColor(kWhite);
+      labelcms->AddText(Form("CMS, #sqrt{s} = 7 TeV, L_{int} = %.2f fb^{-1}",lumi));
+      labelcms->SetBorderSize(0);
+      labelcms->SetTextFont(42);
+      labelcms->SetLineWidth(2);
+      labelcms->Draw();
+    }
 
     c.Update();  
 
@@ -442,7 +452,6 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
     plot[pl].ReplaceAll("(","");
     plot[pl].ReplaceAll(")","");
     gSystem->Exec("mkdir -p dirplots/mh"+mh+"_nj"+nj);
-    TString extension = ".png";
     if (logy) extension="_log"+extension;
     if (cutName.Length()==0) c.SaveAs("dirplots/mh"+mh+"_nj"+nj+"/"+plot[pl]+extension);
     else c.SaveAs("dirplots/mh"+mh+"_nj"+nj+"/"+plot[pl]+"_"+cutName+extension);
