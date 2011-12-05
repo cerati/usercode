@@ -10,18 +10,26 @@ all: 	build
 help:
 	@echo "Available Targets:";\
 	cat Makefile | perl -ne 'printf("\t%-15s %s\n",$$1,$$2) if(/^(\S+):[^#]+(#.*)$$/)'
+
 ifndef VERBOSE
   QUIET := @
 endif
 
-CC = g++
-CMSROOT = ./
-ROOFITINCLUDE = 
+#ROOFITINCLUDE = 
 #ifdef CMSSW_VERSION
 #	ROOFITINCLUDE = $(shell scramv1 tool info roofitcore | grep INCLUDE | sed 's/^INCLUDE=/-I/')
 #endif
-INCLUDE = -I$(CMSROOT) $(ROOFITINCLUDE) -I$(CMSROOT)/CORE
-CFLAGS = -Wall -Wno-unused-function -g -O2 -fPIC $(shell root-config --cflags) $(INCLUDE) $(EXTRACFLAGS)
+
+CC = g++
+CMSROOT = ./
+INCLUDE = $(shell root-config --cflags) -I$(CMSROOT) -I$(CMSROOT)/CORE
+CFLAGS = -Wall -Wno-unused-function -g -O2 -fPIC $(INCLUDE) $(EXTRACFLAGS)
+ROOTLIBS = $(shell root-config --ldflags --cflags --libs) -lEG -lGenVector
+
+DICTINCLUDE = $(ROOTSYS)/include/Math/QuantFuncMathCore.h $(ROOTSYS)/include/TLorentzVector.h $(ROOTSYS)/include/Math/Vector4D.h
+#include "Math/QuantFuncMathCore.h"
+#include "TLorentzVector.h"
+#include "Math/Vector4D.h"
 
 LINKER = g++
 LINKERFLAGS = $(shell root-config --ldflags)
@@ -43,11 +51,12 @@ COREOBJECTS=$(CORESOURCES:.cc=.o)
 CORELIB=libCMS2NtupleMacrosCORE.so
 
 SOURCES = $(wildcard *.cc)
-OBJECTS = $(SOURCES:.cc=.o) 
+OBJECTS = $(SOURCES:.cc=.o)
+LIB = liblooper.so
 
-LIBS = $(CORELIB)
+DICT = LinkDef_out.o
 
-DICT = LinkDef_out.cc
+LIBS = $(CORELIB) $(LIB)
 
 EXE = main.exe
 
@@ -56,15 +65,31 @@ EXE = main.exe
 #
 
 $(CORELIB): $(COREOBJECTS)
+	$(QUIET) echo "Linking $@"; \
 	$(LINKER) $(LINKERFLAGS) -shared $(COREOBJECTS) -o $@
 
-$(DICT): LinkDef.h
-	rootcint -f $@ -c -p $(ROOTSYS)/include/Math/QuantFuncMathCore.h $(ROOTSYS)/include/TLorentzVector.h $(ROOTSYS)/include/Math/Vector4D.h LinkDef.h
+$(LIB):	$(DICT) $(OBJECTS) 
+	$(QUIET) echo "Linking $@"; \
+	$(LINKER) $(CFLAGS) $(LINKERFLAGS) -shared $(OBJECTS) $(DICT) -o $@
 
-%.exe: $(LIBS) $(DICT) looper.cc
-	$(CC) -o $@ `root-config --ldflags --cflags --libs` -lEG -lGenVector -L. -lCMS2NtupleMacrosCORE LinkDef_out.cc looper.cc ${@:.exe=.cc} 
+LinkDef_out.cxx: LinkDef.h
+	$(QUIET) echo "Making CINT dictionaries"; \
+	rootcint -f LinkDef_out.cc -c -p $(DICTINCLUDE)  LinkDef.h; \
+	cat LinkDef_out.cc > LinkDef_out.cxx; rm LinkDef_out.cc
+
+%.exe:  $(LIBS) 
+	$(QUIET) echo "Building $@"; \
+	$(CC) -o $@ $(LIBS) $(ROOTLIBS) ${@:.exe=.cc} 
 
 %.o: 	%.cc
+	$(QUIET) echo "Compiling $<"; \
+	$(CC) $(CFLAGS) $< -c -o $@
+
+%.o: 	%.cc %.h
+	$(QUIET) echo "Compiling $<"; \
+	$(CC) $(CFLAGS) $< -c -o $@
+
+%.o: %.cxx 
 	$(QUIET) echo "Compiling $<"; \
 	$(CC) $(CFLAGS) $< -c -o $@
 
@@ -74,14 +99,17 @@ build:  $(EXE)
 
 b: build
 
-clean:
-	rm -f *.o \
-	rm -f *.cxx \
-	rm -f *_out.* \
-	rm -f *.*~ \
-	rm -f *.so \
-	rm -f ./CORE/*.o \
-	rm -f ./CORE/*.so \
-	rm main.exe
+loopclean:
+	rm -f \
+	*_out.*	 \
+	*.o \
+	*.*~ \
+	$(LIB) \
+	main.exe
+
+clean: loopclean
+	rm -f \
+	$(CORELIB) \
+	./CORE/*.o
 
 endif
