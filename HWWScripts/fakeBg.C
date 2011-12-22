@@ -10,7 +10,7 @@ pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int
   float dySF = DYBkgScaleFactor(0,njets);
 
   //correct for spillage...
-  pair<float, float> qqwwFake    = getYield(main_dir+"wwSelNoLepNoTV/"+"qqww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);//FIXME
+  pair<float, float> qqwwFake    = getYield(dir+"qqww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> ggwwFake    = getYield(dir+"ggww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> ttbarFake = getYield(dir+"ttbar", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> twFake    = getYield(dir+"tw", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
