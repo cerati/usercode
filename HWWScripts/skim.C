@@ -80,7 +80,7 @@ using namespace std;
 //###################
 //# main function
 //###################
-void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/", TString fileName = "zz.root", TString outputDir = "rawsmurfdata/", TString cutstring = "") {
+void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/", TString fileName = "zz.root", TString outputDir = "rawsmurfdata/", TString cutstring = "", bool doPUw = false) {
 
   TFile* fin = new TFile(smurfFDir+fileName);
   TTree* ch=(TTree*)fin->Get("tree"); 
@@ -142,7 +142,14 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
 
   float scale1fb = 0.0;
   ch->SetBranchAddress( "scale1fb"      , &scale1fb     );   
-  
+
+  unsigned int nvtx_ = 0;
+  ch->SetBranchAddress( "nvtx"     , &nvtx_     );     
+  unsigned int npu_ = 0;
+  ch->SetBranchAddress( "npu"     , &npu_     );     
+
+  float sfWeightPU_ = 1.;
+  ch->SetBranchAddress("sfWeightPU",    &sfWeightPU_ );  
 
   
   //==========================================
@@ -150,6 +157,14 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
   //==========================================
   
   cout << smurfFDir + fileName << " has " << ch->GetEntries() << " entries; \n";
+
+  TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
+  TFile* puwf=0;
+  TH1F* puweights=0;
+  if (doPUw) {
+    puwf = TFile::Open(puw_file);
+    puweights = (TH1F*) puwf->Get("puWeights");
+  }
 
   for(int ievt = 0; ievt < ch->GetEntries() ;ievt++){
     ch->GetEntry(ievt); 
@@ -169,10 +184,16 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
       if ((cuts_ & wwSelNoLepNoTV) != wwSelNoLepNoTV) continue;
     }
 
+    if (doPUw) {
+      float puw = puweights->GetBinContent(puweights->FindBin(npu_));
+      sfWeightPU_ = puw;
+    }
+    
     evt_tree->Fill();
   }   //nevent
   
   cout << outputDir + fileName << " has " << evt_tree->GetEntries() << " entries; \n";
+  if (doPUw) puwf->Close();
   newfile->cd(); 
   evt_tree->Write(); 
   newfile->Close();
@@ -216,6 +237,8 @@ void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-
   smurfproducer(smurfFDir,"tw_ds.root",outputDir,cut);
   smurfproducer(smurfFDir,"wgamma_41x.root",outputDir,cut);
   smurfproducer(smurfFDir,"ww_mcnlo.root",outputDir,cut);
+  smurfproducer(smurfFDir,"ww_mcnlo_up.root",outputDir,cut);
+  smurfproducer(smurfFDir,"ww_mcnlo_down.root",outputDir,cut);
   smurfproducer(smurfFDir,"wz_py.root",outputDir,cut);
   smurfproducer(smurfFDir,"wg3l.root",outputDir,cut);
   smurfproducer(smurfFDir,"data-emb-tau123.root",outputDir,cut);
