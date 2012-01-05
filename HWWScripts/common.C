@@ -604,7 +604,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     TString dataSetName(dataEvent->name(dataEvent->dstype_).c_str());
     if (dataSetName.Contains("hww")) weight*=dataEvent->sfWeightHPt_;
     if (region.Contains("embed")) {
-      weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2);
+      weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2,dataEvent->scale1fb_);//fixme period
     }
  
     if (!passEvent(dataEvent, njets, cut, veto, region,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass,isMC, useJson)) continue;
@@ -752,7 +752,7 @@ void fillPlot(ReadBDTG* rbdtg, TH1F* h, TString sample, unsigned int cut, unsign
     TString dataSetName(dataEvent->name(dataEvent->dstype_).c_str());
     if (dataSetName.Contains("hww")) weight*=dataEvent->sfWeightHPt_;
     if (region.Contains("embed")) {
-      weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2);
+      weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2,dataEvent->scale1fb_);//fixme period
     }
 
     if (!passEvent(dataEvent, njets, cut, veto, region,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass,isMC, useJson)) continue;
