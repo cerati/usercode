@@ -51,6 +51,7 @@ TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLoos
 bool redoWeights  = 0;
 bool checkWeights = 0;
 bool doMVA = 0;
+bool doVBF = 0;
 
 //copy here to avoid SmurfTree::
 enum Selection {
@@ -302,89 +303,54 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
   }
 
-  if (doMVA){
+  if (doMVA || doVBF) {
+      lep1pt = 20.;
+      lep2pt = 10.;
+      dPhi   = 180.;
+      mtL    = 80.;
+      himass = 100.;
     if (mass==0) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 9999.;
-      mtL    = 80.;
       mtH    = 9999.;
-      himass = 100.;
     } else if (mass==110||mass==115||mass==118||mass==120||mass==122||mass==124 ) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 70.;
-      mtL    = 80.;
       mtH    = ((float) mass);
-      himass = 100.;
     } else if (mass==126||mass==128||mass==130) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 80.;
-      mtL    = 80.;
       mtH    = ((float) mass);
-      himass = 100.;
     } else if (mass==135||mass==140) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 90.;
-      mtL    = 80.;
       mtH    = ((float) mass);
-      himass = 100.;
     } else if (mass==150) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 100.;
-      mtL    = 80.;
-      mtH    = 150.;
-      himass = 100.;
+      mtH    = ((float) mass);
     } else if (mass==160) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 100.;
-      mtL    = 80.;
-      mtH    = 160.;
-      himass = 100.;
+      mtH    = ((float) mass);
     } else if (mass==170) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 100.;
-      mtL    = 80.;
-      mtH    = 170.;
-      himass = 100.;
+      mtH    = ((float) mass);
     } else if (mass==180) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 110.;
-      mtL    = 80.;
-      mtH    = 180.;
-      himass = 110.;
+      mtH    = ((float) mass);
     } else if (mass==190) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 120.;
-      mtL    = 80.;
-      mtH    = 190.;
-      himass = 120.;
+      mtH    = ((float) mass);
     } else if (mass==200) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
       mll    = 130.;
-      mtL    = 80.;
-      mtH    = 200.;
-      himass = 130.;
+      mtH    = ((float) mass);
+    } else if (mass==250) {
+      mll    = ((float) mass);
+      mtH    = ((float) mass);
+    } else if (mass==300) {
+      mll    = ((float) mass);
+      mtH    = ((float) mass);
     } else {
       cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
+    }
+    if (doVBF) {
+      mtL    = 0.;
+      mtH    = 9999.;
     }
   }
 
@@ -460,7 +426,18 @@ bool passEvent(SmurfTree *dataEvent, unsigned int njets, unsigned int cut, unsig
     if (!isMC && (dataEvent->cuts_ & Trigger) != Trigger ) return 0;
     //if (!isMC && dataEvent->run_>172802) return 0;//FIXME LP TEST
     if (!isMC && useJson && !goodrun(dataEvent->run_,dataEvent->lumi_)) return 0;    
-    if ( dataEvent->njets_!=njets) return 0;
+    if (doVBF && njets==2) {
+      if (dataEvent->njets_!=2 && dataEvent->njets_!=3) return 0;
+      if ( !(((dataEvent->jet1_.eta()-dataEvent->lep1_.eta() > 0 && dataEvent->jet2_.eta()-dataEvent->lep1_.eta() < 0) ||
+	      (dataEvent->jet2_.eta()-dataEvent->lep1_.eta() > 0 && dataEvent->jet1_.eta()-dataEvent->lep1_.eta() < 0)) &&
+	     ((dataEvent->jet1_.eta()-dataEvent->lep2_.eta() > 0 && dataEvent->jet2_.eta()-dataEvent->lep2_.eta() < 0) ||
+	      (dataEvent->jet2_.eta()-dataEvent->lep2_.eta() > 0 && dataEvent->jet1_.eta()-dataEvent->lep2_.eta() < 0))) ) return 0;
+      if (dataEvent->njets_==3 && dataEvent->jet3_.pt()>30 && ((dataEvent->jet1_.eta()-dataEvent->jet3_.eta() > 0 && dataEvent->jet2_.eta()-dataEvent->jet3_.eta() < 0) ||
+							       (dataEvent->jet2_.eta()-dataEvent->jet3_.eta() > 0 && dataEvent->jet1_.eta()-dataEvent->jet3_.eta() < 0)) ) return 0;
+      if ( TMath::Abs(dataEvent->jet1_.eta()) >= 4.5 || TMath::Abs(dataEvent->jet2_.eta()) >= 4.5) return 0;
+      if ( TMath::Abs(dataEvent->jet1_.eta()-dataEvent->jet2_.eta())<=3.5) return 0;
+      if ((dataEvent->jet1_+dataEvent->jet2_).mass()<=450) return 0;
+    } else if ( dataEvent->njets_!=njets) return 0;
     if ( (dataEvent->cuts_ & cut) != cut ) return 0;
     if ( veto!=noVeto && (dataEvent->cuts_ & veto) == veto ) return 0;
     //WARNING: do not define region names that are subset of others!!!!!!!
@@ -485,11 +462,11 @@ bool passEvent(SmurfTree *dataEvent, unsigned int njets, unsigned int cut, unsig
     //additional higgs cuts
     if ( region.Contains("dphijet")   && ( dataEvent->type_!=1 && dataEvent->type_!=2 &&
 					   ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.) || 
-					     (dataEvent->njets_==2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) )
+					     (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) )
 					   ) ) return 0;
     if ( region.Contains("minmet40")  && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0)) return 0;
     if ( region.Contains("dpjallfs")  && ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) ||
-					   (dataEvent->njets_==2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) ) ) return 0;
+					   (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) ) ) return 0;
     if ( region.Contains("mm40allfs") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0 ) return 0;
     if ( region.Contains("minmetvtx") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) return 0;
     if ( region.Contains("mmvtxallfs") && ( min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) return 0;
