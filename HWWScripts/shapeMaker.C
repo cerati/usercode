@@ -16,16 +16,18 @@ void scaleIntegral(TH1F* central,TH1F* other) {
   if (other->Integral()>0) other->Scale(central->Integral()/other->Integral());
 }
 
-void writeStatUpDown(TH1F* central,bool down=false) {
+void writeStatUpDown(TH1F* central,bool down, int njets, TString fs) {
   TString proc = TString(central->GetName());
   proc.ReplaceAll("histo_","");
   TString updown = "Up";
   if (down) updown = "Down";
-  TH1F* statUpDown = new TH1F(TString(central->GetName())+"_CMS_MVA"+proc+"StatBounding_hww"+updown,
-			  TString(central->GetTitle())+"_CMS_MVA"+proc+"StatBounding_hww"+updown,
+  TH1F* statUpDown = new TH1F(TString(central->GetName())+"_CMS_MVA"+proc+Form("StatBounding_hww%s_%ij",TString(fs).ReplaceAll("fs","").Data(),njets)+updown,
+			  TString(central->GetTitle())+"_CMS_MVA"+proc+Form("StatBounding_hww%s_%ij",TString(fs).ReplaceAll("fs","").Data(),njets)+updown,
 			  central->GetNbinsX(),central->GetXaxis()->GetXmin(),central->GetXaxis()->GetXmax());
   for (int bin=1;bin<=statUpDown->GetNbinsX();++bin) {
-    statUpDown->SetBinContent(bin,down ? (central->GetBinContent(bin)-central->GetBinError(bin)) : (central->GetBinContent(bin)+central->GetBinError(bin)));
+    float val = down ? (central->GetBinContent(bin)-central->GetBinError(bin)) : (central->GetBinContent(bin)+central->GetBinError(bin));
+    if (val>0) statUpDown->SetBinContent(bin,val);
+    else statUpDown->SetBinContent(bin,1E-6);
   }
   statUpDown->Write();
 }
@@ -149,7 +151,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   wgamma_h->Add(wg3l_h);
 
   //Zjets
-  float dysf = 1;
+  float dysf = 1.;
   if (fs=="sffs") dysf = DYBkgScaleFactor(0,njets);
   TH1F* dyee_vtx_h = new TH1F("histo_dyee_vtx","histo_dyee_vtx",nbins,minx,maxx);
   fillPlot(rbdtg,dyee_vtx_h, dir+"dyee"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
@@ -173,8 +175,8 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   zjets_h->Add(pwz_h);
   zjets_h->Add(pzz_h);
   //shape variation: use full MET cuts
-  TH1F* zjets_h_up = new TH1F("histo_Zjets_CMS_MVAZBounding_hwwUp","histo_Zjets_CMS_MVAZBounding_hwwUp",nbins,minx,maxx);
-  TH1F* zjets_h_down = new TH1F("histo_Zjets_CMS_MVAZBounding_hwwDown","histo_Zjets_CMS_MVAZBounding_hwwDown",nbins,minx,maxx);
+  TH1F* zjets_h_up = new TH1F(Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijUp",TString(fs).ReplaceAll("fs","").Data(),njets),Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijUp",TString(fs).ReplaceAll("fs","").Data(),njets),nbins,minx,maxx);
+  TH1F* zjets_h_down = new TH1F(Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijDown",TString(fs).ReplaceAll("fs","").Data(),njets),Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijDown",TString(fs).ReplaceAll("fs","").Data(),njets),nbins,minx,maxx);
   if (fs=="sffs") {
     zjets_h_up->Add(dyee_vtx_h);
     zjets_h_up->Add(dymm_vtx_h);
@@ -219,10 +221,10 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   wjets_h->Add(wzfake_h,-1.);
   wjets_h->Add(zzfake_h,-1.);
   //syst 1: MC closure test
-  TH1F* wjets_mc_up_h = new TH1F("histo_Wjets_MVAWMCBounding_hwwUp","histo_Wjets_MVAWMCBounding_hwwUp",nbins,minx,maxx);
+  TH1F* wjets_mc_up_h = new TH1F("histo_Wjets_CMS_MVAWMCBounding_hwwUp","histo_Wjets_CMS_MVAWMCBounding_hwwUp",nbins,minx,maxx);
   fillPlot(rbdtg,wjets_mc_up_h,dir+"wjets"+suffix, wwSelectionNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
   scaleIntegral(wjets_h,wjets_mc_up_h);
-  TH1F* wjets_mc_down_h = new TH1F("histo_Wjets_MVAWMCBounding_hwwDown","histo_Wjets_MVAWMCBounding_hwwDown",nbins,minx,maxx);
+  TH1F* wjets_mc_down_h = new TH1F("histo_Wjets_CMS_MVAWMCBounding_hwwDown","histo_Wjets_CMS_MVAWMCBounding_hwwDown",nbins,minx,maxx);
   fillDownMirrorUp(wjets_h,wjets_mc_up_h,wjets_mc_down_h);
   //syst 2: alternative fakebale object definition
   TH1F* datafake_fr_up_h = new TH1F("datafake_fr_up","datafake_fr_up",nbins,minx,maxx);
@@ -239,7 +241,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   fillPlot(rbdtg,wzfake_fr_up_h,dir+"wz"+suffix, wwSelectionNoLep, veto, mass, njets, sigreg+"alternativeFR,"+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* zzfake_fr_up_h = new TH1F("zzfake_fr_up","zzfake_fr_up",nbins,minx,maxx);
   fillPlot(rbdtg,zzfake_fr_up_h,dir+"zz_py"+suffix, wwSelectionNoLep, veto, mass, njets, sigreg+"alternativeFR,"+fs, lumi, useJson, applyEff, true, doPUw);
-  TH1F* wjets_fr_up_h = new TH1F("histo_Wjets_MVAWBounding_hwwUp","histo_Wjets_MVAWBounding_hwwUp",nbins,minx,maxx);
+  TH1F* wjets_fr_up_h = new TH1F("histo_Wjets_CMS_MVAWBounding_hwwUp","histo_Wjets_CMS_MVAWBounding_hwwUp",nbins,minx,maxx);
   wjets_fr_up_h->Add(datafake_fr_up_h);
   wjets_fr_up_h->Add(qqwwfake_fr_up_h,-1.);
   wjets_fr_up_h->Add(ggwwfake_fr_up_h,-1.);
@@ -247,7 +249,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   wjets_fr_up_h->Add(twfake_fr_up_h,-1.);
   wjets_fr_up_h->Add(wzfake_fr_up_h,-1.);
   wjets_fr_up_h->Add(zzfake_fr_up_h,-1.);
-  TH1F* wjets_fr_down_h = new TH1F("histo_Wjets_MVAWBounding_hwwDown","histo_Wjets_MVAWBounding_hwwDown",nbins,minx,maxx);
+  TH1F* wjets_fr_down_h = new TH1F("histo_Wjets_CMS_MVAWBounding_hwwDown","histo_Wjets_CMS_MVAWBounding_hwwDown",nbins,minx,maxx);
   fillDownMirrorUp(wjets_h,wjets_fr_up_h,wjets_fr_down_h);
 
   //Higgs
@@ -266,65 +268,66 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
   data_h->Write();
 
-  writeStatUpDown(ggww_h,0);
-  writeStatUpDown(ggww_h,1);
+  writeStatUpDown(ggww_h,0,njets,fs);
+  writeStatUpDown(ggww_h,1,njets,fs);
   ggww_h->Write();
 
   qqww_h_up->Write();
   qqww_h_down->Write();
   qqww_h_nlo_up->Write();
   qqww_h_nlo_down->Write();
-  writeStatUpDown(qqww_h,0);
-  writeStatUpDown(qqww_h,1);
+  writeStatUpDown(qqww_h,0,njets,fs);
+  writeStatUpDown(qqww_h,1,njets,fs);
   qqww_h->Write();
 
   top_h_up->Write();
   top_h_down->Write();
-  writeStatUpDown(top_h,0);
-  writeStatUpDown(top_h,1);
+  writeStatUpDown(top_h,0,njets,fs);
+  writeStatUpDown(top_h,1,njets,fs);
   top_h->Write();
 
   if (fs=="sffs") {
     zjets_h_up->Write();
     zjets_h_down->Write();
   }
-  writeStatUpDown(zjets_h,0);
-  writeStatUpDown(zjets_h,1);
+  writeStatUpDown(zjets_h,0,njets,fs);
+  writeStatUpDown(zjets_h,1,njets,fs);
   zjets_h->Write();
 
   wjets_fr_up_h->Write();
   wjets_fr_down_h->Write();
   wjets_mc_up_h->Write();
   wjets_mc_down_h->Write();
-  writeStatUpDown(wjets_h,0);
-  writeStatUpDown(wjets_h,1);
+  writeStatUpDown(wjets_h,0,njets,fs);
+  writeStatUpDown(wjets_h,1,njets,fs);
   wjets_h->Write();
 
-  writeStatUpDown(vv_h,0);
-  writeStatUpDown(vv_h,1);
+  writeStatUpDown(vv_h,0,njets,fs);
+  writeStatUpDown(vv_h,1,njets,fs);
   vv_h->Write();
 
-  writeStatUpDown(wgamma_h,0);
-  writeStatUpDown(wgamma_h,1);
+  writeStatUpDown(wgamma_h,0,njets,fs);
+  writeStatUpDown(wgamma_h,1,njets,fs);
   wgamma_h->Write();
 
-  writeStatUpDown(ztt_h,0);
-  writeStatUpDown(ztt_h,1);
+  writeStatUpDown(ztt_h,0,njets,fs);
+  writeStatUpDown(ztt_h,1,njets,fs);
   ztt_h->Write();
 
-  writeStatUpDown(qqH_h,0);
-  writeStatUpDown(qqH_h,1);
+  writeStatUpDown(qqH_h,0,njets,fs);
+  writeStatUpDown(qqH_h,1,njets,fs);
   qqH_h->Write();
-  writeStatUpDown(ggH_h,0);
-  writeStatUpDown(ggH_h,1);
+  writeStatUpDown(ggH_h,0,njets,fs);
+  writeStatUpDown(ggH_h,1,njets,fs);
   ggH_h->Write();
-  writeStatUpDown(WH_h,0);
-  writeStatUpDown(WH_h,1);
-  WH_h->Write();
-  writeStatUpDown(ZH_h,0);
-  writeStatUpDown(ZH_h,1);
-  ZH_h->Write();
 
+  writeStatUpDown(WH_h,0,njets,fs);
+  writeStatUpDown(WH_h,1,njets,fs);
+  WH_h->Write();
+  writeStatUpDown(ZH_h,0,njets,fs);
+  writeStatUpDown(ZH_h,1,njets,fs);
+  ZH_h->Write();
+  
   outfile->Close();
 
 }
