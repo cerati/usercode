@@ -169,7 +169,7 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
   for(int ievt = 0; ievt < ch->GetEntries() ;ievt++){
     ch->GetEntry(ievt); 
 
-    if ( int(njets_) > 2 ) continue;
+    if ( int(njets_) > 3 ) continue;
 
     if ( dilep_->mass() < 12.0) continue;
     
