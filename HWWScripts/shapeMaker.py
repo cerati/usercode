@@ -3,9 +3,11 @@
 import os
 
 masses = [115,120,130,140,150,160,170,180,190,200,250,300]
-#masses = [120]
 jetbins = [0,1]
 fstates = ['offs','sffs']
+#masses = [120]
+#jetbins = [0]
+#fstates = ['offs']
 
 for mass in masses:
     for njets in jetbins:
