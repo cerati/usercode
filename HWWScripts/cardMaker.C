@@ -168,12 +168,22 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 	   zhww.first, whww.first, qqhww.first, gghww.first, wwSF.first*qqww.first, wwSF.first*ggww.first, zz.first+wz.first, topSF.first*(ttbar.first+tw.first), 
 	   dySF.first*(dymm.first+dyee.first)+pzz.first+pwz.first, wjets.first, wgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
     out << Form("%-35s %5s   1.045   1.045   1.045   1.045     -       -     1.045     -       -       -     1.045   1.045\n","lumi","lnN");
-    //fixme should be reaplaced by histograms for shape
-    out << Form("%-35s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
-    out << Form("%-35s %5s   1.040   1.040   1.040   1.040   1.040   1.040   1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
+    if (mode=="shape") {
+      if (mass!=115) {
+	out << Form("%-35s %5s   1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVALepResBounding","shape");
+	out << Form("%-35s %5s   1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVAMETResBounding","shape");
+      } else {
+	out << Form("%-35s %5s     -       -     1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVALepResBounding","shape");
+	out << Form("%-35s %5s     -       -     1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVAMETResBounding","shape");
+      }
+    }
     out << Form("%-35s %5s   1.015   1.015   1.015   1.015   1.015   1.015   1.015     -       -       -     1.015   1.015\n","CMS_scale_m","lnN");
     out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_e","lnN");
     out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_hww_met_resolution","lnN");
+
+    //fixme should be reaplaced by histograms for shape
+    out << Form("%-35s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
+    out << Form("%-35s %5s   1.040   1.040   1.040   1.040   1.040   1.040   1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
     out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_j","lnN");
     out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.360     -       -  \n","FakeRate","lnN");
     if (mode=="shape") {

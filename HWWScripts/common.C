@@ -689,7 +689,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 }
 
 void fillPlot(ReadBDTG* rbdtg, TH1F* h, TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, 
-	      bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false) {
+	      bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false, TString syst="") {
 
 //   cout << sample << " " << cut << " " << veto << " " << mass << " " << njets << " " << region << " " << lumi << " " 
 //        << useJson << " " << applyEff << " " << doFake << " " << doPUw << endl;
@@ -756,6 +756,121 @@ void fillPlot(ReadBDTG* rbdtg, TH1F* h, TString sample, unsigned int cut, unsign
     }
 
     if (!passEvent(dataEvent, njets, cut, veto, region,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass,isMC, useJson)) continue;
+
+    //change dataEvent for syst studies
+    //fixme should go before passEvent: it affects the cuts also, but this is to reproduce Guillelmo's result
+    if (syst=="metSmear") {//met variation
+      double metx=0.0;double mety=0.0;double trkmetx=0.0;double trkmety=0.0;
+      if	(dataEvent->njets_ == 0){
+	metx    = dataEvent->met_*cos(dataEvent->metPhi_)+gRandom->Gaus(0.0,3.2);
+	mety    = dataEvent->met_*sin(dataEvent->metPhi_)+gRandom->Gaus(0.0,3.2);
+	trkmetx = dataEvent->trackMet_*cos(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,2.1);
+	trkmety = dataEvent->trackMet_*sin(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,2.1);
+      }
+      else if(dataEvent->njets_ == 1){
+	metx    = dataEvent->met_*cos(dataEvent->metPhi_)+gRandom->Gaus(0.0,3.6);
+	mety    = dataEvent->met_*sin(dataEvent->metPhi_)+gRandom->Gaus(0.0,3.6);
+	trkmetx = dataEvent->trackMet_*cos(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,7.6);
+	trkmety = dataEvent->trackMet_*sin(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,7.6);
+      }
+      else if(dataEvent->njets_ >= 2){
+	metx    = dataEvent->met_*cos(dataEvent->metPhi_)+gRandom->Gaus(0.0,4.3);
+	mety    = dataEvent->met_*sin(dataEvent->metPhi_)+gRandom->Gaus(0.0,4.3);
+	trkmetx = dataEvent->trackMet_*cos(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,12.4);
+	trkmety = dataEvent->trackMet_*sin(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,12.4);
+      }
+      double newMet      = sqrt(metx*metx+mety*mety);
+      double newTrackMet = sqrt(trkmetx*trkmetx+trkmety*trkmety);
+      double deltaPhiA[3] = {TMath::Abs(dataEvent->lep1_.Phi()-TMath::ATan2(mety,metx)),TMath::Abs(dataEvent->lep2_.Phi()-TMath::ATan2(mety,metx)),0.0};
+      while(deltaPhiA[0]>TMath::Pi()) deltaPhiA[0] = TMath::Abs(deltaPhiA[0] - 2*TMath::Pi());
+      while(deltaPhiA[1]>TMath::Pi()) deltaPhiA[1] = TMath::Abs(deltaPhiA[1] - 2*TMath::Pi());
+      deltaPhiA[2] = TMath::Min(deltaPhiA[0],deltaPhiA[1]);
+      double pmetA = newMet;
+      if(deltaPhiA[2]<TMath::Pi()/2) pmetA = pmetA * sin(deltaPhiA[2]);      
+      double deltaPhiB[3] = {TMath::Abs(dataEvent->lep1_.Phi()-TMath::ATan2(trkmety,trkmetx)),TMath::Abs(dataEvent->lep2_.Phi()-TMath::ATan2(trkmety,trkmetx)),0.0};
+      while(deltaPhiB[0]>TMath::Pi()) deltaPhiB[0] = TMath::Abs(deltaPhiB[0] - 2*TMath::Pi());
+      while(deltaPhiB[1]>TMath::Pi()) deltaPhiB[1] = TMath::Abs(deltaPhiB[1] - 2*TMath::Pi());
+      deltaPhiB[2] = TMath::Min(deltaPhiB[0],deltaPhiB[1]);
+      double pmetB = newTrackMet;
+      if(deltaPhiB[2]<TMath::Pi()/2) pmetB = pmetB * sin(deltaPhiB[2]);
+      double oldMet = dataEvent->met_;      
+      dataEvent->pmet_ = pmetA; 
+      dataEvent->met_  = newMet; 
+      dataEvent->pTrackMet_ = pmetB; 
+      dataEvent->trackMet_  = newTrackMet; 
+      dataEvent->mt_  = dataEvent->mt_*sqrt(newMet/oldMet); 
+      dataEvent->mt1_ = dataEvent->mt1_*sqrt(newMet/oldMet);
+      dataEvent->mt2_ = dataEvent->mt2_*sqrt(newMet/oldMet);      
+      dataEvent->dPhiLep1MET_ = TMath::Abs(dataEvent->lep1_.phi()-TMath::ATan2(mety,metx));
+      while(dataEvent->dPhiLep1MET_>TMath::Pi()) dataEvent->dPhiLep1MET_ = TMath::Abs(dataEvent->dPhiLep1MET_ - 2*TMath::Pi());
+      dataEvent->dPhiLep2MET_ = TMath::Abs(dataEvent->lep2_.phi()-TMath::ATan2(mety,metx));
+      while(dataEvent->dPhiLep2MET_>TMath::Pi()) dataEvent->dPhiLep2MET_ = TMath::Abs(dataEvent->dPhiLep2MET_ - 2*TMath::Pi());
+      dataEvent->dPhiDiLepMET_ = TMath::Abs(dataEvent->dilep_.phi()-TMath::ATan2(mety,metx));
+      while(dataEvent->dPhiDiLepMET_>TMath::Pi()) dataEvent->dPhiDiLepMET_ = TMath::Abs(dataEvent->dPhiDiLepMET_ - 2*TMath::Pi());
+
+    } else if (syst.Contains("momScale")) {//momentum scale and resolution up/down
+      double corr[2] = {1.0, 1.0};
+      if (syst.Contains("Up")) {
+	if (TMath::Abs(dataEvent->lid1_) == 13){
+	  corr[0] = 1.01 + gRandom->Gaus(0.00,0.01);
+	} else if (TMath::Abs(dataEvent->lid1_) == 11 && TMath::Abs(dataEvent->lep1_.eta()) <  1.479){
+	  corr[0] = 1.01 + gRandom->Gaus(0.00,0.02);
+	} else if (TMath::Abs(dataEvent->lid1_) == 11 && TMath::Abs(dataEvent->lep1_.eta()) >= 1.479){
+	  corr[0] = 1.06 + gRandom->Gaus(0.00,0.06);
+	}
+	if (TMath::Abs(dataEvent->lid2_) == 13){
+	  corr[1] = 1.01 + gRandom->Gaus(0.00,0.01);
+	} else if (TMath::Abs(dataEvent->lid2_) == 11 && TMath::Abs(dataEvent->lep2_.eta()) <  1.479){
+	  corr[1] = 1.01 + gRandom->Gaus(0.00,0.02);
+	} else if (TMath::Abs(dataEvent->lid2_) == 11 && TMath::Abs(dataEvent->lep2_.eta()) >= 1.479){
+	  corr[1] = 1.06 + gRandom->Gaus(0.00,0.06);
+	}
+      } else if (syst.Contains("Down")) {
+	if (TMath::Abs(dataEvent->lid1_) == 13){
+	  corr[0] = 0.99 - gRandom->Gaus(0.00,0.01);
+	} else if (TMath::Abs(dataEvent->lid1_) == 11 && TMath::Abs(dataEvent->lep1_.eta()) <  1.479){
+	  corr[0] = 0.99 - gRandom->Gaus(0.00,0.02);
+	} else if (TMath::Abs(dataEvent->lid1_) == 11 && TMath::Abs(dataEvent->lep1_.eta()) >= 1.479){
+	  corr[0] = 0.94 - gRandom->Gaus(0.00,0.06);
+	}
+	if(TMath::Abs(dataEvent->lid2_) == 13){
+	  corr[1] = 0.99 - gRandom->Gaus(0.00,0.01);
+	} else if (TMath::Abs(dataEvent->lid2_) == 11 && TMath::Abs(dataEvent->lep2_.eta()) <  1.479){
+	  corr[1] = 0.99 - gRandom->Gaus(0.00,0.02);
+	} else if (TMath::Abs(dataEvent->lid2_) == 11 && TMath::Abs(dataEvent->lep2_.eta()) >= 1.479){
+	  corr[1] = 0.94 - gRandom->Gaus(0.00,0.06);
+	}
+      } else {
+	cout << "Wrong name for momScale systematic! Should contain Up or Down" << endl;
+	return;
+      }
+//       cout << "new evt" << endl;
+//       cout << dataEvent->lep1_.pt() << " " << dataEvent->lep2_.pt() << " " << dataEvent->dilep_.mass() << " " << dataEvent->dPhi_ << " "
+// 	   << dataEvent->mt_ << " " << dataEvent->mt1_ << " " << dataEvent->mt2_ << " " << dataEvent->dPhiDiLepMET_ << " " << dataEvent->dPhiDiLepJet1_
+// 	   << endl;
+      SmurfTree::LorentzVector lep1Old = dataEvent->lep1_;
+      SmurfTree::LorentzVector lep2Old = dataEvent->lep2_;
+      SmurfTree::LorentzVector dilepOld = dataEvent->dilep_;
+      SmurfTree::LorentzVector lep1New = dataEvent->lep1_*corr[0];
+      SmurfTree::LorentzVector lep2New = dataEvent->lep2_*corr[1];
+      SmurfTree::LorentzVector dilepNew = lep1New+lep2New;
+
+      dataEvent->lep1_ = lep1New;
+      dataEvent->lep2_ = lep2New;
+      dataEvent->dilep_ = dilepNew;
+      dataEvent->dPhi_ = fabs(ROOT::Math::VectorUtil::DeltaPhi(lep1New,lep2New));
+      dataEvent->dR_ = ROOT::Math::VectorUtil::DeltaR(lep1New,lep2New);
+
+      dataEvent->mt_  = dataEvent->mt_*sqrt(dilepNew.pt()/dilepOld.pt()); 
+      dataEvent->mt1_ = dataEvent->mt1_*sqrt(corr[0]); 
+      dataEvent->mt2_ = dataEvent->mt2_*sqrt(corr[1]); 
+
+      dataEvent->dPhiDiLepMET_  = fabs(ROOT::Math::VectorUtil::DeltaPhi(dilepNew,SmurfTree::LorentzVector(dataEvent->met_*cos(dataEvent->metPhi_),dataEvent->met_*sin(dataEvent->metPhi_),0,dataEvent->met_)));
+      if (dataEvent->dPhiDiLepJet1_<998) dataEvent->dPhiDiLepJet1_ = fabs(ROOT::Math::VectorUtil::DeltaPhi(dilepNew,dataEvent->jet1_));
+//       cout << dataEvent->lep1_.pt() << " " << dataEvent->lep2_.pt() << " " << dataEvent->dilep_.mass() << " " << dataEvent->dPhi_ << " "
+// 	   << dataEvent->mt_ << " " << dataEvent->mt1_ << " " << dataEvent->mt2_ << " " << dataEvent->dPhiDiLepMET_ << " " << dataEvent->dPhiDiLepJet1_
+// 	   << endl;
+    }
 
 //     cout << "run, lumi, evt: " << dataEvent->run_ << " " << dataEvent->lumi_ << " " << dataEvent->event_;
 //     cout << " - type, nvtx, njets: " << dataEvent->type_ << " " << dataEvent->nvtx_ << " " << dataEvent->njets_;

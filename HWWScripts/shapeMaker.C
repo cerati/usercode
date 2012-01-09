@@ -32,6 +32,11 @@ void writeStatUpDown(TH1F* central,bool down, int njets, TString fs) {
   statUpDown->Write();
 }
 
+void writeStatUpDown(TH1F* central, int njets, TString fs) {
+  writeStatUpDown(central,true, njets, fs);
+  writeStatUpDown(central,false, njets, fs);
+}
+
 void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
   TString dir = main_dir+topww_dir;
@@ -262,71 +267,281 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   TH1F* ZH_h = new TH1F("histo_ZH","histo_ZH",nbins,minx,maxx);
   fillPlot(rbdtg,ZH_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ZH,"+fs, lumi, useJson, applyEff, doFake, doPUw);
 
+  //MET RESOLUTION SYSTEMATICS: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
+  //Higgs
+  TH1F* ggH_metres_up_h = new TH1F("histo_ggH_CMS_MVAMETResBoundingUp","histo_ggH_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,ggH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ggH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  scaleIntegral(ggH_h,ggH_metres_up_h);//fixme
+  TH1F* ggH_metres_down_h = new TH1F("histo_ggH_CMS_MVAMETResBoundingDown","histo_ggH_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(ggH_h,ggH_metres_up_h,ggH_metres_down_h);
+  TH1F* qqH_metres_up_h = new TH1F("histo_qqH_CMS_MVAMETResBoundingUp","histo_qqH_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,qqH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"qqH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  TH1F* qqH_metres_down_h = new TH1F("histo_qqH_CMS_MVAMETResBoundingDown","histo_qqH_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(qqH_h,qqH_metres_up_h,qqH_metres_down_h);
+  TH1F* WH_metres_up_h = new TH1F("histo_WH_CMS_MVAMETResBoundingUp","histo_WH_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,WH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"WH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  TH1F* WH_metres_down_h = new TH1F("histo_WH_CMS_MVAMETResBoundingDown","histo_WH_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(WH_h,WH_metres_up_h,WH_metres_down_h);
+  TH1F* ZH_metres_up_h = new TH1F("histo_ZH_CMS_MVAMETResBoundingUp","histo_ZH_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,ZH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ZH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  TH1F* ZH_metres_down_h = new TH1F("histo_ZH_CMS_MVAMETResBoundingDown","histo_ZH_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(ZH_h,ZH_metres_up_h,ZH_metres_down_h);
+  //WW
+  TH1F* qqww_metres_up_h = new TH1F("histo_qqWW_CMS_MVAMETResBoundingUp","histo_qqWW_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,qqww_metres_up_h, dir+"qqww"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  qqww_metres_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
+  TH1F* qqww_metres_down_h = new TH1F("histo_qqWW_CMS_MVAMETResBoundingDown","histo_qqWW_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(qqww_h,qqww_metres_up_h,qqww_metres_down_h);
+  TH1F* ggww_metres_up_h = new TH1F("histo_ggWW_CMS_MVAMETResBoundingUp","histo_ggWW_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,ggww_metres_up_h, dir+"ggww"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  ggww_metres_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
+  TH1F* ggww_metres_down_h = new TH1F("histo_ggWW_CMS_MVAMETResBoundingDown","histo_ggWW_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(ggww_h,ggww_metres_up_h,ggww_metres_down_h);
+  //VV
+  TH1F* wz_metres_up_h = new TH1F("histo_wz_metres_up","histo_wz_metres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,wz_metres_up_h, dir+"wz"+suffix, wwSelection, veto, mass, njets, sigreg+"notZ,"+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  TH1F* zz_metres_up_h = new TH1F("histo_zz_metres_up","histo_zz_metres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,zz_metres_up_h, dir+"zz_py"+suffix, wwSelection, veto, mass, njets, sigreg+"notZ,"+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  TH1F* vv_metres_up_h = new TH1F("histo_VV_CMS_MVAMETResBoundingUp","histo_VV_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  vv_metres_up_h->Add(wz_metres_up_h);
+  vv_metres_up_h->Add(zz_metres_up_h);
+  TH1F* vv_metres_down_h = new TH1F("histo_VV_CMS_MVAMETResBoundingDown","histo_VV_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(vv_h,vv_metres_up_h,vv_metres_down_h);
+  //Top
+  TH1F* ttbar_metres_up_h = new TH1F("histo_ttbar_metres_up","histo_ttbar_metres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,ttbar_metres_up_h, dir+"ttbar"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  ttbar_metres_up_h->Scale(TopBkgScaleFactor(njets));
+  TH1F* tw_metres_up_h = new TH1F("histo_tw_metres_up","histo_tw_metres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,tw_metres_up_h, dir+"tw"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  tw_metres_up_h->Scale(TopBkgScaleFactor(njets));
+  TH1F* top_metres_up_h = new TH1F("histo_Top_CMS_MVAMETResBoundingUp","histo_Top_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  top_metres_up_h->Add(ttbar_metres_up_h);
+  top_metres_up_h->Add(tw_metres_up_h);
+  TH1F* top_metres_down_h = new TH1F("histo_Top_CMS_MVAMETResBoundingDown","histo_Top_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(top_h,top_metres_up_h,top_metres_down_h);
+  //Wgamma
+  TH1F* wg_metres_up_h = new TH1F("histo_wg_metres_up","histo_wg_metres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,wg_metres_up_h, dir+"wgamma"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  TH1F* wg3l_metres_up_h = new TH1F("histo_wg3l_metres_up","histo_wg3l_metres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,wg3l_metres_up_h, dir+"wg3l"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+  wg3l_metres_up_h->Scale(WGstarScaleFactor());
+  TH1F* wgamma_metres_up_h = new TH1F("histo_Wgamma_CMS_MVAMETResBoundingUp","histo_Wgamma_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  wgamma_metres_up_h->Add(wg_metres_up_h);
+  wgamma_metres_up_h->Add(wg3l_metres_up_h);
+  TH1F* wgamma_metres_down_h = new TH1F("histo_Wgamma_CMS_MVAMETResBoundingDown","histo_Wgamma_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(wgamma_h,wgamma_metres_up_h,wgamma_metres_down_h);
+  //Ztt
+  TH1F* dytt_1_metres_up_h = new TH1F("histo_dytt_metres_up_1","histo_dytt_metres_up_1",nbins,minx,maxx);
+  fillPlot(rbdtg,dytt_1_metres_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "metSmear");
+  TH1F* dytt_2_metres_up_h = new TH1F("histo_dytt_metres_up_2","histo_dytt_metres_up_2",nbins,minx,maxx);
+  fillPlot(rbdtg,dytt_2_metres_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "metSmear");
+  TH1F* dytt_3_metres_up_h = new TH1F("histo_dytt_metres_up_3","histo_dytt_metres_up_3",nbins,minx,maxx);
+  fillPlot(rbdtg,dytt_3_metres_up_h, dir+"data-emb-tau123"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "metSmear");
+  TH1F* ztt_metres_up_h = new TH1F("histo_Ztt_CMS_MVAMETResBoundingUp","histo_Ztt_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
+  ztt_metres_up_h->Add(dytt_1_metres_up_h);
+  ztt_metres_up_h->Add(dytt_2_metres_up_h);
+  ztt_metres_up_h->Add(dytt_3_metres_up_h);
+  TH1F* ztt_metres_down_h = new TH1F("histo_Ztt_CMS_MVAMETResBoundingDown","histo_Ztt_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
+  fillDownMirrorUp(ztt_h,ztt_metres_up_h,ztt_metres_down_h);
+
+  //Lepton energy resolution and scale systematics: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
+  TH1F* ggH_lepres_up_h = new TH1F("histo_ggH_CMS_MVALepResBoundingUp","histo_ggH_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,ggH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ggH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  TH1F* ggH_lepres_down_h = new TH1F("histo_ggH_CMS_MVALepResBoundingDown","histo_ggH_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  fillPlot(rbdtg,ggH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ggH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  TH1F* qqH_lepres_up_h = new TH1F("histo_qqH_CMS_MVALepResBoundingUp","histo_qqH_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,qqH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"qqH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  TH1F* qqH_lepres_down_h = new TH1F("histo_qqH_CMS_MVALepResBoundingDown","histo_qqH_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  fillPlot(rbdtg,qqH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"qqH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  TH1F* WH_lepres_up_h = new TH1F("histo_WH_CMS_MVALepResBoundingUp","histo_WH_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,WH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"WH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  TH1F* WH_lepres_down_h = new TH1F("histo_WH_CMS_MVALepResBoundingDown","histo_WH_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  fillPlot(rbdtg,WH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"WH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  TH1F* ZH_lepres_up_h = new TH1F("histo_ZH_CMS_MVALepResBoundingUp","histo_ZH_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,ZH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ZH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  TH1F* ZH_lepres_down_h = new TH1F("histo_ZH_CMS_MVALepResBoundingDown","histo_ZH_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  fillPlot(rbdtg,ZH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ZH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  //WW
+  TH1F* qqww_lepres_up_h = new TH1F("histo_qqWW_CMS_MVALepResBoundingUp","histo_qqWW_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,qqww_lepres_up_h, dir+"qqww"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  qqww_lepres_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
+  TH1F* ggww_lepres_up_h = new TH1F("histo_ggWW_CMS_MVALepResBoundingUp","histo_ggWW_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  fillPlot(rbdtg,ggww_lepres_up_h, dir+"ggww"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  ggww_lepres_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
+  TH1F* qqww_lepres_down_h = new TH1F("histo_qqWW_CMS_MVALepResBoundingDown","histo_qqWW_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  fillPlot(rbdtg,qqww_lepres_down_h, dir+"qqww"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  qqww_lepres_down_h->Scale(WWBkgScaleFactorMVA(mass,njets));
+  TH1F* ggww_lepres_down_h = new TH1F("histo_ggWW_CMS_MVALepResBoundingDown","histo_ggWW_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  fillPlot(rbdtg,ggww_lepres_down_h, dir+"ggww"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  ggww_lepres_down_h->Scale(WWBkgScaleFactorMVA(mass,njets));
+  //VV
+  TH1F* wz_lepres_up_h = new TH1F("histo_wz_lepres_up","histo_wz_lepres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,wz_lepres_up_h, dir+"wz"+suffix, wwSelection, veto, mass, njets, sigreg+"notZ,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  TH1F* zz_lepres_up_h = new TH1F("histo_zz_lepres_up","histo_zz_lepres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,zz_lepres_up_h, dir+"zz_py"+suffix, wwSelection, veto, mass, njets, sigreg+"notZ,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  TH1F* vv_lepres_up_h = new TH1F("histo_VV_CMS_MVALepResBoundingUp","histo_VV_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  vv_lepres_up_h->Add(wz_lepres_up_h);
+  vv_lepres_up_h->Add(zz_lepres_up_h);
+  TH1F* wz_lepres_down_h = new TH1F("histo_wz_lepres_down","histo_wz_lepres_down",nbins,minx,maxx);
+  fillPlot(rbdtg,wz_lepres_down_h, dir+"wz"+suffix, wwSelection, veto, mass, njets, sigreg+"notZ,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  TH1F* zz_lepres_down_h = new TH1F("histo_zz_lepres_down","histo_zz_lepres_down",nbins,minx,maxx);
+  fillPlot(rbdtg,zz_lepres_down_h, dir+"zz_py"+suffix, wwSelection, veto, mass, njets, sigreg+"notZ,"+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  TH1F* vv_lepres_down_h = new TH1F("histo_VV_CMS_MVALepResBoundingDown","histo_VV_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  vv_lepres_down_h->Add(wz_lepres_down_h);
+  vv_lepres_down_h->Add(zz_lepres_down_h);
+  //Top
+  TH1F* ttbar_lepres_up_h = new TH1F("histo_ttbar_lepres_up","histo_ttbar_lepres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,ttbar_lepres_up_h, dir+"ttbar"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  ttbar_lepres_up_h->Scale(TopBkgScaleFactor(njets));
+  TH1F* tw_lepres_up_h = new TH1F("histo_tw_lepres_up","histo_tw_lepres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,tw_lepres_up_h, dir+"tw"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  tw_lepres_up_h->Scale(TopBkgScaleFactor(njets));
+  TH1F* top_lepres_up_h = new TH1F("histo_Top_CMS_MVALepResBoundingUp","histo_Top_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  top_lepres_up_h->Add(ttbar_lepres_up_h);
+  top_lepres_up_h->Add(tw_lepres_up_h);
+  TH1F* ttbar_lepres_down_h = new TH1F("histo_ttbar_lepres_down","histo_ttbar_lepres_down",nbins,minx,maxx);
+  fillPlot(rbdtg,ttbar_lepres_down_h, dir+"ttbar"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  ttbar_lepres_down_h->Scale(TopBkgScaleFactor(njets));
+  TH1F* tw_lepres_down_h = new TH1F("histo_tw_lepres_down","histo_tw_lepres_down",nbins,minx,maxx);
+  fillPlot(rbdtg,tw_lepres_down_h, dir+"tw"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  tw_lepres_down_h->Scale(TopBkgScaleFactor(njets));
+  TH1F* top_lepres_down_h = new TH1F("histo_Top_CMS_MVALepResBoundingDown","histo_Top_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  top_lepres_down_h->Add(ttbar_lepres_down_h);
+  top_lepres_down_h->Add(tw_lepres_down_h);
+  //Wgamma
+  TH1F* wg_lepres_up_h = new TH1F("histo_wg_lepres_up","histo_wg_lepres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,wg_lepres_up_h, dir+"wgamma"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  TH1F* wg3l_lepres_up_h = new TH1F("histo_wg3l_lepres_up","histo_wg3l_lepres_up",nbins,minx,maxx);
+  fillPlot(rbdtg,wg3l_lepres_up_h, dir+"wg3l"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+  wg3l_lepres_up_h->Scale(WGstarScaleFactor());
+  TH1F* wgamma_lepres_up_h = new TH1F("histo_Wgamma_CMS_MVALepResBoundingUp","histo_Wgamma_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  wgamma_lepres_up_h->Add(wg_lepres_up_h);
+  wgamma_lepres_up_h->Add(wg3l_lepres_up_h);
+  TH1F* wg_lepres_down_h = new TH1F("histo_wg_lepres_down","histo_wg_lepres_down",nbins,minx,maxx);
+  fillPlot(rbdtg,wg_lepres_down_h, dir+"wgamma"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  TH1F* wg3l_lepres_down_h = new TH1F("histo_wg3l_lepres_down","histo_wg3l_lepres_down",nbins,minx,maxx);
+  fillPlot(rbdtg,wg3l_lepres_down_h, dir+"wg3l"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+  wg3l_lepres_down_h->Scale(WGstarScaleFactor());
+  TH1F* wgamma_lepres_down_h = new TH1F("histo_Wgamma_CMS_MVALepResBoundingDown","histo_Wgamma_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  wgamma_lepres_down_h->Add(wg_lepres_down_h);
+  wgamma_lepres_down_h->Add(wg3l_lepres_down_h);
+  //Ztt
+  TH1F* dytt_1_lepres_up_h = new TH1F("histo_dytt_lepres_up_1","histo_dytt_lepres_up_1",nbins,minx,maxx);
+  fillPlot(rbdtg,dytt_1_lepres_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleUp");
+  TH1F* dytt_2_lepres_up_h = new TH1F("histo_dytt_lepres_up_2","histo_dytt_lepres_up_2",nbins,minx,maxx);
+  fillPlot(rbdtg,dytt_2_lepres_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleUp");
+  TH1F* dytt_3_lepres_up_h = new TH1F("histo_dytt_lepres_up_3","histo_dytt_lepres_up_3",nbins,minx,maxx);
+  fillPlot(rbdtg,dytt_3_lepres_up_h, dir+"data-emb-tau123"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleUp");
+  TH1F* ztt_lepres_up_h = new TH1F("histo_Ztt_CMS_MVALepResBoundingUp","histo_Ztt_CMS_MVALepResBoundingUp",nbins,minx,maxx);
+  ztt_lepres_up_h->Add(dytt_1_lepres_up_h);
+  ztt_lepres_up_h->Add(dytt_2_lepres_up_h);
+  ztt_lepres_up_h->Add(dytt_3_lepres_up_h);
+  TH1F* dytt_1_lepres_down_h = new TH1F("histo_dytt_lepres_down_1","histo_dytt_lepres_down_1",nbins,minx,maxx);
+  fillPlot(rbdtg,dytt_1_lepres_down_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleDown");
+  TH1F* dytt_2_lepres_down_h = new TH1F("histo_dytt_lepres_down_2","histo_dytt_lepres_down_2",nbins,minx,maxx);
+  fillPlot(rbdtg,dytt_2_lepres_down_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleDown");
+  TH1F* dytt_3_lepres_down_h = new TH1F("histo_dytt_lepres_down_3","histo_dytt_lepres_down_3",nbins,minx,maxx);
+  fillPlot(rbdtg,dytt_3_lepres_down_h, dir+"data-emb-tau123"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleDown");
+  TH1F* ztt_lepres_down_h = new TH1F("histo_Ztt_CMS_MVALepResBoundingDown","histo_Ztt_CMS_MVALepResBoundingDown",nbins,minx,maxx);
+  ztt_lepres_down_h->Add(dytt_1_lepres_down_h);
+  ztt_lepres_down_h->Add(dytt_2_lepres_down_h);
+  ztt_lepres_down_h->Add(dytt_3_lepres_down_h);
+
   //Write histos to file
   TString outfname = Form("hww%s_%ij.input.root",TString(fs).ReplaceAll("fs","").Data(),njets);
   TFile* outfile = TFile::Open(outfname,"RECREATE");
 
+  //Nominal Histos
   data_h->Write();
-
-  writeStatUpDown(ggww_h,0,njets,fs);
-  writeStatUpDown(ggww_h,1,njets,fs);
   ggww_h->Write();
+  qqww_h->Write();
+  top_h->Write();
+  zjets_h->Write();
+  wjets_h->Write();
+  vv_h->Write();
+  wgamma_h->Write();
+  ztt_h->Write();
+  qqH_h->Write();
+  ggH_h->Write();
+  WH_h->Write();
+  ZH_h->Write();
 
+  //Stat uncertainty
+  writeStatUpDown(ggww_h,njets,fs);
+  writeStatUpDown(qqww_h,njets,fs);
+  writeStatUpDown(top_h,njets,fs);
+  writeStatUpDown(zjets_h,njets,fs);
+  writeStatUpDown(wjets_h,njets,fs);
+  writeStatUpDown(vv_h,njets,fs);
+  writeStatUpDown(wgamma_h,njets,fs);
+  writeStatUpDown(ztt_h,njets,fs);
+  writeStatUpDown(qqH_h,njets,fs);
+  writeStatUpDown(ggH_h,njets,fs);
+  writeStatUpDown(WH_h,njets,fs);
+  writeStatUpDown(ZH_h,njets,fs);
+
+  //MET RESOLUTION SYSTEMATICS: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
+  ggH_metres_up_h->Write();
+  ggH_metres_down_h->Write();
+  qqH_metres_up_h->Write();
+  qqH_metres_down_h->Write();
+  WH_metres_up_h->Write();
+  WH_metres_down_h->Write();
+  ZH_metres_up_h->Write();
+  ZH_metres_down_h->Write();
+  qqww_metres_up_h->Write();
+  qqww_metres_down_h->Write();
+  ggww_metres_up_h->Write();
+  ggww_metres_down_h->Write();
+  vv_metres_up_h->Write();
+  vv_metres_down_h->Write();
+  top_metres_up_h->Write();
+  top_metres_down_h->Write();
+  wgamma_metres_up_h->Write();
+  wgamma_metres_down_h->Write();
+  ztt_metres_up_h->Write();
+  ztt_metres_down_h->Write();
+
+  //Lepton energy resolution and scale systematics: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
+  ggH_lepres_up_h->Write();
+  ggH_lepres_down_h->Write();
+  qqH_lepres_up_h->Write();
+  qqH_lepres_down_h->Write();
+  WH_lepres_up_h->Write();
+  WH_lepres_down_h->Write();
+  ZH_lepres_up_h->Write();
+  ZH_lepres_down_h->Write();
+  qqww_lepres_up_h->Write();
+  qqww_lepres_down_h->Write();
+  ggww_lepres_up_h->Write();
+  ggww_lepres_down_h->Write();
+  vv_lepres_up_h->Write();
+  vv_lepres_down_h->Write();
+  top_lepres_up_h->Write();
+  top_lepres_down_h->Write();
+  wgamma_lepres_up_h->Write();
+  wgamma_lepres_down_h->Write();
+  ztt_lepres_up_h->Write();
+  ztt_lepres_down_h->Write();
+
+  //Other systematics
   qqww_h_up->Write();
   qqww_h_down->Write();
   qqww_h_nlo_up->Write();
   qqww_h_nlo_down->Write();
-  writeStatUpDown(qqww_h,0,njets,fs);
-  writeStatUpDown(qqww_h,1,njets,fs);
-  qqww_h->Write();
 
   top_h_up->Write();
   top_h_down->Write();
-  writeStatUpDown(top_h,0,njets,fs);
-  writeStatUpDown(top_h,1,njets,fs);
-  top_h->Write();
 
   if (fs=="sffs") {
     zjets_h_up->Write();
     zjets_h_down->Write();
   }
-  writeStatUpDown(zjets_h,0,njets,fs);
-  writeStatUpDown(zjets_h,1,njets,fs);
-  zjets_h->Write();
 
   wjets_fr_up_h->Write();
   wjets_fr_down_h->Write();
   wjets_mc_up_h->Write();
   wjets_mc_down_h->Write();
-  writeStatUpDown(wjets_h,0,njets,fs);
-  writeStatUpDown(wjets_h,1,njets,fs);
-  wjets_h->Write();
-
-  writeStatUpDown(vv_h,0,njets,fs);
-  writeStatUpDown(vv_h,1,njets,fs);
-  vv_h->Write();
-
-  writeStatUpDown(wgamma_h,0,njets,fs);
-  writeStatUpDown(wgamma_h,1,njets,fs);
-  wgamma_h->Write();
-
-  writeStatUpDown(ztt_h,0,njets,fs);
-  writeStatUpDown(ztt_h,1,njets,fs);
-  ztt_h->Write();
-
-  writeStatUpDown(qqH_h,0,njets,fs);
-  writeStatUpDown(qqH_h,1,njets,fs);
-  qqH_h->Write();
-  writeStatUpDown(ggH_h,0,njets,fs);
-  writeStatUpDown(ggH_h,1,njets,fs);
-  ggH_h->Write();
-
-  writeStatUpDown(WH_h,0,njets,fs);
-  writeStatUpDown(WH_h,1,njets,fs);
-  WH_h->Write();
-  writeStatUpDown(ZH_h,0,njets,fs);
-  writeStatUpDown(ZH_h,1,njets,fs);
-  ZH_h->Write();
   
   outfile->Close();
 
