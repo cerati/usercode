@@ -22,15 +22,6 @@ pair<float,float> wwEstimationMC(int mass=160, unsigned int njets=0, float lumi 
 
 }
 
-float ratioPoissErr(float nval, float nerr, float dval, float derr) {
-  return sqrt( pow(nerr/dval,2) + pow(nval*derr/pow(dval,2),2) );
-}
-
-float efficiencyErr(float eff, float den) {
-  return sqrt( eff*(1-eff)/den );
-}
-
-
 pair<float,float> getAllBkg(int mass=160, unsigned int njets=0, string region="", float lumi = 1./*fb-1*/, float eff_veto_data=0, float eff_err_veto_data=0, 
 			    bool useJson=false, bool applyEff=true, bool doPUw=true) {
 
