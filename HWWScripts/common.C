@@ -52,6 +52,7 @@ bool redoWeights  = 0;
 bool checkWeights = 0;
 bool doMVA = 0;
 bool doVBF = 0;
+ReadBDTG* rbdtg = 0;
 
 //copy here to avoid SmurfTree::
 enum Selection {
@@ -419,6 +420,31 @@ float getPileupReweightFactor(int nvtx, TH1F* puweights=0) {
   }
 }
 
+
+float ratioPoissErr(float nval, float nerr, float dval, float derr) {
+  return sqrt( pow(nerr/dval,2) + pow(nval*derr/pow(dval,2),2) );
+}
+
+float efficiencyErr(float eff, float den) {
+  return sqrt( eff*(1-eff)/den );
+}
+
+float discCtrJet(SmurfTree *dataEvent) {
+  float discCtr = dataEvent->jet1Btag_;
+  if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) discCtr = dataEvent->jet2Btag_;
+  if ( dataEvent->jet3_.pt()>30 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) discCtr = dataEvent->jet3Btag_;
+  //cout << discCtr << endl;
+  return discCtr;
+}
+
+float discFwdJet(SmurfTree *dataEvent) {
+  float discCtr = dataEvent->jet1Btag_;
+  if ( fabs(dataEvent->jet2_.eta())>fabs(dataEvent->jet1_.eta()) ) discCtr = dataEvent->jet2Btag_;
+  if ( dataEvent->jet3_.pt()>30 && fabs(dataEvent->jet3_.eta())>max(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) discCtr = dataEvent->jet3Btag_;
+  //cout << discCtr << endl;
+  return discCtr;
+}
+
 bool passEvent(SmurfTree *dataEvent, unsigned int njets, unsigned int cut, unsigned int veto, TString region, 
 	       float lep1pt,float lep2pt,float dPhi,float mll,float mtL,float mtH,float himass,
 	       bool isMC, bool useJson){
@@ -486,6 +512,8 @@ bool passEvent(SmurfTree *dataEvent, unsigned int njets, unsigned int cut, unsig
     if ( region.Contains("btagJet2")  && dataEvent->jet2Btag_<2.1 ) return 0;
     if ( region.Contains("nobJet1")   && dataEvent->jet1Btag_>2.1 ) return 0;
     if ( region.Contains("nobJet2")   && dataEvent->jet2Btag_>2.1 ) return 0;
+    if ( region.Contains("bTagCtr") && discCtrJet(dataEvent)<2.1) return 0;
+    if ( region.Contains("bTagFwd") && discFwdJet(dataEvent)<2.1) return 0;
     //check peaking at MC level
     if ( region.Contains("fromZ") && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
     if ( region.Contains("notZ") && !(dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
@@ -688,7 +716,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
   return make_pair<float, float>(yield,error);
 }
 
-void fillPlot(ReadBDTG* rbdtg, TH1F* h, TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, 
+void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString region, float lumi, 
 	      bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false, TString syst="") {
 
 //   cout << sample << " " << cut << " " << veto << " " << mass << " " << njets << " " << region << " " << lumi << " " 
@@ -909,18 +937,33 @@ void fillPlot(ReadBDTG* rbdtg, TH1F* h, TString sample, unsigned int cut, unsign
 	}
       }
       //h->Fill(dataEvent->dilep_.mass(),weight*effSF*puw);
-      std::vector<double> theInputVals;
-      if (njets==0) {
-	const double inputVals[] = { dataEvent->lep1_.pt(), dataEvent->lep2_.pt(), dataEvent->dPhi_, dataEvent->dR_, dataEvent->dilep_.mass(), dataEvent->type_, dataEvent->mt_};
-	for (int i=0;i<7;++i) theInputVals.push_back(inputVals[i]);
-      } else if (njets==1) {
-	const double inputVals[] = { dataEvent->lep1_.pt(), dataEvent->lep2_.pt(), dataEvent->dPhi_, dataEvent->dR_, dataEvent->dilep_.mass(), dataEvent->type_, dataEvent->mt_, dataEvent->dPhiDiLepMET_, dataEvent->dPhiDiLepJet1_};
-	for (int i=0;i<9;++i) theInputVals.push_back(inputVals[i]);	
+      if (var=="bdtg") {
+	std::vector<double> theInputVals;
+	if (njets==0) {
+	  const double inputVals[] = { dataEvent->lep1_.pt(), dataEvent->lep2_.pt(), dataEvent->dPhi_, dataEvent->dR_, dataEvent->dilep_.mass(), dataEvent->type_, dataEvent->mt_};
+	  for (int i=0;i<7;++i) theInputVals.push_back(inputVals[i]);
+	} else if (njets==1) {
+	  const double inputVals[] = { dataEvent->lep1_.pt(), dataEvent->lep2_.pt(), dataEvent->dPhi_, dataEvent->dR_, dataEvent->dilep_.mass(), dataEvent->type_, dataEvent->mt_, dataEvent->dPhiDiLepMET_, dataEvent->dPhiDiLepJet1_};
+	  for (int i=0;i<9;++i) theInputVals.push_back(inputVals[i]);	
+	} else {
+	  cout << "njets not supported: " << njets << endl;
+	  return;
+	}
+	h->Fill(rbdtg->GetMvaValue(theInputVals),weight*effSF*puw);
+      } else if (var=="mll") {
+	h->Fill(dataEvent->dilep_.mass(),weight*effSF*puw);
+      } else if (var=="ctrjetetapt") {
+	TH2* h2 = dynamic_cast<TH2*>(h);
+	assert(h2);
+	float etaCtr = min(fabs(dataEvent->jet1_.eta()),min(fabs(dataEvent->jet2_.eta()),fabs(dataEvent->jet3_.eta())));
+	float ptCtr = dataEvent->jet1_.pt();
+	if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) ptCtr = dataEvent->jet2_.pt();;
+	if ( dataEvent->jet3_.pt()>15 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) ptCtr = dataEvent->jet3_.pt();;
+	h2->Fill(etaCtr,ptCtr,weight*effSF*puw);
       } else {
-	cout << "njets not supported: " << njets << endl;
+	cout << "WRONG VAR TO PLOT" << endl;
 	return;
       }
-      h->Fill(rbdtg->GetMvaValue(theInputVals),weight*effSF*puw);
     } else {//DO FAKES!!!      
       if ( ( (dataEvent->cuts_ & Lep1LooseEleV4)    == Lep1LooseEleV4    &&
 	     (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection && 
@@ -942,7 +985,14 @@ void fillPlot(ReadBDTG* rbdtg, TH1F* h, TString sample, unsigned int cut, unsign
 	  float fr = getFR(dataEvent,eFR,mFR);
 	  frW = fr/(1.-fr);
 	} else frW = fabs(dataEvent->sfWeightFR_);//warning, using fabs, does not work with mixed samples!!!!!
-	h->Fill(rbdtg->GetMvaValue(theInputVals),weight*puw*frW);
+	if (var=="bdtg") {
+	  h->Fill(rbdtg->GetMvaValue(theInputVals),weight*puw*frW);
+	} else if (var=="mll") {
+	  h->Fill(dataEvent->dilep_.mass(),weight*puw*frW);
+	} else {
+	  cout << "WRONG VAR TO PLOT" << endl;
+	  return;
+	}
       } 
     }
   }
