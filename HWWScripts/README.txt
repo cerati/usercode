@@ -1,5 +1,6 @@
-Instructions to check out the code and produce limits:
+*** Instructions to check out the code and produce limits ***
 
+* installation *
 cvs co -d HWWScripts UserCode/GCerati/HWWScripts
 cd HWWScripts
 cvs co -d CMS2/NtupleMacros/Tools UserCode/JRibnik/CMS2/NtupleMacros/Tools
@@ -19,17 +20,20 @@ cd ../Smurf/LimitCalc/
 ln -s ../../LandS/lands.so
 cd ../..
 
+* background estimation *
 root -b -q -l dyBg.C++\(4.7\)
-root -b -q -l topBg.C++\(4.7\)
-root -b -q -l wwBkg.C++\(4.7\)
-
 mv DYBkgScaleFactors.h Smurf/Analysis/HWWlvlv/
+root -b -q -l topBg.C++\(4.7\)
 mv TopBkgScaleFactors.h Smurf/Analysis/HWWlvlv/
+root -b -q -l wwBkg.C++\(4.7\)
 mv WWBkgScaleFactors.h Smurf/Analysis/HWWlvlv/
 
+* prepare cards *
 root -b -q -l cardMaker.C++\(4.7,\"cut\"\)
 root -b -q -l cardMaker.C++\(4.7,\"shape\"\)
 ./shapeMaker.py
+
+* run limits *
 cd Smurf/LimitCalc/
 ./fixPath.pl ../../cards/
 ./GetExpectLimits.pl ../../cards/limits_nj_shape.txt CLs-asymptotic
