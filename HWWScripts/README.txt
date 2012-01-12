@@ -38,3 +38,7 @@ cd Smurf/LimitCalc/
 ./fixPath.pl ../../cards/
 ./GetExpectLimits.pl ../../cards/limits_nj_shape.txt CLs-asymptotic
 ./postprocess.pl ../../cards/limits_nj_shape.txt "0/1/2-jets"  CLs-asymptotic
+
+* commit only in my area *
+cvs tag -l TAGNAME .
+cvs tag -l TAGNAME cards/limits_nj_*.txt
