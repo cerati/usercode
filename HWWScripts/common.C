@@ -955,11 +955,11 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
       } else if (var=="ctrjetetapt") {
 	TH2* h2 = dynamic_cast<TH2*>(h);
 	assert(h2);
-	float etaCtr = min(fabs(dataEvent->jet1_.eta()),min(fabs(dataEvent->jet2_.eta()),fabs(dataEvent->jet3_.eta())));
-	float ptCtr = dataEvent->jet1_.pt();
+	double etaCtr = min(fabs(dataEvent->jet1_.eta()),min(fabs(dataEvent->jet2_.eta()),fabs(dataEvent->jet3_.eta())));
+	double ptCtr = dataEvent->jet1_.pt();
 	if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) ptCtr = dataEvent->jet2_.pt();;
 	if ( dataEvent->jet3_.pt()>15 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) ptCtr = dataEvent->jet3_.pt();;
-	h2->Fill(etaCtr,ptCtr,weight*effSF*puw);
+	h2->Fill(min(etaCtr,2.499),ptCtr,weight*effSF*puw);//overflow in last bin
       } else {
 	cout << "WRONG VAR TO PLOT" << endl;
 	return;
