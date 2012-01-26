@@ -1,15 +1,38 @@
 #include "common.C"
 
+void printBins(TH1F* h) {
+  cout << h->GetName() << endl;
+  for (int bin=1;bin<=h->GetNbinsX();++bin) {
+    cout << bin << " " << h->GetBinContent(bin) << endl;
+  }
+}
+
+void avoidNegativeBins(TH1F* h) {
+  for (int bin=1;bin<=h->GetNbinsX();++bin) {
+    if (h->GetBinContent(bin)<0) h->SetBinContent(bin,0);
+  }
+}
+
 void fillDownMirrorUp(TH1F* central,TH1F* up,TH1F* down) {
   down->Add(up);
   down->Scale(-1);
   down->Add(central);
   down->Add(central);
   //need to avoid negative values...
-  for (int bin=1;bin<=down->GetNbinsX();++bin) {
-    if (down->GetBinContent(bin)<0) down->SetBinContent(bin,0);
-  }
+  avoidNegativeBins(down);
+}
 
+void divideHisto(TH1F* num,TH1F* den){
+  for (int bin=1;bin<=num->GetNbinsX();++bin) {
+    if (fabs(den->GetBinContent(bin)>0)) num->SetBinContent(bin,num->GetBinContent(bin)/den->GetBinContent(bin));
+    else num->SetBinContent(bin,0);
+  }
+}
+
+void multiplyHisto(TH1F* num,TH1F* den){
+  for (int bin=1;bin<=num->GetNbinsX();++bin) {
+    num->SetBinContent(bin,num->GetBinContent(bin)*den->GetBinContent(bin));
+  }
 }
 
 void scaleIntegral(TH1F* central,TH1F* other) {
@@ -86,6 +109,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   //shape variation: 1- mg vs mc@nlo (down mirror);
   TH1F* qqww_mcnlo_h = new TH1F("histo_qqww_mcnlo","histo_qqww_mcnlo",nbins,minx,maxx);
   fillPlot("bdtg",qqww_mcnlo_h, dir+"ww_mcnlo"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  avoidNegativeBins(qqww_mcnlo_h);
   scaleIntegral(qqww_h,qqww_mcnlo_h);
   TH1F* qqww_h_up = new TH1F("histo_qqWW_CMS_MVAWWBounding_hwwUp","histo_qqWW_CMS_MVAWWBounding_hwwUp",nbins,minx,maxx);
   qqww_h_up->Add(qqww_mcnlo_h);
@@ -94,18 +118,20 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   //shape variation: 2- ratio from mc@nlo w.r.t. QCD up and down
   TH1F* qqww_mcnlo_up_h = new TH1F("histo_qqww_mcnlo_up","histo_qqww_mcnlo_up",nbins,minx,maxx);
   fillPlot("bdtg",qqww_mcnlo_up_h, dir+"ww_mcnlo_up"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  avoidNegativeBins(qqww_mcnlo_up_h);
   scaleIntegral(qqww_h,qqww_mcnlo_up_h);
-  qqww_mcnlo_up_h->Divide(qqww_mcnlo_h);
+  divideHisto(qqww_mcnlo_up_h,qqww_mcnlo_h);
   TH1F* qqww_mcnlo_down_h = new TH1F("histo_qqww_mcnlo_down","histo_qqww_mcnlo_down",nbins,minx,maxx);
   fillPlot("bdtg",qqww_mcnlo_down_h, dir+"ww_mcnlo_down"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  avoidNegativeBins(qqww_mcnlo_down_h);
   scaleIntegral(qqww_h,qqww_mcnlo_down_h);
-  qqww_mcnlo_down_h->Divide(qqww_mcnlo_h);
+  divideHisto(qqww_mcnlo_down_h,qqww_mcnlo_h);
   TH1F* qqww_h_nlo_up = new TH1F("histo_qqWW_CMS_MVAWWNLOBounding_hwwUp","histo_qqWW_CMS_MVAWWNLOBounding_hwwUp",nbins,minx,maxx);
   qqww_h_nlo_up->Add(qqww_h);
-  qqww_h_nlo_up->Multiply(qqww_mcnlo_up_h);
+  multiplyHisto(qqww_h_nlo_up,qqww_mcnlo_up_h);
   TH1F* qqww_h_nlo_down = new TH1F("histo_qqWW_CMS_MVAWWNLOBounding_hwwDown","histo_qqWW_CMS_MVAWWNLOBounding_hwwDown",nbins,minx,maxx);
   qqww_h_nlo_down->Add(qqww_h);
-  qqww_h_nlo_down->Multiply(qqww_mcnlo_down_h);
+  multiplyHisto(qqww_h_nlo_down,qqww_mcnlo_down_h);
 
   //ggWW
   TH1F* ggww_h = new TH1F("histo_ggWW","histo_ggWW",nbins,minx,maxx);
@@ -224,6 +250,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   wjets_h->Add(twfake_h,-1.);
   wjets_h->Add(wzfake_h,-1.);
   wjets_h->Add(zzfake_h,-1.);
+  avoidNegativeBins(wjets_h);
   //syst 1: MC closure test
   TH1F* wjets_mc_up_h = new TH1F("histo_Wjets_CMS_MVAWMCBounding_hwwUp","histo_Wjets_CMS_MVAWMCBounding_hwwUp",nbins,minx,maxx);
   fillPlot("bdtg",wjets_mc_up_h,dir+"wjets"+suffix, wwSelectionNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
@@ -253,6 +280,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   wjets_fr_up_h->Add(twfake_fr_up_h,-1.);
   wjets_fr_up_h->Add(wzfake_fr_up_h,-1.);
   wjets_fr_up_h->Add(zzfake_fr_up_h,-1.);
+  avoidNegativeBins(wjets_fr_up_h);
   TH1F* wjets_fr_down_h = new TH1F("histo_Wjets_CMS_MVAWBounding_hwwDown","histo_Wjets_CMS_MVAWBounding_hwwDown",nbins,minx,maxx);
   fillDownMirrorUp(wjets_h,wjets_fr_up_h,wjets_fr_down_h);
 
