@@ -31,7 +31,7 @@ mv WWBkgScaleFactors.h Smurf/Analysis/HWWlvlv/
 * prepare cards *
 root -b -q -l cardMaker.C++\(4.7,\"cut\"\)
 root -b -q -l cardMaker.C++\(4.7,\"shape\"\)
-./shapeMaker.py
+./shapeMaker.py 4.7
 
 * run limits *
 cd Smurf/LimitCalc/
