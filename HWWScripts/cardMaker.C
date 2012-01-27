@@ -79,6 +79,12 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     }
   }
 
+  //unceratinty on Higgs cross section at high mass
+  float theoryUncXS_HighMH = 1.000;
+  if(mass>=200) {
+    theoryUncXS_HighMH = 1.0+1.5*(mH/1000.0)*(mH/1000.0)*(mH/1000.0);
+  }
+
   pair<float, float> topSF = make_pair<float, float>(TopBkgScaleFactor(njets), TopBkgScaleFactor(njets)*(TopBkgScaleFactorKappa(njets)-1.));
   //this uncertainty should work only for the dy component
   pair<float, float> dySF = make_pair<float, float>(1., 0);
@@ -176,12 +182,12 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 	out << Form("%-35s %5s     -       -     1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVALepResBounding","shape");
 	out << Form("%-35s %5s     -       -     1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVAMETResBounding","shape");
       }
+    } else {
+      out << Form("%-35s %5s   1.015   1.015   1.015   1.015   1.015   1.015   1.015     -       -       -     1.015   1.015\n","CMS_scale_m","lnN");
+      out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_e","lnN");
+      out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_hww_met_resolution","lnN");
     }
-    out << Form("%-35s %5s   1.015   1.015   1.015   1.015   1.015   1.015   1.015     -       -       -     1.015   1.015\n","CMS_scale_m","lnN");
-    out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_e","lnN");
-    out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_hww_met_resolution","lnN");
-
-    //fixme should be reaplaced by histograms for shape
+    //fixme these 3 should be replaced by histograms for shape:
     out << Form("%-35s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
     out << Form("%-35s %5s   1.040   1.040   1.040   1.040   1.040   1.040   1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
     out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_j","lnN");
@@ -193,7 +199,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     //fixme should add ggH bounding for shape
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","UEPS","lnN", 
 		mass>0 ? HiggsSignalPSUESystematics(mass, njets) : 0.);
-    out << Form("%-35s %5s   1.000   1.000   1.000   1.000     -       -       -       -       -       -       -       -  \n","theoryUncXS_HighMH","lnN");
+    out << Form("%-35s %5s   %5.3f   %5.3f   %5.3f   %5.3f     -       -       -       -       -       -       -       -  \n","theoryUncXS_HighMH","lnN",theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH);
     out << Form("%-35s %5s     -       -       -     1.100     -     1.040     -       -       -       -       -       -  \n","pdf_gg","lnN");
     out << Form("%-35s %5s   1.050   1.050   1.050     -     1.040     -     1.040     -       -       -     1.040   1.040\n","pdf_qqbar","lnN");
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH","lnN", 
