@@ -82,7 +82,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   //unceratinty on Higgs cross section at high mass
   float theoryUncXS_HighMH = 1.000;
   if(mass>=200) {
-    theoryUncXS_HighMH = 1.0+1.5*(mH/1000.0)*(mH/1000.0)*(mH/1000.0);
+    theoryUncXS_HighMH = 1.0+1.5*(mass/1000.0)*(mass/1000.0)*(mass/1000.0);
   }
 
   pair<float, float> topSF = make_pair<float, float>(TopBkgScaleFactor(njets), TopBkgScaleFactor(njets)*(TopBkgScaleFactorKappa(njets)-1.));
