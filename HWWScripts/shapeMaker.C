@@ -160,13 +160,14 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   //shape variation: use madgraph ttbar and ds tw
   TH1F* ttbar_mg_h = new TH1F("histo_ttbar_mg","histo_ttbar_mg",nbins,minx,maxx);
   fillPlot("bdtg",ttbar_mg_h, dir+"ttbar_mg"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  scaleIntegral(ttbar_h,ttbar_mg_h);
+  //scaleIntegral(ttbar_h,ttbar_mg_h);
   TH1F* tw_ds_h = new TH1F("histo_tw_ds","histo_tw_ds",nbins,minx,maxx);
   fillPlot("bdtg",tw_ds_h, dir+"tw_ds"+suffix, wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  scaleIntegral(tw_h,tw_ds_h);
+  //scaleIntegral(tw_h,tw_ds_h);
   TH1F* top_h_up = new TH1F("histo_Top_CMS_MVATopBounding_hwwUp","histo_Top_CMS_MVATopBounding_hwwUp",nbins,minx,maxx);
   top_h_up->Add(ttbar_mg_h);
   top_h_up->Add(tw_ds_h);
+  scaleIntegral(top_h,top_h_up);
   TH1F* top_h_down = new TH1F("histo_Top_CMS_MVATopBounding_hwwDown","histo_Top_CMS_MVATopBounding_hwwDown",nbins,minx,maxx);
   fillDownMirrorUp(top_h,top_h_up,top_h_down);  
 
