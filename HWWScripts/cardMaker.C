@@ -77,7 +77,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     } else if (njets==2) {
       v_QCDscale_WW    = 1.000;
       v_QCDscale_WW1in = 1.000;
-      v_QCDscale_WW2in = 1.042;      
+      v_QCDscale_WW2in = 1.420;      
     }
   }
 
@@ -117,7 +117,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   pair<float, float> dytt_1 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau121", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
   pair<float, float> dytt_2 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau122", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
   pair<float, float> dytt_3 = getYield(dir+"data-emb-tau123", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
-  pair<float, float> dytt = make_pair<float, float>(dytt_1.first+dytt_2.first+dytt_3.first,sqrt(pow(dytt_1.second,2)+pow(dytt_2.second,2)+pow(dytt_2.second,2)));
+  pair<float, float> dytt = make_pair<float, float>(dytt_1.first+dytt_2.first+dytt_3.first,sqrt(pow(dytt_1.second,2)+pow(dytt_2.second,2)+pow(dytt_3.second,2)));
   
   pair<float, float> wgamma = getYield(dir+"wgamma", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> wg3l = getYield(dir+"wg3l", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
@@ -158,6 +158,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 
     //remove "fs"
     fs.ReplaceAll("fs","");
+    if (fs=="") fs="ll";
 
     TString bn = Form("j%i%s",njets,fs.Data());
 
@@ -176,6 +177,9 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 	   zhww.first, whww.first, qqhww.first, gghww.first, wwSF.first*qqww.first, wwSF.first*ggww.first, zz.first+wz.first, topSF.first*(ttbar.first+tw.first), 
 	   dySF.first*(dymm.first+dyee.first)+pzz.first+pwz.first, wjets.first, wgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
     out << Form("%-35s %5s   1.045   1.045   1.045   1.045     -       -     1.045     -       -       -     1.045   1.045\n","lumi","lnN");
+    //fixme these 2 should be replaced by histograms for shape:
+    out << Form("%-35s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
+    out << Form("%-35s %5s   1.040   1.040   1.040   1.040   1.040   1.040   1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
     if (mode=="shape") {
       if (mass!=115) {
 	out << Form("%-35s %5s   1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVALepResBounding","shape");
@@ -189,9 +193,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
       out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_e","lnN");
       out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_hww_met_resolution","lnN");
     }
-    //fixme these 3 should be replaced by histograms for shape:
-    out << Form("%-35s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
-    out << Form("%-35s %5s   1.040   1.040   1.040   1.040   1.040   1.040   1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
+    //fixme this 1 should be replaced by histograms for shape:
     out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_j","lnN");
     out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.360     -       -  \n","FakeRate","lnN");
     if (mode=="shape") {
@@ -210,14 +212,14 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH1in",mass, njets) : 0.);
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH2in","lnN", 
 		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH2in",mass, njets) : 0.);
-    out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_WW","lnN", 
-	        v_QCDscale_WW );
-    out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_WW1in","lnN", 
-		v_QCDscale_WW1in );
-    out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_WW2in","lnN", 
-		v_QCDscale_WW2in );
     out << Form("%-35s %5s     -       -     1.010     -       -       -       -       -       -       -       -       -  \n","QCDscale_qqH","lnN");
     out << Form("%-35s %5s   1.020   1.020     -       -       -       -       -       -       -       -       -       -  \n","QCDscale_VH","lnN");
+    out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW","lnN", 
+	        v_QCDscale_WW );
+    out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW1in","lnN", 
+		v_QCDscale_WW1in );
+    out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW2in","lnN", 
+		v_QCDscale_WW2in );
     out << Form("%-35s %5s     -       -       -       -       -       -     1.040     -       -       -       -       -  \n","QCDscale_VV","lnN");
     out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     1.300     -  \n","QCDscale_V","lnN");
     out << Form("%-35s %5s     -       -       -       -       -     1.300     -       -       -       -       -       -  \n","QCDscale_ggVV","lnN");
