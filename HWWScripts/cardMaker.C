@@ -1,6 +1,7 @@
 #include "common.C"
 #include "fakeBg.C"
 #include "Smurf/Analysis/HWWlvlv/HiggsQCDScaleSystematics.h"
+#include "Smurf/Analysis/HWWlvlv/PDFgHHSystematics.h"
 #include "Smurf/Analysis/HWWlvlv/PSUESystematics.h"
 
 #include "TSystem.h"
@@ -49,14 +50,15 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   getCutMasks(njets, baseline_toptag, control_top, control_toptag, veto, nj_top);
 
   pair<float, float> wwSF = make_pair<float, float>(1.0,0.0);
-  if (njets==0 || njets==1) {
-    if (mass==0) {
-      if (mode=="cut") wwSF = make_pair<float, float>(WWBkgScaleFactorCutBased(115,njets), WWBkgScaleFactorCutBased(115,njets)*(WWBkgScaleFactorKappaCutBased(115,njets)-1.));
-      else if (mode=="shape") wwSF = make_pair<float, float>(WWBkgScaleFactorMVA(115,njets), WWBkgScaleFactorMVA(115,njets)*(WWBkgScaleFactorKappaMVA(115,njets)-1.));
-    } else {
-      if (mode=="cut") wwSF = make_pair<float, float>(WWBkgScaleFactorCutBased(mass,njets), WWBkgScaleFactorCutBased(mass,njets)*(WWBkgScaleFactorKappaCutBased(mass,njets)-1.));
-      else if (mode=="shape") wwSF = make_pair<float, float>(WWBkgScaleFactorMVA(mass,njets), WWBkgScaleFactorMVA(mass,njets)*(WWBkgScaleFactorKappaMVA(mass,njets)-1.));
-    }
+  //for 2j use 1j sf
+  unsigned int njetsForWW = njets;
+  if (njetsForWW==2) njetsForWW=1;
+  if (mass==0) {
+    if (mode=="cut") wwSF = make_pair<float, float>(WWBkgScaleFactorCutBased(115,njetsForWW), WWBkgScaleFactorCutBased(115,njetsForWW)*(WWBkgScaleFactorKappaCutBased(115,njetsForWW)-1.));
+    else if (mode=="shape") wwSF = make_pair<float, float>(WWBkgScaleFactorMVA(115,njetsForWW), WWBkgScaleFactorMVA(115,njetsForWW)*(WWBkgScaleFactorKappaMVA(115,njetsForWW)-1.));
+  } else {
+    if (mode=="cut") wwSF = make_pair<float, float>(WWBkgScaleFactorCutBased(mass,njetsForWW), WWBkgScaleFactorCutBased(mass,njetsForWW)*(WWBkgScaleFactorKappaCutBased(mass,njetsForWW)-1.));
+    else if (mode=="shape") wwSF = make_pair<float, float>(WWBkgScaleFactorMVA(mass,njetsForWW), WWBkgScaleFactorMVA(mass,njetsForWW)*(WWBkgScaleFactorKappaMVA(mass,njetsForWW)-1.));
   }
 
   //uncertainty on population of jet bins
@@ -112,8 +114,8 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   pair<float, float> pzz = getYield(dir+"zz_py", wwSelection, veto, mass, njets, sigreg+fs+"fromZ", lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> pwz = getYield(dir+"wz", wwSelection, veto, mass, njets, sigreg+fs+"fromZ", lumi, useJson, applyEff, doFake, doPUw);
 
-  pair<float, float> dytt_1 = getYield(dir+"data-emb-tau121", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
-  pair<float, float> dytt_2 = getYield(dir+"data-emb-tau122", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
+  pair<float, float> dytt_1 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau121", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
+  pair<float, float> dytt_2 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau122", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
   pair<float, float> dytt_3 = getYield(dir+"data-emb-tau123", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
   pair<float, float> dytt = make_pair<float, float>(dytt_1.first+dytt_2.first+dytt_3.first,sqrt(pow(dytt_1.second,2)+pow(dytt_2.second,2)+pow(dytt_2.second,2)));
   
@@ -200,7 +202,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","UEPS","lnN", 
 		mass>0 ? HiggsSignalPSUESystematics(mass, njets) : 0.);
     out << Form("%-35s %5s   %5.3f   %5.3f   %5.3f   %5.3f     -       -       -       -       -       -       -       -  \n","theoryUncXS_HighMH","lnN",theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH);
-    out << Form("%-35s %5s     -       -       -     1.100     -     1.040     -       -       -       -       -       -  \n","pdf_gg","lnN");
+    out << Form("%-35s %5s     -       -       -     %5.3f     -     1.040     -       -       -       -       -       -  \n","pdf_gg","lnN",PDFgHHSystematics(mass));
     out << Form("%-35s %5s   1.050   1.050   1.050     -     1.040     -     1.040     -       -       -     1.040   1.040\n","pdf_qqbar","lnN");
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH","lnN", 
 		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH",mass, njets) : 0.);
@@ -217,7 +219,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%-35s %5s     -       -     1.010     -       -       -       -       -       -       -       -       -  \n","QCDscale_qqH","lnN");
     out << Form("%-35s %5s   1.020   1.020     -       -       -       -       -       -       -       -       -       -  \n","QCDscale_VH","lnN");
     out << Form("%-35s %5s     -       -       -       -       -       -     1.040     -       -       -       -       -  \n","QCDscale_VV","lnN");
-    out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     1.300\n","QCDscale_V","lnN");
+    out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     1.300     -  \n","QCDscale_V","lnN");
     out << Form("%-35s %5s     -       -       -       -       -     1.300     -       -       -       -       -       -  \n","QCDscale_ggVV","lnN");
     out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW_EXTRAP","lnN",
 		1.060);//this is the unceratinty for extrapolation from sideband to signal region
