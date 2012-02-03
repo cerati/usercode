@@ -295,6 +295,12 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   TH1F* ZH_h = new TH1F("histo_ZH","histo_ZH",nbins,minx,maxx);
   fillPlot("bdtg",ZH_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ZH,"+fs, lumi, useJson, applyEff, doFake, doPUw);
 
+  //ggH k-factor syst  
+  TH1F* ggH_up_h = new TH1F("histo_ggH_CMS_MVAggHBoundingUp","histo_ggH_CMS_MVAggHBoundingUp",nbins,minx,maxx);
+  fillPlot("bdtg",ggH_up_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ggH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_up");
+  TH1F* ggH_down_h = new TH1F("histo_ggH_CMS_MVAggHBoundingDown","histo_ggH_CMS_MVAggHBoundingDown",nbins,minx,maxx);
+  fillPlot("bdtg",ggH_down_h, dir+Form("hww%i",mass)+suffix, wwSelection, veto, mass, njets, sigreg+"ggH,"+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_down");
+
   //MET RESOLUTION SYSTEMATICS: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
   //Higgs
   TH1F* ggH_metres_up_h = new TH1F("histo_ggH_CMS_MVAMETResBoundingUp","histo_ggH_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
@@ -493,6 +499,10 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   ggH_h->Write();
   WH_h->Write();
   ZH_h->Write();
+
+  //ggH k-factor syst  
+  ggH_up_h->Write();
+  ggH_down_h->Write();
 
   //Stat uncertainty
   writeStatUpDown(ggww_h,njets,fs);

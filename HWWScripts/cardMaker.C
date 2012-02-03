@@ -199,8 +199,8 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     if (mode=="shape") {
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_MVAWBounding_hww","shape");
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_MVAWMCBounding_hww","shape");      
+      out << Form("%-35s %5s     -       -       -     1.000     -       -       -       -       -       -       -       -  \n","CMS_MVAggHBounding","shape");      
     }
-    //fixme should add ggH bounding for shape
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","UEPS","lnN", 
 		mass>0 ? HiggsSignalPSUESystematics(mass, njets) : 0.);
     out << Form("%-35s %5s   %5.3f   %5.3f   %5.3f   %5.3f     -       -       -       -       -       -       -       -  \n","theoryUncXS_HighMH","lnN",theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH);

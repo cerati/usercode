@@ -39,6 +39,8 @@ TString eff_file       = "/smurf/data/Winter11_4700ipb/auxiliar/efficiency_resul
 TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
 TString jsonFile       = "";//"hww.Full2011.json";
 
+TString ggHk_file = "/smurf/data/Winter11_4700ipb/auxiliar/ggHWW_KFactors_PowhegToHQT_WithAdditionalMassPoints.root"; 
+
 //+++ deprecated
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
@@ -768,6 +770,20 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 			             mFR->GetYaxis()->GetNbins(),mFR->GetYaxis()->GetXmin(),mFR->GetYaxis()->GetXmax());
   }
 
+  //ggH k-factor
+  //TH1D* HiggsPtKFactor = 0;
+  TH1D* HiggsPtKFactorSyst = 0;
+  TFile* fHiggsPtKFactorFile = 0;
+  if (syst.Contains("ggH_k_syst")){
+    fHiggsPtKFactorFile = TFile::Open(ggHk_file);
+    //HiggsPtKFactor     = (TH1D*)(fHiggsPtKFactorFile->Get(Form("KFactor_PowhegToHQT_mH%i", mass)));
+    if (syst.Contains("up")){
+      HiggsPtKFactorSyst = (TH1D*)(fHiggsPtKFactorFile->Get(Form("KFactor_PowhegToHQT_mH%i_QCDscaleSys1", mass)));
+    } else {
+      HiggsPtKFactorSyst = (TH1D*)(fHiggsPtKFactorFile->Get(Form("KFactor_PowhegToHQT_mH%i_QCDscaleSys6", mass)));
+    }
+  }
+
   if (!isMC && useJson && jsonFile!=""){
     if (jsonFile.Contains(".txt")) set_goodrun_file(jsonFile);
     else set_goodrun_file_json(jsonFile);
@@ -778,7 +794,13 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
     dataEvent->tree_->GetEntry(n);
     if (isMC) weight = lumi*dataEvent->scale1fb_;
     TString dataSetName(dataEvent->name(dataEvent->dstype_).c_str());
-    if (dataSetName.Contains("hww")) weight*=dataEvent->sfWeightHPt_;
+    if (dataSetName.Contains("hww")) {
+      weight*=dataEvent->sfWeightHPt_;
+      if (syst.Contains("ggH_k_syst")){
+	float newweight = HiggsPtKFactorSyst->GetBinContent( HiggsPtKFactorSyst->GetXaxis()->FindFixBin(max(dataEvent->higgsPt_, float(0.) )));
+	weight=weight*newweight/dataEvent->sfWeightHPt_;
+      } 
+    }
     if (region.Contains("embed")) {
       weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2,dataEvent->scale1fb_);//fixme period
     }
@@ -1004,6 +1026,11 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
     delete elPFY;
     fE->Close();
     fM->Close();
+  }
+  if (syst.Contains("ggH_k_syst")){
+    //delete HiggsPtKFactor;
+    delete HiggsPtKFactorSyst;
+    fHiggsPtKFactorFile->Close();
   }
   dataEvent->tree_->Delete();
   delete dataEvent;
