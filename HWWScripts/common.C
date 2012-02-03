@@ -805,6 +805,20 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
       weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2,dataEvent->scale1fb_);//fixme period
     }
 
+    if (syst.Contains("jes")) {
+      float jesK = 1.;
+      if (syst.Contains("Up")) jesK = 1.05;
+      else if (syst.Contains("Down")) jesK = 0.95;
+      dataEvent->jet1_ = dataEvent->jet1_*jesK;
+      dataEvent->jet2_ = dataEvent->jet2_*jesK;
+      dataEvent->jet3_ = dataEvent->jet3_*jesK;
+      unsigned int newnjets = 0;
+      if (dataEvent->jet1_.pt()>30. && fabs(dataEvent->jet1_.eta())<5.0) newnjets++;
+      if (dataEvent->jet2_.pt()>30. && fabs(dataEvent->jet2_.eta())<5.0) newnjets++;
+      if (dataEvent->jet3_.pt()>30. && fabs(dataEvent->jet3_.eta())<5.0) newnjets++;
+      dataEvent->njets_ = newnjets;
+    }
+
     if (!passEvent(dataEvent, njets, cut, veto, region,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass,isMC, useJson)) continue;
 
     //change dataEvent for syst studies
@@ -957,6 +971,26 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	} else {
 	  effSF = dataEvent->sfWeightEff_ * dataEvent->sfWeightTrig_;
 	}
+
+	if (syst.Contains("lepeff")){
+	  float pt1 = min(dataEvent->lep1_.pt(),49.);
+	  float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
+	  float pt2 = min(dataEvent->lep2_.pt(),49.);
+	  float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
+	  LeptonScaleLookup lsl(&*eff_file);
+	  float neweffsel = 1.;
+	  if (syst.Contains("Up")) {
+	    neweffsel = (lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)+lsl.GetExpectedLeptonSFErr(eta1,pt1,dataEvent->lid1_)+0.01)*(lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_)+lsl.GetExpectedLeptonSFErr(eta2,pt2,dataEvent->lid2_)+0.01);
+	  } else if (syst.Contains("Down")) {
+	    neweffsel = (lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)-lsl.GetExpectedLeptonSFErr(eta1,pt1,dataEvent->lid1_)-0.01)*(lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_)-lsl.GetExpectedLeptonSFErr(eta2,pt2,dataEvent->lid2_)-0.01);
+	  }
+	  float oldeffsel = dataEvent->sfWeightEff_;
+	  if (redoWeights) {
+	    oldeffsel = lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)*lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_);
+	  }
+	  effSF=effSF*neweffsel/oldeffsel;
+	}
+
       }
       //h->Fill(dataEvent->dilep_.mass(),weight*effSF*puw);
       if (var=="bdtg") {
