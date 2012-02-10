@@ -798,7 +798,7 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
       weight*=dataEvent->sfWeightHPt_;
       if (syst.Contains("ggH_k_syst")){
 	float newweight = HiggsPtKFactorSyst->GetBinContent( HiggsPtKFactorSyst->GetXaxis()->FindFixBin(max(dataEvent->higgsPt_, float(0.) )));
-	weight=weight*newweight/dataEvent->sfWeightHPt_;
+	if (dataEvent->sfWeightHPt_>0.) weight=weight*newweight/dataEvent->sfWeightHPt_;
       } 
     }
     if (region.Contains("embed")) {
