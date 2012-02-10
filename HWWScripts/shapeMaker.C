@@ -366,9 +366,9 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   fillDownMirrorUp(wgamma_h,wgamma_metres_up_h,wgamma_metres_down_h);
   //Ztt
   TH1F* dytt_1_metres_up_h = new TH1F("histo_dytt_metres_up_1","histo_dytt_metres_up_1",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_1_metres_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "metSmear");
+  //fillPlot("bdtg",dytt_1_metres_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "metSmear");
   TH1F* dytt_2_metres_up_h = new TH1F("histo_dytt_metres_up_2","histo_dytt_metres_up_2",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_2_metres_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "metSmear");
+  //fillPlot("bdtg",dytt_2_metres_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "metSmear");
   TH1F* dytt_3_metres_up_h = new TH1F("histo_dytt_metres_up_3","histo_dytt_metres_up_3",nbins,minx,maxx);
   fillPlot("bdtg",dytt_3_metres_up_h, dir+"data-emb-tau123"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "metSmear");
   TH1F* ztt_metres_up_h = new TH1F("histo_Ztt_CMS_MVAMETResBoundingUp","histo_Ztt_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
@@ -470,9 +470,9 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   wgamma_lepres_down_h->Add(wg3l_lepres_down_h);
   //Ztt
   TH1F* dytt_1_lepres_up_h = new TH1F("histo_dytt_lepres_up_1","histo_dytt_lepres_up_1",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_1_lepres_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleUp");
+  //fillPlot("bdtg",dytt_1_lepres_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleUp");
   TH1F* dytt_2_lepres_up_h = new TH1F("histo_dytt_lepres_up_2","histo_dytt_lepres_up_2",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_2_lepres_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleUp");
+  //fillPlot("bdtg",dytt_2_lepres_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleUp");
   TH1F* dytt_3_lepres_up_h = new TH1F("histo_dytt_lepres_up_3","histo_dytt_lepres_up_3",nbins,minx,maxx);
   fillPlot("bdtg",dytt_3_lepres_up_h, dir+"data-emb-tau123"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleUp");
   TH1F* ztt_lepres_up_h = new TH1F("histo_Ztt_CMS_MVALepResBoundingUp","histo_Ztt_CMS_MVALepResBoundingUp",nbins,minx,maxx);
@@ -480,9 +480,9 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   ztt_lepres_up_h->Add(dytt_2_lepres_up_h);
   ztt_lepres_up_h->Add(dytt_3_lepres_up_h);
   TH1F* dytt_1_lepres_down_h = new TH1F("histo_dytt_lepres_down_1","histo_dytt_lepres_down_1",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_1_lepres_down_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleDown");
+  //fillPlot("bdtg",dytt_1_lepres_down_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleDown");
   TH1F* dytt_2_lepres_down_h = new TH1F("histo_dytt_lepres_down_2","histo_dytt_lepres_down_2",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_2_lepres_down_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleDown");
+  //fillPlot("bdtg",dytt_2_lepres_down_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleDown");
   TH1F* dytt_3_lepres_down_h = new TH1F("histo_dytt_lepres_down_3","histo_dytt_lepres_down_3",nbins,minx,maxx);
   fillPlot("bdtg",dytt_3_lepres_down_h, dir+"data-emb-tau123"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "momScaleDown");
   TH1F* ztt_lepres_down_h = new TH1F("histo_Ztt_CMS_MVALepResBoundingDown","histo_Ztt_CMS_MVALepResBoundingDown",nbins,minx,maxx);
@@ -582,9 +582,9 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   wgamma_jes_down_h->Add(wg3l_jes_down_h);
   //Ztt
   TH1F* dytt_1_jes_up_h = new TH1F("histo_dytt_jes_up_1","histo_dytt_jes_up_1",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_1_jes_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "jesUp");
+  //fillPlot("bdtg",dytt_1_jes_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "jesUp");
   TH1F* dytt_2_jes_up_h = new TH1F("histo_dytt_jes_up_2","histo_dytt_jes_up_2",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_2_jes_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "jesUp");
+  //fillPlot("bdtg",dytt_2_jes_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "jesUp");
   TH1F* dytt_3_jes_up_h = new TH1F("histo_dytt_jes_up_3","histo_dytt_jes_up_3",nbins,minx,maxx);
   fillPlot("bdtg",dytt_3_jes_up_h, dir+"data-emb-tau123"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "jesUp");
   TH1F* ztt_jes_up_h = new TH1F("histo_Ztt_CMS_MVAJESBoundingUp","histo_Ztt_CMS_MVAJESBoundingUp",nbins,minx,maxx);
@@ -694,9 +694,9 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   wgamma_lepeff_down_h->Add(wg3l_lepeff_down_h);
   //Ztt
   TH1F* dytt_1_lepeff_up_h = new TH1F("histo_dytt_lepeff_up_1","histo_dytt_lepeff_up_1",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_1_lepeff_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffUp");
+  //fillPlot("bdtg",dytt_1_lepeff_up_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffUp");
   TH1F* dytt_2_lepeff_up_h = new TH1F("histo_dytt_lepeff_up_2","histo_dytt_lepeff_up_2",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_2_lepeff_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffUp");
+  //fillPlot("bdtg",dytt_2_lepeff_up_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffUp");
   TH1F* dytt_3_lepeff_up_h = new TH1F("histo_dytt_lepeff_up_3","histo_dytt_lepeff_up_3",nbins,minx,maxx);
   fillPlot("bdtg",dytt_3_lepeff_up_h, dir+"data-emb-tau123"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffUp");
   TH1F* ztt_lepeff_up_h = new TH1F("histo_Ztt_CMS_MVALepEffBoundingUp","histo_Ztt_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
@@ -704,9 +704,9 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   ztt_lepeff_up_h->Add(dytt_2_lepeff_up_h);
   ztt_lepeff_up_h->Add(dytt_3_lepeff_up_h);
   TH1F* dytt_1_lepeff_down_h = new TH1F("histo_dytt_lepeff_down_1","histo_dytt_lepeff_down_1",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_1_lepeff_down_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffDown");
+  //fillPlot("bdtg",dytt_1_lepeff_down_h, dir+"data-emb-tau121"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffDown");
   TH1F* dytt_2_lepeff_down_h = new TH1F("histo_dytt_lepeff_down_2","histo_dytt_lepeff_down_2",nbins,minx,maxx);
-  fillPlot("bdtg",dytt_2_lepeff_down_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffDown");
+  //fillPlot("bdtg",dytt_2_lepeff_down_h, dir+"data-emb-tau122"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffDown");
   TH1F* dytt_3_lepeff_down_h = new TH1F("histo_dytt_lepeff_down_3","histo_dytt_lepeff_down_3",nbins,minx,maxx);
   fillPlot("bdtg",dytt_3_lepeff_down_h, dir+"data-emb-tau123"+suffix, wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false, "lepeffDown");
   TH1F* ztt_lepeff_down_h = new TH1F("histo_Ztt_CMS_MVALepEffBoundingDown","histo_Ztt_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
@@ -723,7 +723,120 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   //scaleIntegral(top_h,top_lepeff_down_h);
   //scaleIntegral(top_h,top_lepeff_up_h);
 
-  //Write histos to file
+
+//   printBins(data_h);
+//   printBins(ggww_h);
+//   printBins(qqww_h);
+//   printBins(top_h);
+//   printBins(zjets_h);
+//   printBins(wjets_h);
+//   printBins(vv_h);
+//   printBins(wgamma_h);
+//   printBins(ztt_h);
+//   printBins(qqH_h);
+//   printBins(ggH_h);
+//   printBins(WH_h);
+//   printBins(ZH_h);
+
+//   printBins(ggH_up_h);
+//   printBins(ggH_down_h);
+
+//   printBins(ggH_metres_up_h);
+//   printBins(ggH_metres_down_h);
+//   printBins(qqH_metres_up_h);
+//   printBins(qqH_metres_down_h);
+//   printBins(WH_metres_up_h);
+//   printBins(WH_metres_down_h);
+//   printBins(ZH_metres_up_h);
+//   printBins(ZH_metres_down_h);
+//   printBins(qqww_metres_up_h);
+//   printBins(qqww_metres_down_h);
+//   printBins(ggww_metres_up_h);
+//   printBins(ggww_metres_down_h);
+//   printBins(vv_metres_up_h);
+//   printBins(vv_metres_down_h);
+//   printBins(top_metres_up_h);
+//   printBins(top_metres_down_h);
+//   printBins(wgamma_metres_up_h);
+//   printBins(wgamma_metres_down_h);
+//   printBins(ztt_metres_up_h);
+//   printBins(ztt_metres_down_h);
+
+//   printBins(ggH_lepres_up_h);
+//   printBins(ggH_lepres_down_h);
+//   printBins(qqH_lepres_up_h);
+//   printBins(qqH_lepres_down_h);
+//   printBins(WH_lepres_up_h);
+//   printBins(WH_lepres_down_h);
+//   printBins(ZH_lepres_up_h);
+//   printBins(ZH_lepres_down_h);
+//   printBins(qqww_lepres_up_h);
+//   printBins(qqww_lepres_down_h);
+//   printBins(ggww_lepres_up_h);
+//   printBins(ggww_lepres_down_h);
+//   printBins(vv_lepres_up_h);
+//   printBins(vv_lepres_down_h);
+//   printBins(top_lepres_up_h);
+//   printBins(top_lepres_down_h);
+//   printBins(wgamma_lepres_up_h);
+//   printBins(wgamma_lepres_down_h);
+//   printBins(ztt_lepres_up_h);
+//   printBins(ztt_lepres_down_h);
+
+//   printBins(ggH_jes_up_h);
+//   printBins(ggH_jes_down_h);
+//   printBins(qqH_jes_up_h);
+//   printBins(qqH_jes_down_h);
+//   printBins(WH_jes_up_h);
+//   printBins(WH_jes_down_h);
+//   printBins(ZH_jes_up_h);
+//   printBins(ZH_jes_down_h);
+//   printBins(qqww_jes_up_h);
+//   printBins(qqww_jes_down_h);
+//   printBins(ggww_jes_up_h);
+//   printBins(ggww_jes_down_h);
+//   printBins(vv_jes_up_h);
+//   printBins(vv_jes_down_h);
+//   printBins(top_jes_up_h);
+//   printBins(top_jes_down_h);
+//   printBins(wgamma_jes_up_h);
+//   printBins(wgamma_jes_down_h);
+//   printBins(ztt_jes_up_h);
+//   printBins(ztt_jes_down_h);
+
+//   printBins(ggH_lepeff_up_h);
+//   printBins(ggH_lepeff_down_h);
+//   printBins(qqH_lepeff_up_h);
+//   printBins(qqH_lepeff_down_h);
+//   printBins(WH_lepeff_up_h);
+//   printBins(WH_lepeff_down_h);
+//   printBins(ZH_lepeff_up_h);
+//   printBins(ZH_lepeff_down_h);
+//   printBins(qqww_lepeff_up_h);
+//   printBins(qqww_lepeff_down_h);
+//   printBins(ggww_lepeff_up_h);
+//   printBins(ggww_lepeff_down_h);
+//   printBins(vv_lepeff_up_h);
+//   printBins(vv_lepeff_down_h);
+//   printBins(wgamma_lepeff_up_h);
+//   printBins(wgamma_lepeff_down_h);
+//   printBins(ztt_lepeff_up_h);
+//   printBins(ztt_lepeff_down_h);
+
+//   printBins(qqww_h_up);
+//   printBins(qqww_h_down);
+//   printBins(qqww_h_nlo_up);
+//   printBins(qqww_h_nlo_down);
+
+//   printBins(top_h_up);
+//   printBins(top_h_down);
+
+//   printBins(wjets_fr_up_h);
+//   printBins(wjets_fr_down_h);
+//   printBins(wjets_mc_up_h);
+//   printBins(wjets_mc_down_h);
+
+ //Write histos to file
   TString outfname = Form("hww%s_%ij.input.root",TString(fs).ReplaceAll("fs","").Data(),njets);
   TFile* outfile = TFile::Open(outfname,"RECREATE");
 
