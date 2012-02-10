@@ -178,17 +178,11 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 	   dySF.first*(dymm.first+dyee.first)+pzz.first+pwz.first, wjets.first, wgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
     out << Form("%-35s %5s   1.045   1.045   1.045   1.045     -       -     1.045     -       -       -     1.045   1.045\n","lumi","lnN");
     if (mode=="shape") {
-      if (mass!=115) {
-	out << Form("%-35s %5s   1.000   1.000   1.000   1.000   1.000   1.000   1.000     -       -       -     1.000   1.000\n","CMS_MVALepEffBounding","shape");//why no top???
-	out << Form("%-35s %5s   1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVALepResBounding","shape");
-	out << Form("%-35s %5s   1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVAMETResBounding","shape");
-	out << Form("%-35s %5s   1.000   1.000   1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVAJESBounding","shape");
-      } else {//we do not have WH and ZH for mH=115
-	out << Form("%-35s %5s     -       -     1.000   1.000   1.000   1.000   1.000     -       -       -     1.000   1.000\n","CMS_MVALepEffBounding","shape");//why no top???
-	out << Form("%-35s %5s     -       -     1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVALepResBounding","shape");
-	out << Form("%-35s %5s     -       -     1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVAMETResBounding","shape");
-	out << Form("%-35s %5s     -       -     1.000   1.000   1.000   1.000   1.000   1.000     -       -     1.000   1.000\n","CMS_MVAJESBounding","shape");
-      }
+      //we do not have WH and ZH for mH=115
+      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000     -       -       -     %5s   %5s \n","CMS_MVALepEffBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");//why no top???
+      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_MVALepResBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
+      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_MVAMETResBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
+      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_MVAJESBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
     } else {
       out << Form("%-35s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
       out << Form("%-35s %5s   1.040   1.040   1.040   1.040   1.040   1.040   1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
@@ -284,7 +278,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -     1.000     -       -       -  \n",Form("CMS_MVAZjetsStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n",Form("CMS_MVAWjetsStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     1.000     -  \n",Form("CMS_MVAWgammaStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
-      if (fs=="of") out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     1.000\n",Form("CMS_MVAZttStatBounding_hww%s_%ij",fs.Data(),njets),"shape");
+      if (dytt.first>0) out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     1.000\n",Form("CMS_MVAZttStatBounding_hww%s_%ij",fs.Data(),njets),"shape");
     }
   }
 
@@ -302,7 +296,7 @@ void cardMaker(float lumi, TString mode) {
   //int jets[] = {1};
   int jets[] = {0,1,2};
 
-  //int masses[] = {120,130,140};
+  //int masses[] = {120};
   int masses[] = {115,120,130,140,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
   int njets = sizeof(jets)/sizeof(int);
