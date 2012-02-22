@@ -41,4 +41,4 @@ cd Smurf/LimitCalc/
 
 * commit only in my area *
 cvs tag -l TAGNAME .
-cvs tag -l TAGNAME cards/limits_nj_*.txt
+cvs tag -l TAGNAME cards/limits_*.txt
