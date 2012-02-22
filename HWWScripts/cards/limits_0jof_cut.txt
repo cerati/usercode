@@ -1,0 +1,12 @@
+115 115/hwwof_0j_cut.txt
+120 120/hwwof_0j_cut.txt
+130 130/hwwof_0j_cut.txt
+140 140/hwwof_0j_cut.txt
+150 150/hwwof_0j_cut.txt
+160 160/hwwof_0j_cut.txt
+170 170/hwwof_0j_cut.txt
+180 180/hwwof_0j_cut.txt
+190 190/hwwof_0j_cut.txt
+200 200/hwwof_0j_cut.txt
+250 250/hwwof_0j_cut.txt
+300 300/hwwof_0j_cut.txt

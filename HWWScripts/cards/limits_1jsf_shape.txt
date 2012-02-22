@@ -1,0 +1,12 @@
+115 115/hwwsf_1j_shape.txt
+120 120/hwwsf_1j_shape.txt
+130 130/hwwsf_1j_shape.txt
+140 140/hwwsf_1j_shape.txt
+150 150/hwwsf_1j_shape.txt
+160 160/hwwsf_1j_shape.txt
+170 170/hwwsf_1j_shape.txt
+180 180/hwwsf_1j_shape.txt
+190 190/hwwsf_1j_shape.txt
+200 200/hwwsf_1j_shape.txt
+250 250/hwwsf_1j_shape.txt
+300 300/hwwsf_1j_shape.txt
