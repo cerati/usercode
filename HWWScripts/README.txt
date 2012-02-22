@@ -21,11 +21,11 @@ ln -s ../../LandS/lands.so
 cd ../..
 
 * background estimation *
-root -b -q -l dyBg.C++\(4.7\)
+root -b -q -l dyBg.C++\(4.7\) >& log.dyBg
 mv DYBkgScaleFactors.h Smurf/Analysis/HWWlvlv/
-root -b -q -l topBg.C++\(4.7\)
+root -b -q -l topBg.C++\(4.7\) >& log.topBg
 mv TopBkgScaleFactors.h Smurf/Analysis/HWWlvlv/
-root -b -q -l wwBkg.C++\(4.7\)
+root -b -q -l wwBkg.C++\(4.7\) >& log.wwBg
 mv WWBkgScaleFactors.h Smurf/Analysis/HWWlvlv/
 
 * prepare cards *
