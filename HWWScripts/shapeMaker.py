@@ -15,6 +15,7 @@ for mass in masses:
     for njets in jetbins:
         for fs in fstates:
             os.system('rm BDTG.class.C')
+            #os.system('ln -s /home/users/cerati/HWWMVAweights/ntuples_'+str(mass)+'train_'+str(njets)+'jets_BDTG.class.C BDTG.class.C')
             os.system('ln -s /smurf/ceballos/tmva/weights/ntuples_'+str(mass)+'train_'+str(njets)+'jets_BDTG.class.C BDTG.class.C')
             os.system('root -b -l -q shapeMaker.C++\('+sys.argv[1]+','+str(njets)+','+str(mass)+',\\"'+fs+'\\"\)')
             os.system('mkdir -p cards/'+str(mass))

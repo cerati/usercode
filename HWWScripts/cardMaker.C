@@ -93,7 +93,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   if (fs=="sffs") {
     if (mode=="cut") dySF = make_pair<float, float>(DYBkgScaleFactor(mass,njets), DYBkgScaleFactor(mass,njets)*(DYBkgScaleFactorKappa(mass,njets)-1.));
     else if (mode=="shape") dySF = make_pair<float, float>(DYBkgScaleFactor(0,njets), DYBkgScaleFactor(0,njets)*(DYBkgScaleFactorKappa(0,njets)-1.));
-  } 
+  } else dySF = make_pair<float, float>(0., 0);
   if (njets==2) dySF = make_pair<float, float>(DYBkgScaleFactor(0,njets), DYBkgScaleFactor(0,njets)*(DYBkgScaleFactorKappa(0,njets)-1.));
 
   pair<float, float> data = getYield(dir+"data", wwSelection, veto, mass, njets, sigreg+fs, 0.,   useJson, false, false, false);
@@ -109,7 +109,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   pair<float, float> wz = getYield(dir+"wz", wwSelection, veto, mass, njets, sigreg+"notZ,"+fs, lumi, useJson, applyEff, doFake, doPUw);
 
   //add peaking component of VV to DY
-  pair<float, float> dyee = getYield(dir+"dyee", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> dyee = getYield(dir+"dyee", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);//fixme should test fromZ
   pair<float, float> dymm = getYield(dir+"dymm", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> pzz = getYield(dir+"zz_py", wwSelection, veto, mass, njets, sigreg+fs+"fromZ", lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> pwz = getYield(dir+"wz", wwSelection, veto, mass, njets, sigreg+fs+"fromZ", lumi, useJson, applyEff, doFake, doPUw);
@@ -177,7 +177,8 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 	   zhww.first, whww.first, qqhww.first, gghww.first, wwSF.first*qqww.first, wwSF.first*ggww.first, zz.first+wz.first, topSF.first*(ttbar.first+tw.first), 
 	   dySF.first*(dymm.first+dyee.first)+pzz.first+pwz.first, wjets.first, wgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
     out << Form("%-35s %5s   1.045   1.045   1.045   1.045     -       -     1.045     -       -       -     1.045   1.045\n","lumi","lnN");
-    if (mode=="shape") {
+    if (mode=="shape" && doResEffSyst) {
+      //we do not have WH and ZH for mH=115
       out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000     -       -       -     %5s   %5s \n","CMS_MVALepEffBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");//why no top???
       out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_MVALepResBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
       out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_MVAMETResBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");

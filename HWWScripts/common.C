@@ -29,31 +29,36 @@
 #include "Smurf/Analysis/HWWlvlv/WWBkgScaleFactors.h"	
 #include "BDTG.class.C"//add soft link to compute bdtg values
 
+//CERN, Summ11
 TString main_dir    = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/";
 TString topww_dir   = "wwSelNoLepNoTV/";
 TString dy_dir      = "wwSelNoMetNoZVminMET20/";
-
 TString fr_file_mit    = "/smurf/data/Winter11_4700ipb/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
-
 TString eff_file       = "/smurf/data/Winter11_4700ipb/auxiliar/efficiency_results_v7_42x_Full2011_4700ipb.root";
 TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
 TString jsonFile       = "";//"hww.Full2011.json";
-
 TString ggHk_file = "/smurf/data/Winter11_4700ipb/auxiliar/ggHWW_KFactors_PowhegToHQT_WithAdditionalMassPoints.root"; 
+
+//UCSD, Fall11
+// TString main_dir    = "/home/users/cerati/hwwskims/Run2011_Fall11_SmurfV7_42X/tas-mm20w-dymva/";
+// TString topww_dir   = "./";
+// TString dy_dir      = "./";
+// TString fr_file_mit    = "/home/users/cerati/Winter11_4700ipb_auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
+// TString eff_file       = "/home/users/cerati/Winter11_4700ipb_auxiliar/efficiency_results_v7_42x_Full2011_4700ipb.root";
+// TString puw_file       = "/home/users/cerati/Winter11_4700ipb_auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
+// TString jsonFile       = "";//"hww.Full2011.json";
+// TString ggHk_file = "/home/users/cerati/Winter11_4700ipb_auxiliar/ggHWW_KFactors_PowhegToHQT_WithAdditionalMassPoints.root"; 
 
 //+++ deprecated
 TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
 TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
 //+++
 
-//fixme, Fall11 test
-// TString main_dir = "/smurf/cerati/skims/Run2011_Fall11_SmurfV7_42X/";
-// TString puw_file = "/smurf/sixie/Pileup/weights/PileupReweighting.Fall11_To_Full2011.root";
-
 bool redoWeights  = 0;
 bool checkWeights = 0;
 bool doMVA = 0;
 bool doVBF = 0;
+bool doResEffSyst = 1;
 ReadBDTG* rbdtg = 0;
 
 //copy here to avoid SmurfTree::
@@ -535,11 +540,11 @@ bool passEvent(SmurfTree *dataEvent, unsigned int njets, unsigned int cut, unsig
 
 
 float getFR(SmurfTree *dataEvent, TH2F* eFR, TH2F* mFR) {
-  //FIXME: should be gotten from files
-  float maxPt=34.9, maxEta=2.4;
   if ( (dataEvent->cuts_ & Lep1LooseEleV4)    == Lep1LooseEleV4    &&
        (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection && 
        (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) {
+    float maxPt=eFR->GetXaxis()->GetBinUpEdge(eFR->GetXaxis()->GetNbins())-0.01; 
+    float maxEta=eFR->GetYaxis()->GetBinUpEdge(eFR->GetYaxis()->GetNbins())-0.01;
     float pt = dataEvent->lep1_.pt();
     float eta = fabs(dataEvent->lep1_.eta());
     if (eta==2) eta=1.9999;//test to sync with G's weights
@@ -549,6 +554,8 @@ float getFR(SmurfTree *dataEvent, TH2F* eFR, TH2F* mFR) {
   } else if ( (dataEvent->cuts_ & Lep2LooseEleV4)    == Lep2LooseEleV4    &&
 	      (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
 	      (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) {
+    float maxPt=eFR->GetXaxis()->GetBinUpEdge(eFR->GetXaxis()->GetNbins())-0.01; 
+    float maxEta=eFR->GetYaxis()->GetBinUpEdge(eFR->GetYaxis()->GetNbins())-0.01;
     float pt = dataEvent->lep2_.pt();
     float eta = fabs(dataEvent->lep2_.eta());
     if (eta==2) eta=1.9999;//test to sync with G's weights
@@ -558,21 +565,25 @@ float getFR(SmurfTree *dataEvent, TH2F* eFR, TH2F* mFR) {
   } else if ( (dataEvent->cuts_ & Lep1LooseMuV2)     == Lep1LooseMuV2     &&
 	      (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection &&
 	      (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) {
+    float maxPt=mFR->GetXaxis()->GetBinUpEdge(mFR->GetXaxis()->GetNbins())-0.01; 
+    float maxEta=mFR->GetYaxis()->GetBinUpEdge(mFR->GetYaxis()->GetNbins())-0.01;
     float pt = dataEvent->lep1_.pt();
     float eta = fabs(dataEvent->lep1_.eta());
     if (eta==2) eta=1.9999;//test to sync with G's weights
     if (pt>maxPt) pt=maxPt;
     if (eta>maxEta) eta=maxEta;
-    return mFR->GetBinContent(eFR->FindBin(pt,eta));
+    return mFR->GetBinContent(mFR->FindBin(pt,eta));
   } else if ( (dataEvent->cuts_ & Lep2LooseMuV2)     == Lep2LooseMuV2     &&
 	      (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
 	      (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) {
+    float maxPt=mFR->GetXaxis()->GetBinUpEdge(mFR->GetXaxis()->GetNbins())-0.01; 
+    float maxEta=mFR->GetYaxis()->GetBinUpEdge(mFR->GetYaxis()->GetNbins())-0.01;
     float pt = dataEvent->lep2_.pt();
     float eta = fabs(dataEvent->lep2_.eta());
     if (eta==2) eta=1.9999;//test to sync with G's weights
     if (pt>maxPt) pt=maxPt;
     if (eta>maxEta) eta=maxEta;
-    return mFR->GetBinContent(eFR->FindBin(pt,eta));
+    return mFR->GetBinContent(mFR->FindBin(pt,eta));
   }
   return 0;
 }
