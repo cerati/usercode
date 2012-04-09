@@ -80,7 +80,7 @@ using namespace std;
 //###################
 //# main function
 //###################
-void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mitf-alljets/", TString fileName = "zz.root", TString outputDir = "rawsmurfdata/", TString cutstring = "", bool doPUw = false) {
+void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstring) {
 
   TFile* fin = new TFile(smurfFDir+fileName);
   TTree* ch=(TTree*)fin->Get("tree"); 
@@ -158,14 +158,6 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
   
   cout << smurfFDir + fileName << " has " << ch->GetEntries() << " entries; \n";
 
-  TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
-  TFile* puwf=0;
-  TH1F* puweights=0;
-  if (doPUw) {
-    puwf = TFile::Open(puw_file);
-    puweights = (TH1F*) puwf->Get("puWeights");
-  }
-
   for(int ievt = 0; ievt < ch->GetEntries() ;ievt++){
     ch->GetEntry(ievt); 
 
@@ -179,70 +171,71 @@ void smurfproducer(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV6/mit
       if (min(pmet_,pTrackMet_)<20.0) continue;
     }
 
+    if (cutstring=="mm20") {
+      unsigned int selBLCMELV    = BaseLine|ChargeMatch|ExtraLeptonVeto;
+      if ((cuts_ & selBLCMELV) != selBLCMELV) continue;
+      if (min(pmet_,pTrackMet_)<20.0) continue;
+    }
+
     //this is for top/ww
     if (cutstring=="topww") {
       if ((cuts_ & wwSelNoLepNoTV) != wwSelNoLepNoTV) continue;
-    }
-
-    if (doPUw) {
-      float puw = puweights->GetBinContent(puweights->FindBin(npu_));
-      sfWeightPU_ = puw;
     }
     
     evt_tree->Fill();
   }   //nevent
   
   cout << outputDir + fileName << " has " << evt_tree->GetEntries() << " entries; \n";
-  if (doPUw) puwf->Close();
   newfile->cd(); 
   evt_tree->Write(); 
   newfile->Close();
 }  
 
-void skimAll(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-alljets_Full2011/", TString outputDir = "/smurf/cerati/skims/", TString cut = "topww") {
-  if (cut!="dy" && cut!="topww") {
-    cout << "cut not supported. please use dy or topww" << endl;
+void skim(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-alljets_Full2011/", TString outputDir = "/smurf/cerati/skims/", TString cut = "topww") {
+  if (cut!="dy" && cut!="topww" && cut!="mm20") {
+    cout << "cut not supported. please use dy or topww or mm20" << endl;
     return; 
   }
   if (cut=="topww" && !outputDir.Contains("wwSelNoLepNoTV")) outputDir+="/wwSelNoLepNoTV/";
   else if (cut=="dy" && !outputDir.Contains("wwSelNoMetNoZVminMET20")) outputDir+="/wwSelNoMetNoZVminMET20/";
   gSystem->Exec("mkdir -p "+outputDir);
-  smurfproducer(smurfFDir,"dymm.root",outputDir,cut);
-  smurfproducer(smurfFDir,"dyee.root",outputDir,cut);
-  smurfproducer(smurfFDir,"dytt.root",outputDir,cut);
-  smurfproducer(smurfFDir,"qqww.root",outputDir,cut);
-  smurfproducer(smurfFDir,"ggww.root",outputDir,cut);
-  smurfproducer(smurfFDir,"ttbar.root",outputDir,cut);
-  smurfproducer(smurfFDir,"tw.root",outputDir,cut);
-  smurfproducer(smurfFDir,"wjets.root",outputDir,cut);
-  smurfproducer(smurfFDir,"wgamma.root",outputDir,cut);
-  smurfproducer(smurfFDir,"wz.root",outputDir,cut);
-  smurfproducer(smurfFDir,"zz.root",outputDir,cut);
-  smurfproducer(smurfFDir,"zz_py.root",outputDir,cut);
-  smurfproducer(smurfFDir,"data.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww115.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww120.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww130.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww140.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww150.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww160.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww170.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww180.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww190.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww200.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww250.root",outputDir,cut);
-  smurfproducer(smurfFDir,"hww300.root",outputDir,cut);
-  smurfproducer(smurfFDir,"qqww_py.root",outputDir,cut);
-  smurfproducer(smurfFDir,"ttbar_mg.root",outputDir,cut);
-  smurfproducer(smurfFDir,"tw_ds.root",outputDir,cut);
-  smurfproducer(smurfFDir,"wgamma_41x.root",outputDir,cut);
-  smurfproducer(smurfFDir,"ww_mcnlo.root",outputDir,cut);
-  smurfproducer(smurfFDir,"ww_mcnlo_up.root",outputDir,cut);
-  smurfproducer(smurfFDir,"ww_mcnlo_down.root",outputDir,cut);
-  smurfproducer(smurfFDir,"wz_py.root",outputDir,cut);
-  smurfproducer(smurfFDir,"wg3l.root",outputDir,cut);
-  smurfproducer(smurfFDir,"data-emb-tau123.root",outputDir,cut);
-  smurfproducer(smurfFDir,"data-emb-tau122.root",outputDir,cut);
-  smurfproducer(smurfFDir,"data-emb-tau121.root",outputDir,cut);
+  skim(smurfFDir,"dymm.root",outputDir,cut);
+  skim(smurfFDir,"dyee.root",outputDir,cut);
+  skim(smurfFDir,"dymm_mg.root",outputDir,cut);
+  skim(smurfFDir,"dyee_mg.root",outputDir,cut);
+  skim(smurfFDir,"dytt.root",outputDir,cut);
+  skim(smurfFDir,"qqww.root",outputDir,cut);
+  skim(smurfFDir,"ggww.root",outputDir,cut);
+  skim(smurfFDir,"ttbar.root",outputDir,cut);
+  skim(smurfFDir,"tw.root",outputDir,cut);
+  skim(smurfFDir,"wjets.root",outputDir,cut);
+  skim(smurfFDir,"wgamma.root",outputDir,cut);
+  skim(smurfFDir,"wz.root",outputDir,cut);
+  skim(smurfFDir,"zz_py.root",outputDir,cut);
+  skim(smurfFDir,"data.root",outputDir,cut);
+  skim(smurfFDir,"hww115.root",outputDir,cut);
+  skim(smurfFDir,"hww120.root",outputDir,cut);
+  skim(smurfFDir,"hww130.root",outputDir,cut);
+  skim(smurfFDir,"hww140.root",outputDir,cut);
+  skim(smurfFDir,"hww150.root",outputDir,cut);
+  skim(smurfFDir,"hww160.root",outputDir,cut);
+  skim(smurfFDir,"hww170.root",outputDir,cut);
+  skim(smurfFDir,"hww180.root",outputDir,cut);
+  skim(smurfFDir,"hww190.root",outputDir,cut);
+  skim(smurfFDir,"hww200.root",outputDir,cut);
+  skim(smurfFDir,"hww250.root",outputDir,cut);
+  skim(smurfFDir,"hww300.root",outputDir,cut);
+  skim(smurfFDir,"ttbar_mg.root",outputDir,cut);
+  skim(smurfFDir,"tw_ds.root",outputDir,cut);
+  skim(smurfFDir,"ww_mcnlo.root",outputDir,cut);
+  skim(smurfFDir,"ww_mcnlo_up.root",outputDir,cut);
+  skim(smurfFDir,"ww_mcnlo_down.root",outputDir,cut);
+  skim(smurfFDir,"wg3l.root",outputDir,cut);
+  skim(smurfFDir,"data-emb-tau123.root",outputDir,cut);
+  //skim(smurfFDir,"zz.root",outputDir,cut);
+  //skim(smurfFDir,"qqww_py.root",outputDir,cut);
+  //skim(smurfFDir,"wz_py.root",outputDir,cut);
+  //skim(smurfFDir,"data-emb-tau122.root",outputDir,cut);
+  //skim(smurfFDir,"data-emb-tau121.root",outputDir,cut);
   return;
 }
