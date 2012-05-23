@@ -5,8 +5,8 @@ TFile* outRFile;
 
 float getK(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, float lumiSample, 
 	   bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false){
-  float zmmNoMet = getYield(sample, cut, veto, mass, njets, "zregion,mmfs,", lumiSample, useJson, applyEff, doFake, doPUw).first;//FIXME: should account for pt if needed
-  float zeeNoMet = getYield(sample, cut, veto, mass, njets, "zregion,eefs,", lumiSample, useJson, applyEff, doFake, doPUw).first;
+  float zmmNoMet = getYield(sample, cut, veto, mass, njets, "=zregion=mmfs=", lumiSample, useJson, applyEff, doFake, doPUw).first;//FIXME: should account for pt if needed
+  float zeeNoMet = getYield(sample, cut, veto, mass, njets, "=zregion=eefs=", lumiSample, useJson, applyEff, doFake, doPUw).first;
   return sqrt(zeeNoMet/zmmNoMet);//the error is negligible
 }
 
@@ -17,20 +17,20 @@ pair<float, float> getDYYieldInData(TString sample, unsigned int cut, unsigned i
   //sample is assumed to be data
   float lumiSample = 0.;
   //get Z yields after full met
-  float zmm = getYield(sample, cut, veto, mass, njets, "mmfs,mtcut,"+region, lumiSample, useJson, false, doFake, false).first;//
-  float zme = getYield(sample, cut, veto, mass, njets, "mefs,mtcut,"+region, lumiSample, useJson, false, doFake, false).first;//
-  float zem = getYield(sample, cut, veto, mass, njets, "emfs,mtcut,"+region, lumiSample, useJson, false, doFake, false).first;//
-  float zee = getYield(sample, cut, veto, mass, njets, "eefs,mtcut,"+region, lumiSample, useJson, false, doFake, false).first;//
+  float zmm = getYield(sample, cut, veto, mass, njets, "=mmfs=mtcut="+region, lumiSample, useJson, false, doFake, false).first;//
+  float zme = getYield(sample, cut, veto, mass, njets, "=mefs=mtcut="+region, lumiSample, useJson, false, doFake, false).first;//
+  float zem = getYield(sample, cut, veto, mass, njets, "=emfs=mtcut="+region, lumiSample, useJson, false, doFake, false).first;//
+  float zee = getYield(sample, cut, veto, mass, njets, "=eefs=mtcut="+region, lumiSample, useJson, false, doFake, false).first;//
   float zmmofs = zmm - 0.5*(zme+zem)/kee;
   float zmmofs_err = sqrt( zmm + 0.25*(zme+zem)/pow(kee,2) );
   float zeeofs = zee - 0.5*(zme+zem)*kee;
   float zeeofs_err = sqrt( zee + 0.25*(zme+zem)*pow(kee,2) );
   float zofs = zmmofs+zeeofs;
   float zofs_err = sqrt( zmm + zee + 0.25*(zme+zem)*pow(kee+1./kee,2) );
-  pair<float, float> wzmm_p = getYield(main_dir+dy_dir+"wz",    cut, veto, mass, njets, "mmfs,mtcut,"+region, lumi, useJson, applyEff, doFake, doPUw);//,fromZ
-  pair<float, float> zzmm_p = getYield(main_dir+dy_dir+"zz_py", cut, veto, mass, njets, "mmfs,mtcut,"+region, lumi, useJson, applyEff, doFake, doPUw);//,fromZ
-  pair<float, float> wzee_p = getYield(main_dir+dy_dir+"wz",    cut, veto, mass, njets, "eefs,mtcut,"+region, lumi, useJson, applyEff, doFake, doPUw);//,fromZ
-  pair<float, float> zzee_p = getYield(main_dir+dy_dir+"zz_py", cut, veto, mass, njets, "eefs,mtcut,"+region, lumi, useJson, applyEff, doFake, doPUw);//,fromZ
+  pair<float, float> wzmm_p = getYield(main_dir+dy_dir+"wz",    cut, veto, mass, njets, "=mmfs=mtcut="+region, lumi, useJson, applyEff, doFake, doPUw);//=fromZ
+  pair<float, float> zzmm_p = getYield(main_dir+dy_dir+"zz_py", cut, veto, mass, njets, "=mmfs=mtcut="+region, lumi, useJson, applyEff, doFake, doPUw);//=fromZ
+  pair<float, float> wzee_p = getYield(main_dir+dy_dir+"wz",    cut, veto, mass, njets, "=eefs=mtcut="+region, lumi, useJson, applyEff, doFake, doPUw);//=fromZ
+  pair<float, float> zzee_p = getYield(main_dir+dy_dir+"zz_py", cut, veto, mass, njets, "=eefs=mtcut="+region, lumi, useJson, applyEff, doFake, doPUw);//=fromZ
   float wzmm = wzmm_p.first;
   float wzmm_stat_err = wzmm_p.second;
   float wzmm_syst_err = 0.1*(wzmm);//assume 10% syst
@@ -68,10 +68,10 @@ pair<float, float> getDYYieldInData(TString sample, unsigned int cut, unsigned i
 }
 
 pair<float, float> computeRoutinData(unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString regionIn, TString regionOut, TString metcut, 
-				     float lumi, float kee, bool useJson=0)  {
+				     float lumi, float kee, bool useJson=0, bool applyEff=false, bool doFake=false, bool doPUw=false)  {
   bool printAll = 0;
-  pair<float, float> outYield = getDYYieldInData(main_dir+dy_dir+"data.root", cut, veto, mass, njets, regionOut+metcut, lumi, kee, useJson);
-  pair<float, float> inzYield = getDYYieldInData(main_dir+dy_dir+"data.root", cut, veto, mass, njets, regionIn +metcut, lumi, kee, useJson);
+  pair<float, float> outYield = getDYYieldInData(main_dir+dy_dir+"data.root", cut, veto, mass, njets, regionOut+metcut, lumi, kee, useJson, applyEff, doFake, doPUw);
+  pair<float, float> inzYield = getDYYieldInData(main_dir+dy_dir+"data.root", cut, veto, mass, njets, regionIn +metcut, lumi, kee, useJson, applyEff, doFake, doPUw);
   float r_all = outYield.first/inzYield.first;
   float r_all_err = sqrt( pow(outYield.second,2)/pow(inzYield.first,2) + outYield.first*pow(inzYield.second,2)/pow(inzYield.first,4) );
   if (printAll) {
@@ -87,15 +87,15 @@ pair<float, float> computeRoutinDatawithSyst(unsigned int cut, unsigned int veto
 					   bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false)  {
   bool printAll = 0;
   float kee = getK(main_dir+dy_dir+"data.root", cut, veto, mass, njets, 0, useJson);
-  pair<float, float> rbin1 = computeRoutinData(cut, veto, mass, njets, regionIn+",zregion", regionOut, "met2025", lumi, kee, useJson);
-  pair<float, float> rbin2 = computeRoutinData(cut, veto, mass, njets, regionIn+",zregion", regionOut, "met2530", lumi, kee, useJson);
-  pair<float, float> rbin3 = computeRoutinData(cut, veto, mass, njets, regionIn+",zregion", regionOut, "met3037", lumi, kee, useJson);
+  pair<float, float> rbin1 = computeRoutinData(cut, veto, mass, njets, regionIn+"=zregion=", regionOut, "=met2025=", lumi, kee, useJson, applyEff, doFake, doPUw);
+  pair<float, float> rbin2 = computeRoutinData(cut, veto, mass, njets, regionIn+"=zregion=", regionOut, "=met2530=", lumi, kee, useJson, applyEff, doFake, doPUw);
+  pair<float, float> rbin3 = computeRoutinData(cut, veto, mass, njets, regionIn+"=zregion=", regionOut, "=met3037=", lumi, kee, useJson, applyEff, doFake, doPUw);
   float r_all = rbin3.first;
   float r_all_stat_err = rbin3.second;
   float r_all_syst_err = max(fabs(r_all-rbin2.first),fabs(r_all-rbin1.first));
   float r_all_err = sqrt( pow(r_all_stat_err,2) + pow(r_all_syst_err,2) );
 
-  pair<float, float> rbin4 = computeRoutinData(cut, veto, mass, njets, regionIn+",zregion", regionOut, "met37up", lumi, kee, useJson);
+  pair<float, float> rbin4 = computeRoutinData(cut, veto, mass, njets, regionIn+"=zregion=", regionOut, "=met37up=", lumi, kee, useJson);
 
   outRFile->cd();
   TH1F* rplot = new TH1F(Form("data_mh%i_%ij",mass,njets),Form("data_mh%i_%ij",mass,njets),4,0,4);
@@ -116,16 +116,16 @@ pair<float, float> computeRoutinDatawithSyst(unsigned int cut, unsigned int veto
 pair<float, float> computeRoutinMC(unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString regionIn, TString regionOut, TString metcut, float lumi, 
 				   bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false)  {
   bool printAll = 0;
-  pair<float, float> in_mm = getYield(main_dir+dy_dir+"dymm", wwSelLepOnly|cut, veto, mass, njets, regionIn+",zregion,mmfs,"+metcut, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> in_ee = getYield(main_dir+dy_dir+"dyee", wwSelLepOnly|cut, veto, mass, njets, regionIn+",zregion,eefs,"+metcut, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> in_mm = getYield(main_dir+dy_dir+"dymm", wwSelLepOnly|cut, veto, mass, njets, regionIn+"=zregion=mmfs="+metcut, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> in_ee = getYield(main_dir+dy_dir+"dyee", wwSelLepOnly|cut, veto, mass, njets, regionIn+"=zregion=eefs="+metcut, lumi, useJson, applyEff, doFake, doPUw);
   float zmm_in = in_mm.first;
   float zee_in = in_ee.first;
   float zmm_in_err = in_mm.second;
   float zee_in_err = in_ee.second;
   float z_in = zee_in + zmm_in;
   float z_in_err = sqrt( pow(zee_in_err,2) + pow(zmm_in_err,2) );
-  pair<float, float> out_mm = getYield(main_dir+dy_dir+"dymm", wwSelLepOnly|ZVeto|cut, veto, mass, njets, regionOut+",mmfs,"+metcut, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> out_ee = getYield(main_dir+dy_dir+"dyee", wwSelLepOnly|ZVeto|cut, veto, mass, njets, regionOut+",eefs,"+metcut, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> out_mm = getYield(main_dir+dy_dir+"dymm", wwSelLepOnly|ZVeto|cut, veto, mass, njets, regionOut+"=mmfs="+metcut, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> out_ee = getYield(main_dir+dy_dir+"dyee", wwSelLepOnly|ZVeto|cut, veto, mass, njets, regionOut+"=eefs="+metcut, lumi, useJson, applyEff, doFake, doPUw);
   float zmm_out = out_mm.first;
   float zee_out = out_ee.first;
   float zmm_out_err = out_mm.second;
@@ -150,10 +150,10 @@ pair<float, float> computeRoutinMC(unsigned int cut, unsigned int veto, int mass
 pair<float, float> computeRoutinMCwithSyst(unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString regionIn, TString regionOut, float lumi, 
 					   bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false)  {
   bool printAll = 0;
-  pair<float, float> rbin1 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met2025", lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> rbin2 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met2530", lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> rbin3 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met3037", lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> rbin4 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "met37up", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> rbin1 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "=met2025=", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> rbin2 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "=met2530=", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> rbin3 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "=met3037=", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> rbin4 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "=met37up=", lumi, useJson, applyEff, doFake, doPUw);
   if (rbin4.second/rbin4.first>0.40 || !isfinite(rbin4.first)) {
     //do not consider the last bin
     rbin4 = make_pair<float, float>(rbin3.first,rbin3.second);
@@ -187,25 +187,25 @@ pair<float, float> getZYieldInData(TString sample, unsigned int cut, unsigned in
   float lumiSample = 0.;
 
   //compute k
-  float zmmNoMet = getYield(sample, cut, veto, mass, njets, "zregion,mmfs,", lumiSample, useJson, false, doFake, false).first;//FIXME: should account for pt if needed
-  float zeeNoMet = getYield(sample, cut, veto, mass, njets, "zregion,eefs,", lumiSample, useJson, false, doFake, false).first;
+  float zmmNoMet = getYield(sample, cut, veto, mass, njets, "=zregion=mmfs=", lumiSample, useJson, false, doFake, false).first;//FIXME: should account for pt if needed
+  float zeeNoMet = getYield(sample, cut, veto, mass, njets, "=zregion=eefs=", lumiSample, useJson, false, doFake, false).first;
   float kee = sqrt(zeeNoMet/zmmNoMet);//the error is negligible
 
   //get Z yields after full met
-  float zmm = getYield(sample, cut, veto, mass, njets, "zregion,mmfs,mmvtxallfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
-  float zme = getYield(sample, cut, veto, mass, njets, "zregion,mefs,mmvtxallfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
-  float zem = getYield(sample, cut, veto, mass, njets, "zregion,emfs,mmvtxallfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
-  float zee = getYield(sample, cut, veto, mass, njets, "zregion,eefs,mmvtxallfs,mtcut,"+regionIn, lumiSample, useJson, false, doFake, false).first;
+  float zmm = getYield(sample, cut, veto, mass, njets, "=zregion=mmfs=mmvtxallfs=mtcut="+regionIn, lumiSample, useJson, false, doFake, false).first;
+  float zme = getYield(sample, cut, veto, mass, njets, "=zregion=mefs=mmvtxallfs=mtcut="+regionIn, lumiSample, useJson, false, doFake, false).first;
+  float zem = getYield(sample, cut, veto, mass, njets, "=zregion=emfs=mmvtxallfs=mtcut="+regionIn, lumiSample, useJson, false, doFake, false).first;
+  float zee = getYield(sample, cut, veto, mass, njets, "=zregion=eefs=mmvtxallfs=mtcut="+regionIn, lumiSample, useJson, false, doFake, false).first;
   float zmmofs = zmm - 0.5*(zme+zem)/kee;
   float zmmofs_err = sqrt( zmm + 0.25*(zme+zem)/pow(kee,2) );
   float zeeofs = zee - 0.5*(zme+zem)*kee;
   float zeeofs_err = sqrt( zee + 0.25*(zme+zem)*pow(kee,2) );
   float zofs = zmmofs+zeeofs;
   float zofs_err = sqrt( zmm + zee + 0.25*(zme+zem)*pow(kee+1./kee,2) );
-  pair<float, float> wzmm_p = getYield(main_dir+dy_dir+"wz",    cut, veto, mass, njets, "zregion,mmfs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> zzmm_p = getYield(main_dir+dy_dir+"zz_py", cut, veto, mass, njets, "zregion,mmfs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> wzee_p = getYield(main_dir+dy_dir+"wz",    cut, veto, mass, njets, "zregion,eefs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> zzee_p = getYield(main_dir+dy_dir+"zz_py", cut, veto, mass, njets, "zregion,eefs,minmetvtx,mtcut,fromZ,"+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> wzmm_p = getYield(main_dir+dy_dir+"wz",    cut, veto, mass, njets, "=zregion=mmfs=minmetvtx=mtcut=fromZ="+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> zzmm_p = getYield(main_dir+dy_dir+"zz_py", cut, veto, mass, njets, "=zregion=mmfs=minmetvtx=mtcut=fromZ="+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> wzee_p = getYield(main_dir+dy_dir+"wz",    cut, veto, mass, njets, "=zregion=eefs=minmetvtx=mtcut=fromZ="+regionIn, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> zzee_p = getYield(main_dir+dy_dir+"zz_py", cut, veto, mass, njets, "=zregion=eefs=minmetvtx=mtcut=fromZ="+regionIn, lumi, useJson, applyEff, doFake, doPUw);
   float wzmm = wzmm_p.first;
   float wzmm_stat_err = wzmm_p.second;
   float wzmm_syst_err = 0.1*(wzmm);//assume 10% syst
@@ -276,8 +276,8 @@ pair<float, float> dyBkgEstimation(TString sample, unsigned int cut, unsigned in
     cout << "r_all: " << r_all << "+/-" << r_all_err << endl;
     cout << "OF+VV corr all: " << zofs_corr << "+/-" << zofs_corr_err << endl;
     cout << "data driven DY estimate: " << dy_est << "+/-" << dy_est_err << endl;
-    cout << "MC expect.: " << getYield(main_dir+dy_dir+"dymm", ZVeto|cut, veto, mass, njets, regionOut+",mmfs,minmetvtx", lumi, useJson, applyEff, doFake, doPUw).first+
-                              getYield(main_dir+dy_dir+"dyee", ZVeto|cut, veto, mass, njets, regionOut+",eefs,minmetvtx", lumi, useJson, applyEff, doFake, doPUw).first << endl;
+    cout << "MC expect.: " << getYield(main_dir+dy_dir+"dymm", ZVeto|cut, veto, mass, njets, regionOut+"=mmfs=minmetvtx=", lumi, useJson, applyEff, doFake, doPUw).first+
+                              getYield(main_dir+dy_dir+"dyee", ZVeto|cut, veto, mass, njets, regionOut+"=eefs=minmetvtx=", lumi, useJson, applyEff, doFake, doPUw).first << endl;
   }
   return make_pair<float, float>(dy_est,dy_est_err);
 }
@@ -291,12 +291,12 @@ void makeDYTable(float lumi) {
 
   outRFile = TFile::Open("outRFile.root","RECREATE");
 
-  TString regionIn  = "dpjallfs,leppts,dphicut,ptll45,lep2pt15allfs";
-  TString regionOut = "dphijet,leppts,dphicut,masscut,ptll45,lep2pt15,mll20,zvetoall";
+  TString regionIn  = "=dpjallfs=leppts=dphicut=ptll45=lep2pt15allfs=";
+  TString regionOut = "=dphijet=leppts=dphicut=masscut=ptll45=lep2pt15=mll20=zvetoall=";
   //TString regionIn  = "leppts,dphicut,ptll45";
   //TString regionOut = "leppts,dphicut,masscut,ptll45,mll20,zvetoall";
 
-  //int jetbins[] = {0,1};
+  //int jetbins[] = {2};
   int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
@@ -331,14 +331,19 @@ void makeDYTable(float lumi) {
 
       int mass = masses[jj];
       if (njets==2 && mass>0) continue;
+      if (njets==2) {
+	regionIn+=",looseVBF,";
+	regionOut+=",looseVBF,";
+	doVBF=1;
+      }
 
-      pair<float, float> dymmMC   = getYield(main_dir+dy_dir+"dymm",  wwSelNoMet, noVeto, mass, njets, "mmfs,minmetvtx,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
-      pair<float, float> dyeeMC   = getYield(main_dir+dy_dir+"dyee",  wwSelNoMet, noVeto, mass, njets, "eefs,minmetvtx,mtcut"+regionOut, lumi, false, applyEff, doFake, doPUw);
+      pair<float, float> dymmMC   = getYield(main_dir+dy_dir+"dymm",  wwSelNoMet, noVeto, mass, njets, "=mmfs=minmetvtx=mtcut="+regionOut, lumi, false, applyEff, doFake, doPUw);
+      pair<float, float> dyeeMC   = getYield(main_dir+dy_dir+"dyee",  wwSelNoMet, noVeto, mass, njets, "=eefs=minmetvtx=mtcut="+regionOut, lumi, false, applyEff, doFake, doPUw);
       
-      //pair<float, float> r  = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
+      pair<float, float> r  = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
       //pair<float, float> rd = computeRoutinDatawithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
       //take it from frozen values
-      pair<float, float> r = make_pair<float, float>(RoutinValue(mass,njets),sqrt(pow(RoutinStatError(mass,njets),2)+pow(RoutinSystError(mass,njets),2)));
+      //pair<float, float> r = make_pair<float, float>(RoutinValue(mass,njets),sqrt(pow(RoutinStatError(mass,njets),2)+pow(RoutinSystError(mass,njets),2)));
 
       pair<float, float> z = getZYieldInData(main_dir+dy_dir+"data.root", wwSelNoZVNoMet, noVeto, mass, njets, regionIn, lumi, useJson, applyEff, doFake, doPUw);
       //avoid negative results putting a higher bound

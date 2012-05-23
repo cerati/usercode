@@ -30,9 +30,9 @@
 #include "BDTG.class.C"//add soft link to compute bdtg values
 
 //CERN, Summ11
-TString main_dir    = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/";
-TString topww_dir   = "wwSelNoLepNoTV/";
-TString dy_dir      = "wwSelNoMetNoZVminMET20/";
+TString main_dir    = "/smurf/cerati/skims/Run2011_Fall11_SmurfV9_42X/mitf-alljets/mm20-dymva/";
+TString topww_dir   = "./";
+TString dy_dir      = "./";
 TString fr_file_mit    = "/smurf/data/Winter11_4700ipb/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
 TString eff_file       = "/smurf/data/Winter11_4700ipb/auxiliar/efficiency_results_v7_42x_Full2011_4700ipb.root";
 TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
@@ -440,22 +440,27 @@ float efficiencyErr(float eff, float den) {
 float discCtrJet(SmurfTree *dataEvent) {
   float discCtr = dataEvent->jet1Btag_;
   if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) discCtr = dataEvent->jet2Btag_;
-  if ( dataEvent->jet3_.pt()>30 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) discCtr = dataEvent->jet3Btag_;
+  //if ( dataEvent->jet3_.pt()>30 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) discCtr = dataEvent->jet3Btag_;
   //cout << discCtr << endl;
   return discCtr;
 }
 
 float discFwdJet(SmurfTree *dataEvent) {
-  float discCtr = dataEvent->jet1Btag_;
-  if ( fabs(dataEvent->jet2_.eta())>fabs(dataEvent->jet1_.eta()) ) discCtr = dataEvent->jet2Btag_;
-  if ( dataEvent->jet3_.pt()>30 && fabs(dataEvent->jet3_.eta())>max(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) discCtr = dataEvent->jet3Btag_;
-  //cout << discCtr << endl;
-  return discCtr;
+  float discFwd = dataEvent->jet1Btag_;
+  if ( fabs(dataEvent->jet2_.eta())>fabs(dataEvent->jet1_.eta()) ) discFwd = dataEvent->jet2Btag_;
+  //if ( dataEvent->jet3_.pt()>30 && fabs(dataEvent->jet3_.eta())>max(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) discFwd = dataEvent->jet3Btag_;
+  //cout << discFwd << endl;
+  return discFwd;
 }
 
 bool passEvent(SmurfTree *dataEvent, unsigned int njets, unsigned int cut, unsigned int veto, TString region, 
 	       float lep1pt,float lep2pt,float dPhi,float mll,float mtL,float mtH,float himass,
 	       bool isMC, bool useJson){
+  
+    if (region.BeginsWith("=")==0 || region.EndsWith("=")==0) {
+      cout << "ERROR: region must begin and end with =" << endl;
+      return 0;
+    }
 
     if (!isMC && (dataEvent->cuts_ & Trigger) != Trigger ) return 0;
     //if (!isMC && dataEvent->run_>172802) return 0;//FIXME LP TEST
@@ -469,72 +474,77 @@ bool passEvent(SmurfTree *dataEvent, unsigned int njets, unsigned int cut, unsig
       if (dataEvent->njets_==3 && dataEvent->jet3_.pt()>30 && ((dataEvent->jet1_.eta()-dataEvent->jet3_.eta() > 0 && dataEvent->jet2_.eta()-dataEvent->jet3_.eta() < 0) ||
 							       (dataEvent->jet2_.eta()-dataEvent->jet3_.eta() > 0 && dataEvent->jet1_.eta()-dataEvent->jet3_.eta() < 0)) ) return 0;
       if ( TMath::Abs(dataEvent->jet1_.eta()) >= 4.5 || TMath::Abs(dataEvent->jet2_.eta()) >= 4.5) return 0;
-      if ( TMath::Abs(dataEvent->jet1_.eta()-dataEvent->jet2_.eta())<=3.5) return 0;
-      if ((dataEvent->jet1_+dataEvent->jet2_).mass()<=450) return 0;
+      if ( region.Contains("=looseVBF=")==0 ) {
+	if ( TMath::Abs(dataEvent->jet1_.eta()-dataEvent->jet2_.eta())<=3.5) return 0;
+	if ((dataEvent->jet1_+dataEvent->jet2_).mass()<=450) return 0;
+      }
     } else if ( dataEvent->njets_!=njets) return 0;
     if ( (dataEvent->cuts_ & cut) != cut ) return 0;
     if ( veto!=noVeto && (dataEvent->cuts_ & veto) == veto ) return 0;
     //WARNING: do not define region names that are subset of others!!!!!!!
     //final states
-    if ( region.Contains("mmfs") && dataEvent->type_!=0 ) return 0;
-    if ( region.Contains("mefs") && dataEvent->type_!=1 ) return 0;
-    if ( region.Contains("emfs") && dataEvent->type_!=2 ) return 0;
-    if ( region.Contains("eefs") && dataEvent->type_!=3 ) return 0;
-    if ( region.Contains("sffs") && (dataEvent->type_==1 || dataEvent->type_==2) ) return 0;
-    if ( region.Contains("offs") && (dataEvent->type_==0 || dataEvent->type_==3) ) return 0;
+    if ( region.Contains("=mmfs=") && dataEvent->type_!=0 ) return 0;
+    if ( region.Contains("=mefs=") && dataEvent->type_!=1 ) return 0;
+    if ( region.Contains("=emfs=") && dataEvent->type_!=2 ) return 0;
+    if ( region.Contains("=eefs=") && dataEvent->type_!=3 ) return 0;
+    if ( region.Contains("=sffs=") && (dataEvent->type_==1 || dataEvent->type_==2) ) return 0;
+    if ( region.Contains("=offs=") && (dataEvent->type_==0 || dataEvent->type_==3) ) return 0;
     //mass regions
-    if ( (region.Contains("leppts")||region.Contains("sideband")||region.Contains("mtside")||region.Contains("dphiside")||region.Contains("massreg")||
-	  region.Contains("mtreg")||region.Contains("dphireg")) && (dataEvent->lep1_.pt()<lep1pt || dataEvent->lep2_.pt()<lep2pt) ) return 0;
-    if ( (region.Contains("sideband")||region.Contains("mtside")||region.Contains("dphiside")) && (dataEvent->dilep_.mass()<himass) ) return 0;
-    if ( (region.Contains("massreg")||region.Contains("masscut")||region.Contains("mtreg")||region.Contains("dphireg")) && (dataEvent->dilep_.mass()>mll) ) return 0;
-    if ( (region.Contains("mtside")||region.Contains("dphiside")||region.Contains("mtreg")||region.Contains("mtcut")||region.Contains("dphireg")) 
+    if ( (region.Contains("=leppts=")||region.Contains("=sideband=")||region.Contains("=mtside=")||region.Contains("=dphiside=")||region.Contains("=massreg=")||
+	  region.Contains("=mtreg=")||region.Contains("=dphireg=")) && (dataEvent->lep1_.pt()<lep1pt || dataEvent->lep2_.pt()<lep2pt) ) return 0;
+    if ( (region.Contains("=sideband=")||region.Contains("=mtside=")||region.Contains("=dphiside=")) && (dataEvent->dilep_.mass()<himass) ) return 0;
+    if ( (region.Contains("=massreg=")||region.Contains("=masscut=")||region.Contains("=mtreg=")||region.Contains("=dphireg=")) && (dataEvent->dilep_.mass()>mll) ) return 0;
+    if ( (region.Contains("=mtside=")||region.Contains("=dphiside=")||region.Contains("=mtreg=")||region.Contains("=mtcut=")||region.Contains("=dphireg=")) 
 	 && (dataEvent->mt_<mtL || dataEvent->mt_>mtH) ) return 0;
-    if ( (region.Contains("dphiside")||region.Contains("dphireg")||region.Contains("dphicut")) && (dataEvent->dPhi_>dPhi*TMath::Pi()/180.) ) return 0;
-    if ( (region.Contains("zregion")) && fabs(dataEvent->dilep_.mass()-91.1876)>7.5 ) return 0;
-    if ( (region.Contains("zreg15")) && fabs(dataEvent->dilep_.mass()-91.1876)>15. ) return 0;
-    if ( (region.Contains("zvetoall")) && fabs(dataEvent->dilep_.mass()-91.1876)<15. ) return 0;
+    if ( (region.Contains("=dphiside=")||region.Contains("=dphireg=")||region.Contains("=dphicut=")) && (dataEvent->dPhi_>dPhi*TMath::Pi()/180.) ) return 0;
+    if ( (region.Contains("=zregion=")) && fabs(dataEvent->dilep_.mass()-91.1876)>7.5 ) return 0;
+    if ( (region.Contains("=zreg15=")) && fabs(dataEvent->dilep_.mass()-91.1876)>15. ) return 0;
+    if ( (region.Contains("=zvetoall=")) && fabs(dataEvent->dilep_.mass()-91.1876)<15. ) return 0;
     //additional higgs cuts
-    if ( region.Contains("dphijet")   && ( dataEvent->type_!=1 && dataEvent->type_!=2 &&
+    if ( region.Contains("=dphijet=")   && ( dataEvent->type_!=1 && dataEvent->type_!=2 &&
 					   ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.) || 
 					     (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) )
 					   ) ) return 0;
-    if ( region.Contains("minmet40")  && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0)) return 0;
-    if ( region.Contains("dpjallfs")  && ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) ||
+    if ( region.Contains("=minmet40=")  && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0)) return 0;
+    if ( region.Contains("=dpjallfs=")  && ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) ||
 					   (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) ) ) return 0;
-    if ( region.Contains("mm40allfs") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0 ) return 0;
-    if ( region.Contains("minmetvtx") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) return 0;
-    if ( region.Contains("mmvtxallfs") && ( min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) return 0;
-    if ( region.Contains("met2040") && dataEvent->type_!=1 && dataEvent->type_!=2 && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>40.0) ) return 0;
-    if ( region.Contains("lep2pt15") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->lep2_.pt()<15.) ) return 0;
-    if ( region.Contains("lep2pt15allfs") && (dataEvent->lep2_.pt()<15.) ) return 0;
-    if ( region.Contains("ptll45") && ( dataEvent->dilep_.pt()<45.) ) return 0;
+    if ( region.Contains("=mm40allfs=") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0 ) return 0;
+    if ( region.Contains("=minmetvtx=") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) return 0;
+    if ( region.Contains("=mmvtxallfs=") && ( min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) return 0;
+    if ( region.Contains("=met2040=") && dataEvent->type_!=1 && dataEvent->type_!=2 && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>40.0) ) return 0;
+    if ( region.Contains("=lep2pt15=") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->lep2_.pt()<15.) ) return 0;
+    if ( region.Contains("=lep2pt15allfs=") && (dataEvent->lep2_.pt()<15.) ) return 0;
+    if ( region.Contains("=ptll45=") && ( dataEvent->dilep_.pt()<45.) ) return 0;
     //cuts for Rout/in
-    if ( region.Contains("met2025") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>25.0) ) return 0;
-    if ( region.Contains("met2530") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<25.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>30.0) ) return 0;
-    if ( region.Contains("met3037") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<30.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>37.0) ) return 0;
-    if ( region.Contains("met37up") &&  min(dataEvent->pmet_,dataEvent->pTrackMet_)<37.0 ) return 0;
+    if ( region.Contains("=met2025=") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>25.0) ) return 0;
+    if ( region.Contains("=met2530=") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<25.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>30.0) ) return 0;
+    if ( region.Contains("=met3037=") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<30.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>37.0) ) return 0;
+    if ( region.Contains("=met37up=") &&  min(dataEvent->pmet_,dataEvent->pTrackMet_)<37.0 ) return 0;
     //cuts on btag
-    if ( region.Contains("btag1or2")  && dataEvent->jet1Btag_<2.1 && dataEvent->jet2Btag_<2.1 ) return 0;
-    if ( region.Contains("btag1and2") && (dataEvent->jet1Btag_<2.1 || dataEvent->jet2Btag_<2.1) ) return 0;
-    if ( region.Contains("btagJet1")  && dataEvent->jet1Btag_<2.1 ) return 0;
-    if ( region.Contains("btagJet2")  && dataEvent->jet2Btag_<2.1 ) return 0;
-    if ( region.Contains("nobJet1")   && dataEvent->jet1Btag_>2.1 ) return 0;
-    if ( region.Contains("nobJet2")   && dataEvent->jet2Btag_>2.1 ) return 0;
-    if ( region.Contains("bTagCtr") && discCtrJet(dataEvent)<2.1) return 0;
-    if ( region.Contains("bTagFwd") && discFwdJet(dataEvent)<2.1) return 0;
+    if ( region.Contains("=btag1or2=")  && dataEvent->jet1Btag_<2.1 && dataEvent->jet2Btag_<2.1 ) return 0;
+    if ( region.Contains("=btag1and2=") && (dataEvent->jet1Btag_<2.1 || dataEvent->jet2Btag_<2.1) ) return 0;
+    if ( region.Contains("=btagJet1=")  && dataEvent->jet1Btag_<2.1 ) return 0;
+    if ( region.Contains("=btagJet2=")  && dataEvent->jet2Btag_<2.1 ) return 0;
+    if ( region.Contains("=nobJet1=")   && dataEvent->jet1Btag_>2.1 ) return 0;
+    if ( region.Contains("=nobJet2=")   && dataEvent->jet2Btag_>2.1 ) return 0;
+    if ( region.Contains("=bTagCtr=")   && discCtrJet(dataEvent)<2.1) return 0;
+    if ( region.Contains("=bTagFwd=")   && (discFwdJet(dataEvent)<2.1) ) return 0;
+    if ( region.Contains("=bVetoFwd=")  && (discFwdJet(dataEvent)>2.1) ) return 0;
+    if ( region.Contains("=bTagNoFwdYesCtr=") && (discFwdJet(dataEvent)>2.1 || discCtrJet(dataEvent)<2.1) ) return 0;
+    if ( region.Contains("=noSoftMu=")  && dataEvent->nSoftMuons_>0 ) return 0;
     //check peaking at MC level
-    if ( region.Contains("fromZ") && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
-    if ( region.Contains("notZ") && !(dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
+    if ( region.Contains("=fromZ=") && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
+    if ( region.Contains("=notZ=") && !(dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
     //spillage
-    if ( region.Contains("spill") && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) return 0;
+    if ( region.Contains("=spill=") && dataEvent->dstype_!=SmurfTree::wgamma && dataEvent->dstype_!=SmurfTree::wgstar && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) return 0;
 
     //mll>20 cut
-    if ( region.Contains("mll20") && dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.mass()<20.) return 0;
+    if ( region.Contains("=mll20=") && dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.mass()<20.) return 0;
     //higgs processId
-    if ( region.Contains("ggH") && ( dataEvent->processId_!=10010 ) ) return 0;
-    if ( region.Contains("qqH") && ( dataEvent->processId_!=10001 ) ) return 0;
-    if ( region.Contains("ZH") && ( dataEvent->processId_!=24 ) ) return 0;
-    if ( region.Contains("WH") && ( dataEvent->processId_!=26 ) ) return 0;
+    if ( region.Contains("=ggH=") && ( dataEvent->processId_!=10010 ) ) return 0;
+    if ( region.Contains("=qqH=") && ( dataEvent->processId_!=10001 ) ) return 0;
+    if ( region.Contains("=ZH=") && ( dataEvent->processId_!=24 ) ) return 0;
+    if ( region.Contains("=WH=") && ( dataEvent->processId_!=26 ) ) return 0;
 
     return 1;  
 }
@@ -1023,13 +1033,14 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
       } else if (var=="ctrjetetapt") {
 	TH2* h2 = dynamic_cast<TH2*>(h);
 	assert(h2);
-	double etaCtr = min(fabs(dataEvent->jet1_.eta()),min(fabs(dataEvent->jet2_.eta()),fabs(dataEvent->jet3_.eta())));
+	double etaCtr = min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta()));
+	//if (dataEvent->jet3_.pt()>15) etaCtr = min(etaCtr,fabs(dataEvent->jet3_.eta()));
 	double ptCtr = dataEvent->jet1_.pt();
 	if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) ptCtr = dataEvent->jet2_.pt();;
-	if ( dataEvent->jet3_.pt()>15 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) ptCtr = dataEvent->jet3_.pt();;
-	h2->Fill(min(etaCtr,2.499),ptCtr,weight*effSF*puw);//overflow in last bin
+	//if ( dataEvent->jet3_.pt()>15 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) ptCtr = dataEvent->jet3_.pt();;
+	h2->Fill(min(etaCtr,2.499),min(ptCtr,199.9),weight*effSF*puw);//overflow in last bin
       } else {
-	cout << "WRONG VAR TO PLOT" << endl;
+	cout << "WRONG VAR TO PLOT: " << var << endl;
 	return;
       }
     } else {//DO FAKES!!!      
@@ -1057,8 +1068,17 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	  h->Fill(rbdtg->GetMvaValue(theInputVals),weight*puw*frW);
 	} else if (var=="mll") {
 	  h->Fill(dataEvent->dilep_.mass(),weight*puw*frW);
+	} else if (var=="ctrjetetapt") {
+	  TH2* h2 = dynamic_cast<TH2*>(h);
+	  assert(h2);
+	  double etaCtr = min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta()));
+	  //if (dataEvent->jet3_.pt()>15) etaCtr = min(etaCtr,fabs(dataEvent->jet3_.eta()));
+	  double ptCtr = dataEvent->jet1_.pt();
+	  if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) ptCtr = dataEvent->jet2_.pt();;
+	  //if ( dataEvent->jet3_.pt()>15 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) ptCtr = dataEvent->jet3_.pt();;
+	  h2->Fill(min(etaCtr,2.499),min(ptCtr,199.9),weight*puw*frW);//overflow in last bin
 	} else {
-	  cout << "WRONG VAR TO PLOT" << endl;
+	  cout << "WRONG VAR TO PLOT: " << var << endl;
 	  return;
 	}
       } 

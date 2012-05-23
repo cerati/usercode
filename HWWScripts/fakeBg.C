@@ -5,25 +5,29 @@
 pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int veto, int mass, int njets, TString region, float lumi, bool applyEff, bool doPUw) {
 
   bool debug = 0;
-  region = region+=",spill";
+  region = region+="=spill=";
   //get scale factors for DY
   float dySF = DYBkgScaleFactor(0,njets);
 
   //correct for spillage...
-  pair<float, float> qqwwFake    = getYield(dir+"qqww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> ggwwFake    = getYield(dir+"ggww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> qqwwFake  = getYield(dir+"qqww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> ggwwFake  = getYield(dir+"ggww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> ttbarFake = getYield(dir+"ttbar", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> twFake    = getYield(dir+"tw", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> dymmFake  = getYield(dir+"dymm", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> dyeeFake  = getYield(dir+"dyee", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> wzFake    = getYield(dir+"wz", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> twFake    = getYield(dir+"tw",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> dymmFake  = getYield(dir+"dymm",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> dyeeFake  = getYield(dir+"dyee",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> wzFake    = getYield(dir+"wz",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> zzFake    = getYield(dir+"zz_py", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  float spillYield = qqwwFake.first+ggwwFake.first+ttbarFake.first+twFake.first+wzFake.first+zzFake.first+dySF*dymmFake.first+dySF*dyeeFake.first;
+  pair<float, float> wgFake    = getYield(dir+"wgamma",cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> wg3lFake  = getYield(dir+"wg3l",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  float spillYield = qqwwFake.first+ggwwFake.first+ttbarFake.first+twFake.first+wzFake.first+zzFake.first+dySF*dymmFake.first+dySF*dyeeFake.first+wgFake.first+wg3lFake.first;
   float spillError = sqrt(pow(qqwwFake.second,2)+pow(ggwwFake.second,2)+pow(ttbarFake.second,2)+pow(twFake.second,2)+
-			 pow(wzFake.second,2)+pow(zzFake.second,2)+pow(dySF*dymmFake.second,2)+pow(dySF*dyeeFake.second,2));
+			  pow(wzFake.second,2)+pow(zzFake.second,2)+pow(dySF*dymmFake.second,2)+pow(dySF*dyeeFake.second,2)+
+			  pow(wgFake.second,2)+pow(wg3lFake.second,2));
   if (debug) {
     cout << "qqww: " << qqwwFake.first << " ggww: " << ggwwFake.first << " ttbar: " << ttbarFake.first << " tw: " << twFake.first 
-	 << " dymm: " << dySF*dymmFake.first << " dyee: " << dySF*dyeeFake.first << " wz: " << wzFake.first << " zz: " << zzFake.first << endl;
+	 << " dymm: " << dySF*dymmFake.first << " dyee: " << dySF*dyeeFake.first << " wz: " << wzFake.first << " zz: " << zzFake.first 
+	 << " wgamma: " << wgFake.first << " wg3l: " << wg3lFake.first << endl;
   }
   return make_pair<float, float>(spillYield,spillError);
 }
@@ -67,7 +71,7 @@ void makeFakeTable(float lumi) {
   //bool doSpillage = 1;
 
   int mass = 0;
-  TString region = "dphireg,dphijet,minmetvtx,lep2pt15,ptll45,mll20";
+  TString region = "=dphireg=dphijet=minmetvtx=lep2pt15=ptll45=mll20=";
 
   //int jetbins[] = {0};
   int jetbins[] = {0,1,2};
@@ -85,10 +89,10 @@ void makeFakeTable(float lumi) {
 
     bool doLatex = false;
 
-    pair<float, float> wjdatamm = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"mmfs", lumi, useJson, applyTnPSF,doPUw);
-    pair<float, float> wjdatame = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"mefs", lumi, useJson, applyTnPSF,doPUw);
-    pair<float, float> wjdataem = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"emfs", lumi, useJson, applyTnPSF,doPUw);
-    pair<float, float> wjdataee = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"eefs", lumi, useJson, applyTnPSF,doPUw);
+    pair<float, float> wjdatamm = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"=mmfs=", lumi, useJson, applyTnPSF,doPUw);
+    pair<float, float> wjdatame = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"=mefs=", lumi, useJson, applyTnPSF,doPUw);
+    pair<float, float> wjdataem = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"=emfs=", lumi, useJson, applyTnPSF,doPUw);
+    pair<float, float> wjdataee = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"=eefs=", lumi, useJson, applyTnPSF,doPUw);
     if (!doLatex) {
       cout << njets << "-jet bin" << endl;
       cout << Form("mm: %5.1f +/- %5.1f - me: %5.1f +/- %5.1f - em: %5.1f +/- %5.1f - ee: %5.1f +/- %5.1f",
@@ -128,7 +132,7 @@ void makeSSTable(float lumi) {
   bool doSpillage = 1;
 
   int mass = 0;
-  TString region = "dphireg,dphijet,minmetvtx,lep2pt15,ptll45";
+  TString region = "=dphireg=dphijet=minmetvtx=lep2pt15=ptll45=";
 
   int jetbins[] = {0};
   //int jetbins[] = {0,1,2};
@@ -148,7 +152,7 @@ void makeSSTable(float lumi) {
 
     pair<float, float> spill = make_pair<float, float>(0,0);
     if (doSpillage) {
-      spill = getSpillage(dir,wwSelectionNoLep, noVeto, mass, njets, region+",mefs", lumi, applyTnPSF, doPUw);
+      spill = getSpillage(dir,wwSelectionNoLep, noVeto, mass, njets, region+"=mefs=", lumi, applyTnPSF, doPUw);
     }
     cout << "spill: " << spill.first << " " << spill.second << endl;
 
