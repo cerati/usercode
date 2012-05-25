@@ -177,20 +177,10 @@ void addDYMVA(TString smurfFDir, TString fileName, TString outputDir) {
 
 void addDYMVA(TString smurfFDir, TString outputDir) {
   gSystem->Exec("mkdir -p "+outputDir);
-  addDYMVA(smurfFDir,"dymm.root",outputDir);
-  addDYMVA(smurfFDir,"dyee.root",outputDir);
-  addDYMVA(smurfFDir,"dymm_mg.root",outputDir);
-  addDYMVA(smurfFDir,"dyee_mg.root",outputDir);
-  addDYMVA(smurfFDir,"dytt.root",outputDir);
-  addDYMVA(smurfFDir,"qqww.root",outputDir);
-  addDYMVA(smurfFDir,"ggww.root",outputDir);
-  addDYMVA(smurfFDir,"ttbar.root",outputDir);
-  addDYMVA(smurfFDir,"tw.root",outputDir);
-  addDYMVA(smurfFDir,"wjets.root",outputDir);
-  addDYMVA(smurfFDir,"wgamma.root",outputDir);
-  addDYMVA(smurfFDir,"wz.root",outputDir);
-  addDYMVA(smurfFDir,"zz_py.root",outputDir);
   addDYMVA(smurfFDir,"data.root",outputDir);
+  addDYMVA(smurfFDir,"dyll.root",outputDir);
+  addDYMVA(smurfFDir,"ggww.root",outputDir);
+  addDYMVA(smurfFDir,"hww110.root",outputDir);
   addDYMVA(smurfFDir,"hww115.root",outputDir);
   addDYMVA(smurfFDir,"hww120.root",outputDir);
   addDYMVA(smurfFDir,"hww130.root",outputDir);
@@ -203,20 +193,18 @@ void addDYMVA(TString smurfFDir, TString outputDir) {
   addDYMVA(smurfFDir,"hww200.root",outputDir);
   addDYMVA(smurfFDir,"hww250.root",outputDir);
   addDYMVA(smurfFDir,"hww300.root",outputDir);
-  addDYMVA(smurfFDir,"ttbar_mg.root",outputDir);
-  addDYMVA(smurfFDir,"tw_ds.root",outputDir);
-  addDYMVA(smurfFDir,"ww_mcnlo.root",outputDir);
-  addDYMVA(smurfFDir,"ww_mcnlo_up.root",outputDir);
-  addDYMVA(smurfFDir,"ww_mcnlo_down.root",outputDir);
-  addDYMVA(smurfFDir,"wg3l.root",outputDir);
-  addDYMVA(smurfFDir,"data-emb-tau123.root",outputDir);
-  addDYMVA(smurfFDir,"data-emb-tau123.root",outputDir);
-  addDYMVA(smurfFDir,"mc_lfake.root",outputDir);
-
-  //addDYMVA(smurfFDir,"wz_py.root",outputDir);
-  //addDYMVA(smurfFDir,"qqww_py.root",outputDir);
-
-  //addDYMVA(smurfFDir,"data-emb-tau122.root",outputDir);
-  //addDYMVA(smurfFDir,"data-emb-tau121.root",outputDir);
+  addDYMVA(smurfFDir,"hww350.root",outputDir);
+  addDYMVA(smurfFDir,"hww400.root",outputDir);
+  addDYMVA(smurfFDir,"hww450.root",outputDir);
+  addDYMVA(smurfFDir,"hww500.root",outputDir);
+  addDYMVA(smurfFDir,"hww550.root",outputDir);
+  addDYMVA(smurfFDir,"hww600.root",outputDir);
+  addDYMVA(smurfFDir,"qqww_py.root",outputDir);
+  addDYMVA(smurfFDir,"qqww.root",outputDir);
+  addDYMVA(smurfFDir,"ttbar.root",outputDir);
+  addDYMVA(smurfFDir,"tw.root",outputDir);
+  addDYMVA(smurfFDir,"wjets.root",outputDir);
+  addDYMVA(smurfFDir,"wz.root",outputDir);
+  addDYMVA(smurfFDir,"zz.root",outputDir);
   return;
 }

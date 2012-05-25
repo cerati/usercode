@@ -44,7 +44,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   bool doFake=false; 
   bool doPUw=true;
 
-  TString sigreg = "=dphireg=dphijet=minmetvtx=lep2pt15=ptll45=mll20=";
+  TString sigreg = "=dphireg=dphijet=dymvacut=ptll45=";
 
   unsigned int baseline_toptag=0, control_top=0, control_toptag=0, veto=0, nj_top=0;
   getCutMasks(njets, baseline_toptag, control_top, control_toptag, veto, nj_top);
@@ -97,52 +97,52 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   if (njets==2) dySF = make_pair<float, float>(DYBkgScaleFactor(0,njets), DYBkgScaleFactor(0,njets)*(DYBkgScaleFactorKappa(0,njets)-1.));
   fs=fs+"=";
 
-  pair<float, float> data = getYield(dir+"data", wwSelection, veto, mass, njets, sigreg+fs, 0.,   useJson, false, false, false);
+  pair<float, float> data;// = getYield(dir+"data", wwSelNoMet, veto, mass, njets, sigreg+fs, 0.,   useJson, false, false, false);
 
-  pair<float, float> qqww = getYield(dir+"qqww", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  //pair<float, float> qqww = getYield(dir+"ww_mcnlo", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> ggww = getYield(dir+"ggww", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> qqww = getYield(dir+"qqww", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  //pair<float, float> qqww = getYield(dir+"ww_mcnlo", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> ggww = getYield(dir+"ggww", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
 
-  pair<float, float> ttbar = getYield(dir+"ttbar", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> tw = getYield(dir+"tw", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> ttbar = getYield(dir+"ttbar", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> tw = getYield(dir+"tw", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
 
-  pair<float, float> zz = getYield(dir+"zz_py", wwSelection, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> wz = getYield(dir+"wz", wwSelection, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> zz = getYield(dir+"zz", wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> wz = getYield(dir+"wz", wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
 
   //add peaking component of VV to DY
-  pair<float, float> dyee = getYield(dir+"dyee", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);//fixme should test fromZ
-  pair<float, float> dymm = getYield(dir+"dymm", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> pzz = getYield(dir+"zz_py", wwSelection, veto, mass, njets, sigreg+fs+"=fromZ=", lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> pwz = getYield(dir+"wz", wwSelection, veto, mass, njets, sigreg+fs+"=fromZ=", lumi, useJson, applyEff, doFake, doPUw);
+  //pair<float, float> dyee = getYield(dir+"dyee", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);//fixme should test fromZ
+  pair<float, float> dyll = getYield(dir+"dyll", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> pzz = getYield(dir+"zz", wwSelNoMet, veto, mass, njets, sigreg+fs+"=fromZ=", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> pwz = getYield(dir+"wz", wwSelNoMet, veto, mass, njets, sigreg+fs+"=fromZ=", lumi, useJson, applyEff, doFake, doPUw);
 
-  pair<float, float> dytt_1 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau121", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
-  pair<float, float> dytt_2 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau122", wwSelection, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
-  pair<float, float> dytt_3 = getYield(dir+"data-emb-tau123", wwSelection, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
+  pair<float, float> dytt_1 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau121", wwSelNoMet, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
+  pair<float, float> dytt_2 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau122", wwSelNoMet, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
+  pair<float, float> dytt_3 ;//= getYield(dir+"data-emb-tau123", wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
   pair<float, float> dytt = make_pair<float, float>(dytt_1.first+dytt_2.first+dytt_3.first,sqrt(pow(dytt_1.second,2)+pow(dytt_2.second,2)+pow(dytt_3.second,2)));
   
-  pair<float, float> wgamma = getYield(dir+"wgamma", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> wg3l = getYield(dir+"wg3l", wwSelection, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> wgamma ;//= getYield(dir+"wgamma", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> wg3l ;//= getYield(dir+"wg3l", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
 
-  pair<float, float> wjets = fakeBgEstimation(dir,wwSelectionNoLep, veto, mass, njets, sigreg+fs, lumi,   useJson, applyEff, doPUw);
+  pair<float, float> wjets = fakeBgEstimation(dir,wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi,   useJson, applyEff, doPUw);
 
   pair<float, float> gghww = make_pair<float, float>(0.,0.); 
   pair<float, float> qqhww = make_pair<float, float>(0.,0.); 
   pair<float, float> zhww = make_pair<float, float>(0.,0.); 
   pair<float, float> whww = make_pair<float, float>(0.,0.); 
   if (mass>0) {
-    gghww = getYield(dir+Form("hww%i",mass), wwSelection, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw);
-    qqhww = getYield(dir+Form("hww%i",mass), wwSelection, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw);
-    zhww = getYield(dir+Form("hww%i",mass), wwSelection, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw);
-    whww = getYield(dir+Form("hww%i",mass), wwSelection, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+    gghww = getYield(dir+Form("hww%i",mass), wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+    qqhww = getYield(dir+Form("hww%i",mass), wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+    zhww = getYield(dir+Form("hww%i",mass), wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+    whww = getYield(dir+Form("hww%i",mass), wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw);
   }
 
   bool makeTable = false;
   if (makeTable) {
     float tot = wwSF.first*qqww.first+ wwSF.first*ggww.first+ zz.first+wz.first+ 
-      topSF.first*(ttbar.first+tw.first)+dySF.first*(dymm.first+dyee.first)+pzz.first+pwz.first+ 
+      topSF.first*(ttbar.first+tw.first)+dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first+ 
       wjets.first+ wgamma.first+wg3l.first*WGstarScaleFactor()+dytt.first; 
     float err = sqrt(pow(wwSF.first*qqww.second,2)+pow(wwSF.first*ggww.second,2)+pow(sqrt(pow(zz.second,2)+pow(wz.second,2)),2)+pow(topSF.first*sqrt(pow(ttbar.second,2)+pow(tw.second,2)),2)+
-		     pow(sqrt(pow(dySF.first*dymm.second,2)+pow(dySF.first*dyee.second,2)+pow(pzz.second,2)+pow(pwz.second,2)),2)+pow(wjets.second,2)+
+		     pow(sqrt(pow(dySF.first*dyll.second,2)/*+pow(dySF.first*dyee.second,2)*/+pow(pzz.second,2)+pow(pwz.second,2)),2)+pow(wjets.second,2)+
 		     pow(sqrt(pow(wgamma.second,2)+pow(wg3l.second,2)),2)+pow(dytt.second,2));
     cout << Form(" %6.0f $\\pm$ %6.0f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f \\\\",
 		 data.first,data.second,
@@ -152,7 +152,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 		 topSF.first*(ttbar.first+tw.first), topSF.first*sqrt(pow(ttbar.second,2)+pow(tw.second,2)),
 		 wjets.first, wjets.second,
 		 zz.first+wz.first, sqrt(pow(zz.second,2)+pow(wz.second,2)),
-		 dySF.first*(dymm.first+dyee.first)+pzz.first+pwz.first, sqrt(pow(dySF.first*dymm.second,2)+pow(dySF.first*dyee.second,2)+pow(pzz.second,2)+pow(pwz.second,2)),
+		 dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first, sqrt(pow(dySF.first*dyll.second,2)/*+pow(dySF.first*dyee.second,2)*/+pow(pzz.second,2)+pow(pwz.second,2)),
 		 wgamma.first+wg3l.first*WGstarScaleFactor(), sqrt(pow(wgamma.second,2)+pow(wg3l.second,2)),
 		 dytt.first, dytt.second) << endl;
   } else {
@@ -177,7 +177,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%-35s %5s %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i \n","process","",-3,-2,-1,0,1,2,3,4,5,6,7,8);
     out << Form("%-35s %5s %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f \n","rate","",
 	   zhww.first, whww.first, qqhww.first, gghww.first, wwSF.first*qqww.first, wwSF.first*ggww.first, zz.first+wz.first, topSF.first*(ttbar.first+tw.first), 
-	   dySF.first*(dymm.first+dyee.first)+pzz.first+pwz.first, wjets.first, wgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
+		dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first, wjets.first, wgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
     out << Form("%-35s %5s   1.045   1.045   1.045   1.045     -       -     1.045     -       -       -     1.045   1.045\n","lumi","lnN");
     if (mode=="shape" && doResEffSyst) {
       //we do not have WH and ZH for mH=115
@@ -231,7 +231,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww_%ij_ttbar",njets),"lnN",
 		1.+topSF.second/topSF.first);
     out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_%ij_Z",fs.Data(),njets),"lnN",
-		(dySF.first*(dymm.first+dyee.first)+pzz.first+pwz.first)>0 ? (1.+dySF.second*(dymm.first+dyee.first)/(dySF.first*(dymm.first+dyee.first)+pzz.first+pwz.first)) : 1.0);
+		(dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first)>0 ? (1.+dySF.second*(dyll.first/*+dyee.first*/)/(dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first)) : 1.0);
     out << Form("%-35s %5s     -       -       -       -     %5.3f   %5.3f     -       -       -       -       -       -  \n",Form("CMS_hww_%ij_WW",njets),"lnN",
 		1.+wwSF.second/wwSF.first,1.+wwSF.second/wwSF.first);
     out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     %5.3f\n","CMS_hww_Ztt","lnN",
@@ -255,7 +255,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
       out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ttbar",fs.Data(),njets),"lnN",
 		  1.+sqrt(pow(ttbar.second,2)+pow(tw.second,2))/(ttbar.first+tw.first));
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_stat_%ij_Z",fs.Data(),njets),"lnN",
-		  (dySF.first*dymm.first+dySF.first*dyee.first+pzz.first+pwz.first)>0 ? 1.+sqrt(pow(dySF.first*dymm.second,2)+pow(dySF.first*dyee.second,2)+pow(pzz.second,2)+pow(pwz.second,2))/(dySF.first*dymm.first+dySF.first*dyee.first+pzz.first+pwz.first) : 1.0);
+		  (dySF.first*dyll.first/*+dySF.first*dyee.first*/+pzz.first+pwz.first)>0 ? 1.+sqrt(pow(dySF.first*dyll.second,2)/*+pow(dySF.first*dyee.second,2)*/+pow(pzz.second,2)+pow(pwz.second,2))/(dySF.first*dyll.first/*+dySF.first*dyee.first*/+pzz.first+pwz.first) : 1.0);
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     %5.3f     -       -  \n",Form("CMS_hww%s_stat_%ij_Wjets",fs.Data(),njets),"lnN",
 		  wjets.first>0 ? 1.+wjets.second/wjets.first : 1.);
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     %5.3f     -  \n",Form("CMS_hww%s_stat_%ij_Wgamma",fs.Data(),njets),"lnN",
@@ -283,7 +283,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 	out << Form("%-35s %5s     -       -       -       -       -       -     1.000     -       -       -       -       -  \n",Form("CMS_MVAVVStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
       if ((ttbar.first+tw.first)>0.)
 	out << Form("%-35s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n",Form("CMS_MVATopStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
-      if ((dySF.first*dymm.first+dySF.first*dyee.first+pzz.first+pwz.first)>0.)
+      if ((dySF.first*dyll.first/*+dySF.first*dyee.first*/+pzz.first+pwz.first)>0.)
 	out << Form("%-35s %5s     -       -       -       -       -       -       -       -     1.000     -       -       -  \n",Form("CMS_MVAZjetsStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
       if (wjets.first>0.)
 	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n",Form("CMS_MVAWjetsStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
@@ -305,10 +305,10 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 
 void cardMaker(float lumi, TString mode) {
 
-  int jets[] = {1};
-  //int jets[] = {0,1,2};
+  //int jets[] = {1};
+  int jets[] = {0,1,2};
 
-  int masses[] = {115};
+  int masses[] = {120};
   //int masses[] = {115,120,130,140,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
   int njets = sizeof(jets)/sizeof(int);

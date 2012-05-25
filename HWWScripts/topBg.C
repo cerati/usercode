@@ -12,20 +12,20 @@ pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned in
 
   float qqww = getYield(dir+"qqww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
   float ggww = getYield(dir+"ggww",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
-  float dymm = dySF*getYield(dir+"dymm",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
-  float dyee = dySF*getYield(dir+"dyee",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
-  float dytt = getYield(dir+"dytt",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
-  float zz   = getYield(dir+"zz_py",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float dyll = dySF*getYield(dir+"dyll",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  //float dyee = dySF*getYield(dir+"dyee",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float dytt = 0;//getYield(dir+"dytt",  cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float zz   = getYield(dir+"zz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
   float wz   = getYield(dir+"wz",    cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
-  float wg   = getYield(dir+"wgamma",cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
+  float wg   = 0;//getYield(dir+"wgamma",cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
 
-  float mc_other = qqww + ggww + dymm + dyee + dytt + zz+ wz+wg;
+  float mc_other = qqww + ggww + dyll/* + dyee*/ + dytt + zz+ wz+wg;
   pair<float, float> nwj = fakeBgEstimationWithSyst(main_dir+topww_dir,cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doPUw);
 
   float background = mc_other+nwj.first;
-  float backgr_err = sqrt(pow(0.5*qqww,2) + pow(0.5*ggww,2) + pow(0.5*dymm,2) + pow(0.5*dyee,2) + pow(0.5*dytt,2) + pow(0.5*zz,2)+ pow(0.5*wz,2)+pow(0.5*wg,2)+pow(nwj.second,2));//take 50% for MC based
-  if (debug) cout << "bkg total, fake, qqww, ggww, dymm, dyee, dytt, zz, wz, wgamma: " << background << " " << nwj.first << " " 
-		  << qqww << " " << ggww << " " << dymm << " " << dyee << " " << dytt << " " << zz << " " << wz << " " << wg << endl;
+  float backgr_err = sqrt(pow(0.5*qqww,2) + pow(0.5*ggww,2) + pow(0.5*dyll,2)/* + pow(0.5*dyee,2)*/ + pow(0.5*dytt,2) + pow(0.5*zz,2)+ pow(0.5*wz,2)+pow(0.5*wg,2)+pow(nwj.second,2));//take 50% for MC based
+  if (debug) cout << "bkg total, fake, qqww, ggww, dyll"<</*, dyee*/", dytt, zz, wz, wgamma: " << background << " " << nwj.first << " " 
+		  << qqww << " " << ggww << " " << dyll/* << " " << dyee*/ << " " << dytt << " " << zz << " " << wz << " " << wg << endl;
 
   return make_pair<float, float>(background,backgr_err);
 }
@@ -71,12 +71,12 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   float eff_err_veto_data = 0;
   float fttbar=0.,fttbar_err=0.,twlikett=0.;
   if (njets==0) {
-    float wwntv1j_tw  = getYield(main_dir+topww_dir+"tw", wwSelectionNoTV,                 veto, mass, 1, region_top,    lumi, false, applyEff, false, doPUw).first;    
-    float wwtt1j_tw   = getYield(main_dir+topww_dir+"tw", wwSelectionNoTV|TopTagNotInJets, veto, mass, 1, region_toptag, lumi, false, applyEff, false, doPUw).first;    
+    float wwntv1j_tw  = getYield(main_dir+topww_dir+"tw", wwSelNoMetNoTV,                 veto, mass, 1, region_top,    lumi, false, applyEff, false, doPUw).first;    
+    float wwtt1j_tw   = getYield(main_dir+topww_dir+"tw", wwSelNoMetNoTV|TopTagNotInJets, veto, mass, 1, region_toptag, lumi, false, applyEff, false, doPUw).first;    
     twlikett = wwtt1j_tw/wwntv1j_tw;
     //float twlikett_err = 0.;//fixme
-    float sideband_ttbar  = getYield(main_dir+topww_dir+"ttbar", wwSelectionNoTV, veto, mass, njets, region, lumi, false, applyEff, false, doPUw).first;
-    float sideband_tw     = getYield(main_dir+topww_dir+"tw",    wwSelectionNoTV, veto, mass, njets, region, lumi, false, applyEff, false, doPUw).first;
+    float sideband_ttbar  = getYield(main_dir+topww_dir+"ttbar", wwSelNoMetNoTV, veto, mass, njets, region, lumi, false, applyEff, false, doPUw).first;
+    float sideband_tw     = getYield(main_dir+topww_dir+"tw",    wwSelNoMetNoTV, veto, mass, njets, region, lumi, false, applyEff, false, doPUw).first;
     fttbar = (sideband_ttbar+sideband_tw*twlikett)/(sideband_ttbar+sideband_tw);
     fttbar_err = fttbar*0.17;//from cross section uncertainty
     eff_veto_data = fttbar*(1 - (1-eff_tag_data)*(1-eff_tag_data)) + (1.-fttbar)*eff_tag_data;
@@ -132,17 +132,17 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
     float sb_mc_other_tag = getYield(main_dir+topww_dir+"qqww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
                             getYield(main_dir+topww_dir+"ggww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
                             getYield(main_dir+topww_dir+"wjets", baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
-                            getYield(main_dir+topww_dir+"dymm",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
-                            getYield(main_dir+topww_dir+"dyee",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
-                            getYield(main_dir+topww_dir+"dytt",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
-                            getYield(main_dir+topww_dir+"zz_py",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+                            getYield(main_dir+topww_dir+"dyll",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
+                            //getYield(main_dir+topww_dir+"dyee",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+                            //getYield(main_dir+topww_dir+"dytt",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +//fixme
+                            getYield(main_dir+topww_dir+"zz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
                             getYield(main_dir+topww_dir+"wz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first;
     cout << "sb tag mc top, mc other: " << sb_mc_top_tag << " " << sb_mc_other_tag << endl;
     cout << "sb tag data unc, bkg, data corr: " << sideband_data_tag+sb_tag_bkg.first << " " << sb_tag_bkg.first << " " << sideband_data_tag << endl;
     //cout << "sb_tag_purity: " << sb_tag_purity << endl;
     //cout << "sb tag data unc, exp bkg, data corr: " << sideband_data_tag/sb_tag_purity << " " << (sideband_data_tag/sb_tag_purity)*(1.-sb_tag_purity) << " " << sideband_data_tag << endl;
-    float sigreg_ttbar  = getYield(main_dir+topww_dir+"ttbar", wwSelection, veto, mass, njets,  region, lumi).first;
-    float sigreg_tw     = getYield(main_dir+topww_dir+"tw",    wwSelection, veto, mass, njets,  region, lumi).first;
+    float sigreg_ttbar  = getYield(main_dir+topww_dir+"ttbar", wwSelNoMet, veto, mass, njets,  region, lumi).first;
+    float sigreg_tw     = getYield(main_dir+topww_dir+"tw",    wwSelNoMet, veto, mass, njets,  region, lumi).first;
     cout << "data(notag)=" << num_top_data << " mc(notag)=" << sigreg_ttbar+sigreg_tw << " mc(tag)=" << sb_mc_top_tag << endl;
   }
   return make_pair<float, float>(num_top_data, num_top_err_data);
@@ -155,7 +155,7 @@ void makeTopTable(float lumi) {
   bool doFake   = false;
   bool doPUw    = true;
 
-  TString anaRegion = "=dphijet=minmetvtx=lep2pt15=ptll45=mll20=";
+  TString anaRegion = "=dphijet=dymvacut=ptll45=lep2pt20allfs=";//lep2pt20allfs=
 
   int mass = 0;
 
@@ -163,52 +163,52 @@ void makeTopTable(float lumi) {
   bool printAll = 0;
   //signal region
   doVBF=1;
-  pair<float, float> sigreg_ttbar_2j = getYield(main_dir+topww_dir+"ttbar",    wwSelection, noVeto, mass, 2, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> sigreg_tw_2j    = getYield(main_dir+topww_dir+"tw",       wwSelection, noVeto, mass, 2, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> sigreg_ttbar_2j = getYield(main_dir+topww_dir+"ttbar",    wwSelNoMet, noVeto, mass, 2, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> sigreg_tw_2j    = getYield(main_dir+topww_dir+"tw",       wwSelNoMet, noVeto, mass, 2, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> sigreg_top_2j = make_pair<float, float>(sigreg_ttbar_2j.first+sigreg_tw_2j.first,sqrt(pow(sigreg_ttbar_2j.second,2)+pow(sigreg_tw_2j.second,2)));
   TH2F *data_ctrtag_2j_h = new TH2F("data_ctrtag_2j_h","data_ctrtag_2j_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",data_ctrtag_2j_h, main_dir+topww_dir+"data", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", 0, useJson, 0, 0, 0);
+  fillPlot("ctrjetetapt",data_ctrtag_2j_h, main_dir+topww_dir+"data", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", 0, useJson, 0, 0, 0);
   TH2F *qqww_ctrtag_2j_h = new TH2F("qqww_ctrtag_2j_h","qqww_ctrtag_2j_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",qqww_ctrtag_2j_h, main_dir+topww_dir+"qqww", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",qqww_ctrtag_2j_h, main_dir+topww_dir+"qqww", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *ggww_ctrtag_2j_h = new TH2F("ggww_ctrtag_2j_h","ggww_ctrtag_2j_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",ggww_ctrtag_2j_h, main_dir+topww_dir+"ggww", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
-  TH2F *dymm_ctrtag_2j_h = new TH2F("dymm_ctrtag_2j_h","dymm_ctrtag_2j_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",dymm_ctrtag_2j_h, main_dir+topww_dir+"dymm", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
-  dymm_ctrtag_2j_h->Scale(DYBkgScaleFactor(0,2));
-  TH2F *dyee_ctrtag_2j_h = new TH2F("dyee_ctrtag_2j_h","dyee_ctrtag_2j_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",dyee_ctrtag_2j_h, main_dir+topww_dir+"dyee", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
-  dyee_ctrtag_2j_h->Scale(DYBkgScaleFactor(0,2));
-  TH2F *dytt_ctrtag_2j_h = new TH2F("dytt_ctrtag_2j_h","dytt_ctrtag_2j_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",dytt_ctrtag_2j_h, main_dir+topww_dir+"dytt", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",ggww_ctrtag_2j_h, main_dir+topww_dir+"ggww", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  TH2F *dyll_ctrtag_2j_h = new TH2F("dyll_ctrtag_2j_h","dyll_ctrtag_2j_h",5,0,2.5,1,0,200);
+  fillPlot("ctrjetetapt",dyll_ctrtag_2j_h, main_dir+topww_dir+"dyll", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  dyll_ctrtag_2j_h->Scale(DYBkgScaleFactor(0,2));
+//   TH2F *dyee_ctrtag_2j_h = new TH2F("dyee_ctrtag_2j_h","dyee_ctrtag_2j_h",5,0,2.5,1,0,200);
+//   fillPlot("ctrjetetapt",dyee_ctrtag_2j_h, main_dir+topww_dir+"dyee", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
+//   dyee_ctrtag_2j_h->Scale(DYBkgScaleFactor(0,2));
+//   TH2F *dytt_ctrtag_2j_h = new TH2F("dytt_ctrtag_2j_h","dytt_ctrtag_2j_h",5,0,2.5,1,0,200);
+//   fillPlot("ctrjetetapt",dytt_ctrtag_2j_h, main_dir+topww_dir+"dytt", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *zz_ctrtag_2j_h = new TH2F("zz_ctrtag_2j_h","zz_ctrtag_2j_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",zz_ctrtag_2j_h, main_dir+topww_dir+"zz_py", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",zz_ctrtag_2j_h, main_dir+topww_dir+"zz", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *wz_ctrtag_2j_h = new TH2F("wz_ctrtag_2j_h","wz_ctrtag_2j_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",wz_ctrtag_2j_h, main_dir+topww_dir+"wz", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
-  TH2F *wg_ctrtag_2j_h = new TH2F("wg_ctrtag_2j_h","wg_ctrtag_2j_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",wg_ctrtag_2j_h, main_dir+topww_dir+"wgamma", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",wz_ctrtag_2j_h, main_dir+topww_dir+"wz", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
+//   TH2F *wg_ctrtag_2j_h = new TH2F("wg_ctrtag_2j_h","wg_ctrtag_2j_h",5,0,2.5,1,0,200);
+//   fillPlot("ctrjetetapt",wg_ctrtag_2j_h, main_dir+topww_dir+"wgamma", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F* wj_ctrtag_2j_h = new TH2F("wj_ctrtag_2j_h","wj_ctrtag_2j_h",5,0,2.5,1,0,200);
   fillPlot("ctrjetetapt",wj_ctrtag_2j_h,main_dir+topww_dir+"data", wwSelNoLepNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagNoFwdYesCtr=", 0, useJson, 0, 1, 0);
   data_ctrtag_2j_h->Add(qqww_ctrtag_2j_h,-1.);
   data_ctrtag_2j_h->Add(ggww_ctrtag_2j_h,-1.);
-  data_ctrtag_2j_h->Add(dymm_ctrtag_2j_h,-1.);
-  data_ctrtag_2j_h->Add(dyee_ctrtag_2j_h,-1.);
-  data_ctrtag_2j_h->Add(dytt_ctrtag_2j_h,-1.);
+  data_ctrtag_2j_h->Add(dyll_ctrtag_2j_h,-1.);
+  //data_ctrtag_2j_h->Add(dyee_ctrtag_2j_h,-1.);
+  //data_ctrtag_2j_h->Add(dytt_ctrtag_2j_h,-1.);
   data_ctrtag_2j_h->Add(zz_ctrtag_2j_h,-1.);
   data_ctrtag_2j_h->Add(wz_ctrtag_2j_h,-1.);
-  data_ctrtag_2j_h->Add(wg_ctrtag_2j_h,-1.);
+  //data_ctrtag_2j_h->Add(wg_ctrtag_2j_h,-1.);
   data_ctrtag_2j_h->Add(wj_ctrtag_2j_h,-1.);
   if (printAll) {
-    pair<float, float> novreg_ttbar_2j = getYield(main_dir+topww_dir+"ttbar",    wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
-    pair<float, float> novreg_tw_2j    = getYield(main_dir+topww_dir+"tw",       wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
+    pair<float, float> novreg_ttbar_2j = getYield(main_dir+topww_dir+"ttbar",    wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
+    pair<float, float> novreg_tw_2j    = getYield(main_dir+topww_dir+"tw",       wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
     pair<float, float> novreg_top_2j = make_pair<float, float>(novreg_ttbar_2j.first+novreg_tw_2j.first,sqrt(pow(novreg_ttbar_2j.second,2)+pow(novreg_tw_2j.second,2)));
     cout << "MC before veto: " << novreg_top_2j.first << " +/- " << novreg_top_2j.second << endl;
     cout << "MC after veto: " << sigreg_top_2j.first << " +/- " << sigreg_top_2j.second << endl;
-    pair<float, float> data_ctrtag_2j    = getYield(main_dir+topww_dir+"data",       wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion, 0, useJson, 0, 0, 0);
+    pair<float, float> data_ctrtag_2j    = getYield(main_dir+topww_dir+"data",       wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion, 0, useJson, 0, 0, 0);
     cout << "data before veto: " << data_ctrtag_2j.first << " +/- " << data_ctrtag_2j.second << endl;
     doVBF=0;
-    pair<float, float> data_ctrtag_2j_num    = getYield(main_dir+topww_dir+"data",       wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", 0, useJson, 0, 0, 0);
+    pair<float, float> data_ctrtag_2j_num    = getYield(main_dir+topww_dir+"data",       wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", 0, useJson, 0, 0, 0);
     cout << "data num: " << data_ctrtag_2j_num.first << " +/- " << data_ctrtag_2j_num.second << endl;
-    pair<float, float> data_ctrtag_2j_den    = getYield(main_dir+topww_dir+"data",       wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", 0, useJson, 0, 0, 0);
+    pair<float, float> data_ctrtag_2j_den    = getYield(main_dir+topww_dir+"data",       wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", 0, useJson, 0, 0, 0);
     cout << "data den: " << data_ctrtag_2j_den.first << " +/- " << data_ctrtag_2j_den.second << endl;
     float eff = data_ctrtag_2j_num.first/data_ctrtag_2j_den.first;
     float effErr = efficiencyErr(eff, data_ctrtag_2j_den.first);
@@ -221,45 +221,45 @@ void makeTopTable(float lumi) {
   //control region
   //these are the background to subtract from data (including tW)
   TH2F *qqww_ctrtag_2j_num_h = new TH2F("qqww_ctrtag_2j_num_h","qqww_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",qqww_ctrtag_2j_num_h, main_dir+topww_dir+"qqww", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",qqww_ctrtag_2j_num_h, main_dir+topww_dir+"qqww", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *qqww_ctrtag_2j_den_h = new TH2F("qqww_ctrtag_2j_den_h","qqww_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",qqww_ctrtag_2j_den_h, main_dir+topww_dir+"qqww", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",qqww_ctrtag_2j_den_h, main_dir+topww_dir+"qqww", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *ggww_ctrtag_2j_num_h = new TH2F("ggww_ctrtag_2j_num_h","ggww_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",ggww_ctrtag_2j_num_h, main_dir+topww_dir+"ggww", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",ggww_ctrtag_2j_num_h, main_dir+topww_dir+"ggww", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *ggww_ctrtag_2j_den_h = new TH2F("ggww_ctrtag_2j_den_h","ggww_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",ggww_ctrtag_2j_den_h, main_dir+topww_dir+"ggww", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
-  TH2F *dymm_ctrtag_2j_num_h = new TH2F("dymm_ctrtag_2j_num_h","dymm_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",dymm_ctrtag_2j_num_h, main_dir+topww_dir+"dymm", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
-  dymm_ctrtag_2j_num_h->Scale(DYBkgScaleFactor(0,2));
-  TH2F *dymm_ctrtag_2j_den_h = new TH2F("dymm_ctrtag_2j_den_h","dymm_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",dymm_ctrtag_2j_den_h, main_dir+topww_dir+"dymm", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
-  dymm_ctrtag_2j_den_h->Scale(DYBkgScaleFactor(0,2));
-  TH2F *dyee_ctrtag_2j_num_h = new TH2F("dyee_ctrtag_2j_num_h","dyee_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",dyee_ctrtag_2j_num_h, main_dir+topww_dir+"dyee", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
-  dyee_ctrtag_2j_num_h->Scale(DYBkgScaleFactor(0,2));
-  TH2F *dyee_ctrtag_2j_den_h = new TH2F("dyee_ctrtag_2j_den_h","dyee_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",dyee_ctrtag_2j_den_h, main_dir+topww_dir+"dyee", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
-  dyee_ctrtag_2j_den_h->Scale(DYBkgScaleFactor(0,2));
-  TH2F *dytt_ctrtag_2j_num_h = new TH2F("dytt_ctrtag_2j_num_h","dytt_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",dytt_ctrtag_2j_num_h, main_dir+topww_dir+"dytt", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
-  TH2F *dytt_ctrtag_2j_den_h = new TH2F("dytt_ctrtag_2j_den_h","dytt_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",dytt_ctrtag_2j_den_h, main_dir+topww_dir+"dytt", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",ggww_ctrtag_2j_den_h, main_dir+topww_dir+"ggww", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+  TH2F *dyll_ctrtag_2j_num_h = new TH2F("dyll_ctrtag_2j_num_h","dyll_ctrtag_2j_num_h",5,0,2.5,1,0,200);
+  fillPlot("ctrjetetapt",dyll_ctrtag_2j_num_h, main_dir+topww_dir+"dyll", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  dyll_ctrtag_2j_num_h->Scale(DYBkgScaleFactor(0,2));
+  TH2F *dyll_ctrtag_2j_den_h = new TH2F("dyll_ctrtag_2j_den_h","dyll_ctrtag_2j_den_h",5,0,2.5,1,0,200);
+  fillPlot("ctrjetetapt",dyll_ctrtag_2j_den_h, main_dir+topww_dir+"dyll", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+  dyll_ctrtag_2j_den_h->Scale(DYBkgScaleFactor(0,2));
+//   TH2F *dyee_ctrtag_2j_num_h = new TH2F("dyee_ctrtag_2j_num_h","dyee_ctrtag_2j_num_h",5,0,2.5,1,0,200);
+//   fillPlot("ctrjetetapt",dyee_ctrtag_2j_num_h, main_dir+topww_dir+"dyee", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+//   dyee_ctrtag_2j_num_h->Scale(DYBkgScaleFactor(0,2));
+//   TH2F *dyee_ctrtag_2j_den_h = new TH2F("dyee_ctrtag_2j_den_h","dyee_ctrtag_2j_den_h",5,0,2.5,1,0,200);
+//   fillPlot("ctrjetetapt",dyee_ctrtag_2j_den_h, main_dir+topww_dir+"dyee", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+//   dyee_ctrtag_2j_den_h->Scale(DYBkgScaleFactor(0,2));
+//   TH2F *dytt_ctrtag_2j_num_h = new TH2F("dytt_ctrtag_2j_num_h","dytt_ctrtag_2j_num_h",5,0,2.5,1,0,200);
+//   fillPlot("ctrjetetapt",dytt_ctrtag_2j_num_h, main_dir+topww_dir+"dytt", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+//   TH2F *dytt_ctrtag_2j_den_h = new TH2F("dytt_ctrtag_2j_den_h","dytt_ctrtag_2j_den_h",5,0,2.5,1,0,200);
+//   fillPlot("ctrjetetapt",dytt_ctrtag_2j_den_h, main_dir+topww_dir+"dytt", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *zz_ctrtag_2j_num_h = new TH2F("zz_ctrtag_2j_num_h","zz_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",zz_ctrtag_2j_num_h, main_dir+topww_dir+"zz_py", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",zz_ctrtag_2j_num_h, main_dir+topww_dir+"zz", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *zz_ctrtag_2j_den_h = new TH2F("zz_ctrtag_2j_den_h","zz_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",zz_ctrtag_2j_den_h, main_dir+topww_dir+"zz_py", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",zz_ctrtag_2j_den_h, main_dir+topww_dir+"zz", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *wz_ctrtag_2j_num_h = new TH2F("wz_ctrtag_2j_num_h","wz_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",wz_ctrtag_2j_num_h, main_dir+topww_dir+"wz", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",wz_ctrtag_2j_num_h, main_dir+topww_dir+"wz", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *wz_ctrtag_2j_den_h = new TH2F("wz_ctrtag_2j_den_h","wz_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",wz_ctrtag_2j_den_h, main_dir+topww_dir+"wz", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",wz_ctrtag_2j_den_h, main_dir+topww_dir+"wz", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *tw_ctrtag_2j_num_h = new TH2F("tw_ctrtag_2j_num_h","tw_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",tw_ctrtag_2j_num_h, main_dir+topww_dir+"tw", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",tw_ctrtag_2j_num_h, main_dir+topww_dir+"tw", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *tw_ctrtag_2j_den_h = new TH2F("tw_ctrtag_2j_den_h","tw_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",tw_ctrtag_2j_den_h, main_dir+topww_dir+"tw", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
-  TH2F *wg_ctrtag_2j_num_h = new TH2F("wg_ctrtag_2j_num_h","wg_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",wg_ctrtag_2j_num_h, main_dir+topww_dir+"wgamma", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
-  TH2F *wg_ctrtag_2j_den_h = new TH2F("wg_ctrtag_2j_den_h","wg_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",wg_ctrtag_2j_den_h, main_dir+topww_dir+"wgamma", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot("ctrjetetapt",tw_ctrtag_2j_den_h, main_dir+topww_dir+"tw", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+//   TH2F *wg_ctrtag_2j_num_h = new TH2F("wg_ctrtag_2j_num_h","wg_ctrtag_2j_num_h",5,0,2.5,1,0,200);
+//   fillPlot("ctrjetetapt",wg_ctrtag_2j_num_h, main_dir+topww_dir+"wgamma", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+//   TH2F *wg_ctrtag_2j_den_h = new TH2F("wg_ctrtag_2j_den_h","wg_ctrtag_2j_den_h",5,0,2.5,1,0,200);
+//   fillPlot("ctrjetetapt",wg_ctrtag_2j_den_h, main_dir+topww_dir+"wgamma", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F *wj_ctrtag_2j_num_h = new TH2F("wj_ctrtag_2j_num_h","wj_ctrtag_2j_num_h",5,0,2.5,1,0,200);
   fillPlot("ctrjetetapt",wj_ctrtag_2j_num_h, main_dir+topww_dir+"data", wwSelNoLepNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", 0, useJson, 0, 1, 0);
   TH2F *wj_ctrtag_2j_den_h = new TH2F("wj_ctrtag_2j_den_h","wj_ctrtag_2j_den_h",5,0,2.5,1,0,200);
@@ -267,30 +267,30 @@ void makeTopTable(float lumi) {
   TH2F *other_ctrtag_2j_num_h = new TH2F("other_ctrtag_2j_num_h","other_ctrtag_2j_num_h",5,0,2.5,1,0,200);
   other_ctrtag_2j_num_h->Add(qqww_ctrtag_2j_num_h);
   other_ctrtag_2j_num_h->Add(ggww_ctrtag_2j_num_h);
-  other_ctrtag_2j_num_h->Add(dymm_ctrtag_2j_num_h);
-  other_ctrtag_2j_num_h->Add(dyee_ctrtag_2j_num_h);
-  other_ctrtag_2j_num_h->Add(dytt_ctrtag_2j_num_h);
+  other_ctrtag_2j_num_h->Add(dyll_ctrtag_2j_num_h);
+  //other_ctrtag_2j_num_h->Add(dyee_ctrtag_2j_num_h);
+  //other_ctrtag_2j_num_h->Add(dytt_ctrtag_2j_num_h);
   other_ctrtag_2j_num_h->Add(zz_ctrtag_2j_num_h);
   other_ctrtag_2j_num_h->Add(wz_ctrtag_2j_num_h);
   other_ctrtag_2j_num_h->Add(tw_ctrtag_2j_num_h);
-  other_ctrtag_2j_num_h->Add(wg_ctrtag_2j_num_h);
+  //other_ctrtag_2j_num_h->Add(wg_ctrtag_2j_num_h);
   other_ctrtag_2j_num_h->Add(wj_ctrtag_2j_num_h);
   TH2F *other_ctrtag_2j_den_h = new TH2F("other_ctrtag_2j_den_h","other_ctrtag_2j_den_h",5,0,2.5,1,0,200);
   other_ctrtag_2j_den_h->Add(qqww_ctrtag_2j_den_h);
   other_ctrtag_2j_den_h->Add(ggww_ctrtag_2j_den_h);
-  other_ctrtag_2j_den_h->Add(dymm_ctrtag_2j_den_h);
-  other_ctrtag_2j_den_h->Add(dyee_ctrtag_2j_den_h);
-  other_ctrtag_2j_den_h->Add(dytt_ctrtag_2j_den_h);
+  other_ctrtag_2j_den_h->Add(dyll_ctrtag_2j_den_h);
+  //other_ctrtag_2j_den_h->Add(dyee_ctrtag_2j_den_h);
+  //other_ctrtag_2j_den_h->Add(dytt_ctrtag_2j_den_h);
   other_ctrtag_2j_den_h->Add(zz_ctrtag_2j_den_h);
   other_ctrtag_2j_den_h->Add(wz_ctrtag_2j_den_h);
   other_ctrtag_2j_den_h->Add(tw_ctrtag_2j_den_h);
-  other_ctrtag_2j_den_h->Add(wg_ctrtag_2j_den_h);
+  //other_ctrtag_2j_den_h->Add(wg_ctrtag_2j_den_h);
   other_ctrtag_2j_den_h->Add(wj_ctrtag_2j_den_h);
   //data..
   TH2F *data_ctrtag_2j_num_h = new TH2F("data_ctrtag_2j_num_h","data_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",data_ctrtag_2j_num_h, main_dir+topww_dir+"data", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", 0, useJson, 0, 0, 0);
+  fillPlot("ctrjetetapt",data_ctrtag_2j_num_h, main_dir+topww_dir+"data", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", 0, useJson, 0, 0, 0);
   TH2F *data_ctrtag_2j_den_h = new TH2F("data_ctrtag_2j_den_h","data_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-  fillPlot("ctrjetetapt",data_ctrtag_2j_den_h, main_dir+topww_dir+"data", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", 0, useJson, 0, 0, 0);
+  fillPlot("ctrjetetapt",data_ctrtag_2j_den_h, main_dir+topww_dir+"data", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", 0, useJson, 0, 0, 0);
   float yield = 0;
   float error = 0;
   for (int i=1;i<6;++i) {
@@ -311,9 +311,9 @@ void makeTopTable(float lumi) {
   if (printAll) {
     //MC efficiency calculation
     TH2F *ttbar_ctrtag_2j_num_h = new TH2F("ttbar_ctrtag_2j_num_h","ttbar_ctrtag_2j_num_h",5,0,2.5,1,0,200);
-    fillPlot("ctrjetetapt",ttbar_ctrtag_2j_num_h, main_dir+topww_dir+"ttbar", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
+    fillPlot("ctrjetetapt",ttbar_ctrtag_2j_num_h, main_dir+topww_dir+"ttbar", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=bTagCtr=", lumi, useJson, applyEff, doFake, doPUw);
     TH2F *ttbar_ctrtag_2j_den_h = new TH2F("ttbar_ctrtag_2j_den_h","ttbar_ctrtag_2j_den_h",5,0,2.5,1,0,200);
-    fillPlot("ctrjetetapt",ttbar_ctrtag_2j_den_h, main_dir+topww_dir+"ttbar", wwSelectionNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
+    fillPlot("ctrjetetapt",ttbar_ctrtag_2j_den_h, main_dir+topww_dir+"ttbar", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=noSoftMu=bTagFwd=", lumi, useJson, applyEff, doFake, doPUw);
     TH2F *top_ctrtag_2j_num_h = new TH2F("top_ctrtag_2j_num_h","top_ctrtag_2j_num_h",5,0,2.5,1,0,200);
     top_ctrtag_2j_num_h->Add(ttbar_ctrtag_2j_num_h);
     TH2F *top_ctrtag_2j_den_h = new TH2F("top_ctrtag_2j_den_h","top_ctrtag_2j_den_h",5,0,2.5,1,0,200);
@@ -348,16 +348,16 @@ void makeTopTable(float lumi) {
 
   ///////////////////////////////////////// 1-JET BIN /////////////////////////////////////////
   //   ********* this does not work because of soft muons:
-  //   pair<float, float> sigreg_ttbar_0j  = getYield(main_dir+topww_dir+"ttbar", wwSelection, noVeto, mass, 0, "dphijet,minmet40", lumi, useJson, applyEff, doFake);
-  //   pair<float, float> sigreg_tw_0j     = getYield(main_dir+topww_dir+"tw",    wwSelection, noVeto, mass, 0, "dphijet,minmet40", lumi, useJson, applyEff, doFake);
+  //   pair<float, float> sigreg_ttbar_0j  = getYield(main_dir+topww_dir+"ttbar", wwSelNoMet, noVeto, mass, 0, "dphijet,minmet40", lumi, useJson, applyEff, doFake);
+  //   pair<float, float> sigreg_tw_0j     = getYield(main_dir+topww_dir+"tw",    wwSelNoMet, noVeto, mass, 0, "dphijet,minmet40", lumi, useJson, applyEff, doFake);
   //   ********* so we need to do this to compare with the data prediction:
-  pair<float, float> sigreg_ttbar_1j = getYield(main_dir+topww_dir+"ttbar",    wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"=nobJet1=", lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> sigreg_tw_1j    = getYield(main_dir+topww_dir+"tw",       wwSelectionNoTV, TopTagNotInJets, mass, 1, anaRegion+"=nobJet1=", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> sigreg_ttbar_1j = getYield(main_dir+topww_dir+"ttbar",    wwSelNoMetNoTV, TopTagNotInJets, mass, 1, anaRegion+"=nobJet1=", lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> sigreg_tw_1j    = getYield(main_dir+topww_dir+"tw",       wwSelNoMetNoTV, TopTagNotInJets, mass, 1, anaRegion+"=nobJet1=", lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> sigreg_top_1j = make_pair<float, float>(sigreg_ttbar_1j.first+sigreg_tw_1j.first, sqrt(pow(sigreg_ttbar_1j.second,2)+pow(sigreg_tw_1j.second,2)));
   // here we assume SF for tW is 1
   pair<float, float> vetoEff1j = topVetoEffEstimation(mass, 1, lumi, anaRegion, useJson, applyEff, doPUw, 1.);
-  pair<float, float> top_tag_data_1j = getYield(main_dir+topww_dir+"data.root", wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, 0, useJson, 0, 0, 0);
-  pair<float, float> bkg_exp_cr_1j = evaluateBackground(main_dir+topww_dir, wwSelectionNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> top_tag_data_1j = getYield(main_dir+topww_dir+"data.root", wwSelNoMetNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, 0, useJson, 0, 0, 0);
+  pair<float, float> bkg_exp_cr_1j = evaluateBackground(main_dir+topww_dir, wwSelNoMetNoTV|OneBJet, TopTagNotInJets, mass, 1, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
   //this can be replaced with a simple count
   pair<float, float> topData1j = topBgEstimation(mass, 1, lumi, anaRegion, vetoEff1j.first, vetoEff1j.second, useJson, applyEff, doFake, doPUw);
   float sf1j = topData1j.first/sigreg_top_1j.first;
@@ -365,13 +365,13 @@ void makeTopTable(float lumi) {
   //float sf1jpercerr = 100*sqrt(pow(topData1j.second/topData1j.first,2)+pow(sigreg_top_1j.second/sigreg_top_1j.first,2));
 
   ///////////////////////////////////////// 0-JET BIN /////////////////////////////////////////
-  pair<float, float> sigreg_ttbar_0j = getYield(main_dir+topww_dir+"ttbar",    wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
-  pair<float, float> sigreg_tw_0j    = getYield(main_dir+topww_dir+"tw",       wwSelection, noVeto, mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> sigreg_ttbar_0j = getYield(main_dir+topww_dir+"ttbar",    wwSelNoMet, noVeto, mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> sigreg_tw_0j    = getYield(main_dir+topww_dir+"tw",       wwSelNoMet, noVeto, mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> sigreg_top_0j = make_pair<float, float>(sigreg_ttbar_0j.first+sigreg_tw_0j.first,sqrt(pow(sigreg_ttbar_0j.second,2)+pow(sigreg_tw_0j.second,2)));
   // here we use the 1-jet bin SF for tW
   pair<float, float> vetoEff0j = topVetoEffEstimation(mass, 0, lumi, anaRegion, useJson, applyEff, doPUw, sf1j);
-  pair<float, float> top_tag_data_0j = getYield(main_dir+topww_dir+"data.root", wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, 0, useJson, 0, 0, 0);
-  pair<float, float> bkg_exp_cr_0j = evaluateBackground(main_dir+topww_dir, wwSelectionNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
+  pair<float, float> top_tag_data_0j = getYield(main_dir+topww_dir+"data.root", wwSelNoMetNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, 0, useJson, 0, 0, 0);
+  pair<float, float> bkg_exp_cr_0j = evaluateBackground(main_dir+topww_dir, wwSelNoMetNoTV|TopTagNotInJets, noVeto,  mass, 0, anaRegion, lumi, useJson, applyEff, doFake, doPUw);
   //this can be replaced with a simple count
   pair<float, float> topData0j = topBgEstimation(mass, 0, lumi, anaRegion, vetoEff0j.first, vetoEff0j.second, useJson, applyEff, doFake, doPUw);
   float sf0j = topData0j.first/sigreg_top_0j.first;
