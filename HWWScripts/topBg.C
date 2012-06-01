@@ -38,8 +38,8 @@ pair<float, float> topVetoEffEstimation(int mass=160, unsigned int njets=0, floa
   unsigned int baseline_toptag=0, control_top=0, control_toptag=0, veto=0, nj_top=0;
   getCutMasks(njets, baseline_toptag, control_top, control_toptag, veto, nj_top);
 
-  TString region_top    = region+"=btagJet1=";
-  TString region_toptag = region+"=btagJet1=";
+  TString region_top    = region+"=btagJet1=";//test noSoftMu=
+  TString region_toptag = region+"=btagJet1=";//test noSoftMu=
   if (njets==1) {
     region_top    = region+"=btagJet2=";
     region_toptag = region+"=btag1and2=";
@@ -105,7 +105,7 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
   unsigned int baseline_toptag=0, control_top=0, control_toptag=0, veto=0, nj_top=0;
   getCutMasks(njets, baseline_toptag, control_top, control_toptag, veto, nj_top);
 
-  TString toptagreg = "";
+  TString toptagreg = "";//test =noSoftMu=
   if (njets==1) toptagreg = "=btagJet1=";
 
   pair<float, float> sb_data_tag = getYield(main_dir+topww_dir+"data.root", baseline_toptag, veto, mass, njets,  region+toptagreg, 0, useJson, 0, 0, 0);
@@ -127,23 +127,24 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
   float num_top_data = sideband_data_tag*(1.-eff_veto_data)/eff_veto_data;
   float num_top_err_data = sqrt( pow((1.-eff_veto_data)/eff_veto_data,2)*pow(sideband_data_tag_err,2) + pow(sideband_data_tag,2)*pow(eff_err_veto_data,2)/pow(eff_veto_data,4) );
   if (debug) {
-    float sb_mc_top_tag = getYield(main_dir+topww_dir+"ttbar", baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first+
-                          getYield(main_dir+topww_dir+"tw",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first;
-    float sb_mc_other_tag = getYield(main_dir+topww_dir+"qqww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
-                            getYield(main_dir+topww_dir+"ggww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
-                            getYield(main_dir+topww_dir+"wjets", baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
-                            getYield(main_dir+topww_dir+"dyll",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
-                            //getYield(main_dir+topww_dir+"dyee",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
-                            //getYield(main_dir+topww_dir+"dytt",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +//fixme
-                            getYield(main_dir+topww_dir+"zz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
-                            getYield(main_dir+topww_dir+"wz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first;
-    cout << "sb tag mc top, mc other: " << sb_mc_top_tag << " " << sb_mc_other_tag << endl;
+    //float sb_mc_top_tag = getYield(main_dir+topww_dir+"ttbar", baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first+
+    //                      getYield(main_dir+topww_dir+"tw",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first;
+    //float sb_mc_other_tag = getYield(main_dir+topww_dir+"qqww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+    //                        getYield(main_dir+topww_dir+"ggww",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
+    //                        getYield(main_dir+topww_dir+"wjets", baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+    //                        getYield(main_dir+topww_dir+"dyll",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +
+    //                        //getYield(main_dir+topww_dir+"dyee",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+    //                        //getYield(main_dir+topww_dir+"dytt",  baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first +//fixme
+    //                        getYield(main_dir+topww_dir+"zz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first + 
+    //                        getYield(main_dir+topww_dir+"wz",    baseline_toptag, veto, mass, njets, region+toptagreg, lumi, useJson, applyEff, doFake, doPUw).first;
+    //cout << "sb tag mc top, mc other: " << sb_mc_top_tag << " " << sb_mc_other_tag << endl;
     cout << "sb tag data unc, bkg, data corr: " << sideband_data_tag+sb_tag_bkg.first << " " << sb_tag_bkg.first << " " << sideband_data_tag << endl;
     //cout << "sb_tag_purity: " << sb_tag_purity << endl;
     //cout << "sb tag data unc, exp bkg, data corr: " << sideband_data_tag/sb_tag_purity << " " << (sideband_data_tag/sb_tag_purity)*(1.-sb_tag_purity) << " " << sideband_data_tag << endl;
-    float sigreg_ttbar  = getYield(main_dir+topww_dir+"ttbar", wwSelNoMet, veto, mass, njets,  region, lumi).first;
-    float sigreg_tw     = getYield(main_dir+topww_dir+"tw",    wwSelNoMet, veto, mass, njets,  region, lumi).first;
-    cout << "data(notag)=" << num_top_data << " mc(notag)=" << sigreg_ttbar+sigreg_tw << " mc(tag)=" << sb_mc_top_tag << endl;
+    float sigreg_ttbar  = getYield(main_dir+topww_dir+"ttbar", wwSelNoMet, veto, mass, njets,  region, lumi, useJson, applyEff, doFake, doPUw).first;
+    float sigreg_tw     = getYield(main_dir+topww_dir+"tw",    wwSelNoMet, veto, mass, njets,  region, lumi, useJson, applyEff, doFake, doPUw).first;
+    //cout << "data(notag)=" << num_top_data << " mc(notag)=" << sigreg_ttbar+sigreg_tw << " mc(tag)=" << sb_mc_top_tag << endl;
+    cout << "data(notag)=" << num_top_data << " mc(notag)=" << sigreg_ttbar+sigreg_tw << endl;
   }
   return make_pair<float, float>(num_top_data, num_top_err_data);
 }
@@ -155,7 +156,7 @@ void makeTopTable(float lumi) {
   bool doFake   = false;
   bool doPUw    = true;
 
-  TString anaRegion = "=dphijet=dymvacut=ptll45=lep2pt20allfs=";//lep2pt20allfs=
+  TString anaRegion = "=dphijet=dymvacut=ptll45=";//=lep2pt20allfs
 
   int mass = 0;
 

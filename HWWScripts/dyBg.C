@@ -292,13 +292,13 @@ void makeDYTable(float lumi) {
   TString regionIn  = "=leppts=dphicut=ptll45=dpjallfs=";//lep2pt20allfs=
   TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=";//lep2pt20allfs=
 
-  int jetbins[] = {1};
-  //int jetbins[] = {0,1,2};
+  //int jetbins[] = {1};
+  int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
-  int masses[] = {120};
+  //int masses[] = {120};
   //int masses[] = {0,115,120,130,140};
-  //int masses[] = {0,115,120,130,140,150,160,170,180,190,200,250,300};
+  int masses[] = {0,115,120,130,140,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
 
   bool doLatex = false;
@@ -357,15 +357,28 @@ void makeDYTable(float lumi) {
 	sf_err = dyData.second/(dymmMC.first+dyeeMC.first);
       }
 
-      if (njets==0) {
-	vsf0j.push_back(sf);
-	vk0j.push_back(1.+sf_err/sf);
-      } else if (njets==1) {
-	vsf1j.push_back(sf);
-	vk1j.push_back(1.+sf_err/sf);
+      if (mass<100) {
+	if (njets==0) {
+	  vsf0j.push_back(sf);
+	  vk0j.push_back(1.+sf_err/sf);
+	} else if (njets==1) {
+	  vsf1j.push_back(sf);
+	  vk1j.push_back(1.+sf_err/sf);
+	} else {
+	  vsf2j.push_back(sf);
+	  vk2j.push_back(1.+sf_err/sf);
+	}
       } else {
-	vsf2j.push_back(sf);
-	vk2j.push_back(1.+sf_err/sf);
+	if (njets==0) {
+	  vsf0j.push_back(dyData.first);
+	  vk0j.push_back(1.+dyData.second/dyData.first);
+	} else if (njets==1) {
+	  vsf1j.push_back(dyData.first);
+	  vk1j.push_back(1.+dyData.second/dyData.first);
+	} else {
+	  vsf2j.push_back(sf);
+	  vk2j.push_back(1.+sf_err/sf);
+	}
       }
 
       if (mass==0) {

@@ -308,6 +308,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       lep2pt = 10.;
       dPhi   = 180.;
       mtL    = 80.;
+      if (doVBF) mtL = 30.;
     if (mass==0) {
       mll    = 9999.;
       mtH    = 9999.;
@@ -349,10 +350,10 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     }
     //avoid overlap between WW sideband and signal region
     himass = max((float) 100.,mll);
-    if (doVBF) {
-      mtL    = 0.;
-      mtH    = 9999.;
-    }
+    //if (doVBF) {
+    //mtL    = 0.;
+    //mtH    = 9999.;
+    //}
   }
 
 }

@@ -1,4 +1,4 @@
-void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodata=1, bool useSF=true, bool logy=0){
+void plotBaby(float lumi=1.62, int njets=0, int mass=0, TString fs="", bool dodata=1, bool useSF=true, bool logy=0){
   //lumi is in /fb
 
   gROOT->Reset();
@@ -14,17 +14,17 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
 
   bool doRatio = false;
 
-  TString extension = ".png";
+  TString extension = ".eps";
 
-  TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz_py","wjets","wgamma","wg3l"};
-  int  colors[] = {kAzure-9,kAzure-9,kGreen+2,kGreen+2,kGreen+2,kYellow,kYellow,kAzure-2,kAzure-2,kGray+1,kGray+1,kGray+1};
+  TString mcs[] = {"qqww","ggww","dyll","ttbar","tw","wz","zz","wjets"};
+  int  colors[] = {kAzure-9,kAzure-9,kGreen+2,kYellow,kYellow,kAzure-2,kAzure-2,kGray+1};
 
   TCut runrange("run>0");//Full2011
   TString dir = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/wwSelNoLepNoTV/";//wwSelNoMetNoZVminMET20
-  dir = "/smurf/data/Run2011_Summer11_SmurfV7_42X/mitf-alljets/";
-  float sfs0j[] = { 1.14,  1.14,   3.1,   3.1,   1.0,   1.4,    1.4, 1.0, 1.0, 2.6,    1.0, 1.0, 1.5};
-  float sfs1j[] = { 1.25,  1.25,   3.8,   3.8,   1.0,   1.1,    1.1, 1.0, 1.0, 2.4,    1.0, 1.0, 1.5};
-  float sfs2j[] = { 1.0,   1.0,    9.0,   9.0,   1.0,   1.2,    1.2, 1.0, 1.0, 12.0,   1.0, 1.0, 1.5};
+  dir = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_52X/mitf-alljets-mm20-dymva/";
+  float sfs0j[] = { 1.2,  1.2,   4.3,   1.0,   1.0,   1.0,    1.0, 1.0};
+  float sfs1j[] = { 0.9,  0.9,   3.8,   1.1,   1.1,   1.0,    1.0, 1.0};
+  float sfs2j[] = { 1.0,  1.0,   1.8,   1.0,   1.0,   1.0,    1.0, 1.0};
 
   enum Selection {
     BaseLine          = 1UL<<0,  // pt(reco)>20/10, acceptance,!STA muon, mll>12
@@ -70,7 +70,7 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
     lep2pt = "lep2.pt()>10.";
     dPhi = "dPhi<TMath::Pi()*180./180.";
     mll = "dilep.mass()<999";
-    mt = "mt>0&&mt<999";
+    mt = "mt>80&&mt<999";
     himass = "dilep.mass()>100.";
   } else if (mass==115) {
     lep1pt = "lep1.pt()>20.";
@@ -159,9 +159,9 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
 		   Lep1FullSelection,Lep1FullSelection,Lep2FullSelection,Lep2FullSelection,Lep1FullSelection,Lep1FullSelection,Lep2FullSelection,Lep2FullSelection));
   TCut notTagNotInJets(Form("(cuts & %i)!=%i",TopTagNotInJets,TopTagNotInJets));
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
-  TCut newcuts = "type==1 || type==2 || ( lep2.pt()>15. && min(pmet,pTrackMet)>(37.+nvtx/2.) && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
-  if (njets==2) newcuts = "type==1 || type==2 || ( lep2.pt()>15. && min(pmet,pTrackMet)>(37.+nvtx/2.))&& acos(cos( atan2((jet1.py()+jet2.py()),(jet1.px()+jet2.px())) - dilep.phi()))<165.*TMath::Pi()/180.";
-  TCut kincuts = "dilep.pt()>45. && ( type==1 || type==2 || dilep.mass()>20.)";
+  TCut newcuts = "type==1 || type==2 || ( min(pmet,pTrackMet)>45. && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
+  if (njets==2) newcuts = "type==1 || type==2 || (min(pmet,pTrackMet)>45. && acos(cos( atan2((jet1.py()+jet2.py()),(jet1.px()+jet2.px())) - dilep.phi()))<165.*TMath::Pi()/180.)";
+  TCut kincuts = "dilep.pt()>45.";
   TCut njcut(Form("njets==%i",njets));
   if (njets==-1) njcut = "";
 
@@ -193,11 +193,13 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
     "mt",
     "jet1.pt()",
     "jet1Btag",
-    "nvtx"
+    "jet1ProbBtag",
+    "nvtx",
+    "dymva"
   };
   TString binning[] = {
-    "60,0.,300.",
-    "40,0.,3.2",
+    "30,0.,300.",
+    "20,0.,3.2",
     "40,0.,200.",
     "40,0.,200.","40,0.,200.",
     "4,0,4",
@@ -205,7 +207,9 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
     "30,0.,300.",
     "40,0.,200.",
     "20,0.,4",
-    "25,0,50"
+    "20,0,2",
+    "25,0,50",
+    "21,-1,1.1"
   };
   TString xtitle[]  = {
     "m_{l,l} [GeV/c^{2}]",
@@ -217,7 +221,9 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
     "m_{T} [GeV/c^{2}]",
     "pT_{j1} [GeV/c]",
     "TCHE discriminator",
-    "N_{vtx}"
+    "JetProb. discriminator",
+    "N_{vtx}",
+    "dymva output"
   };
 
   //TString plot[]    = {"type"};
@@ -438,7 +444,7 @@ void plotBaby(float lumi=4.7, int njets=0, int mass=0, TString fs="", bool dodat
       labelcms->SetTextAlign(12);
       labelcms->SetTextSize(0.035);
       labelcms->SetFillColor(kWhite);
-      labelcms->AddText(Form("CMS, #sqrt{s} = 7 TeV, L_{int} = %.2f fb^{-1}",lumi));
+      labelcms->AddText(Form("CMS, #sqrt{s} = 8 TeV, L_{int} = %.2f fb^{-1}",lumi));
       labelcms->SetBorderSize(0);
       labelcms->SetTextFont(42);
       labelcms->SetLineWidth(2);

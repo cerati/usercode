@@ -91,8 +91,8 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   //this uncertainty should work only for the dy component
   pair<float, float> dySF = make_pair<float, float>(1., 0);
   if (fs=="sffs") {
-    if (mode=="cut") dySF = make_pair<float, float>(DYBkgScaleFactor(mass,njets), DYBkgScaleFactor(mass,njets)*(DYBkgScaleFactorKappa(mass,njets)-1.));
-    else if (mode=="shape") dySF = make_pair<float, float>(DYBkgScaleFactor(0,njets), DYBkgScaleFactor(0,njets)*(DYBkgScaleFactorKappa(0,njets)-1.));
+    if (mode=="cut")        dySF = make_pair<float, float>(DYBkgScaleFactor(mass,njets), DYBkgScaleFactor(mass,njets)*(DYBkgScaleFactorKappa(mass,njets)-1.));//for higgs level DYBkgScaleFactor is the yield
+    else if (mode=="shape") dySF = make_pair<float, float>(DYBkgScaleFactor(0,njets),    DYBkgScaleFactor(0,njets)   *(DYBkgScaleFactorKappa(0,njets)-1.)   );
   } else dySF = make_pair<float, float>(0., 0);
   if (njets==2) dySF = make_pair<float, float>(DYBkgScaleFactor(0,njets), DYBkgScaleFactor(0,njets)*(DYBkgScaleFactorKappa(0,njets)-1.));
   fs=fs+"=";
@@ -110,10 +110,26 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   pair<float, float> wz = getYield(dir+"wz", wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
 
   //add peaking component of VV to DY
-  //pair<float, float> dyee = getYield(dir+"dyee", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);//fixme should test fromZ
+  float dyY = 0.0;
+  float dyMCK = 1.0;
+  float dyDDK = 1.0;
   pair<float, float> dyll = getYield(dir+"dyll", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  if (mode=="cut") {
+    if (fs.Contains("sffs")) {
+      //ok, in this case dySF means the data yield
+      dyY = dySF.first;
+      if (dyll.first>0.) dyMCK = 1.0+dyll.second/dyll.first;
+      if (dySF.first>0.) dyDDK = 1.0+dySF.second/dySF.first;
+    }
+  } else {
+    //ok, in this case dySF means the scale factor
+    dyY = dySF.first*dyll.first;
+    if (dyll.first>0.) dyMCK = 1.0+dyll.second/dyll.first;
+    if (dyll.first>0.) dyDDK = 1.0+dySF.second*dyll.first;
+  }
   pair<float, float> pzz = getYield(dir+"zz", wwSelNoMet, veto, mass, njets, sigreg+fs+"=fromZ=", lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> pwz = getYield(dir+"wz", wwSelNoMet, veto, mass, njets, sigreg+fs+"=fromZ=", lumi, useJson, applyEff, doFake, doPUw);
+  //cout << mode << " " << fs << " " << dyY << " " << dyMCK << " " << dyDDK << endl;
 
   pair<float, float> dytt_1 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau121", wwSelNoMet, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
   pair<float, float> dytt_2 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau122", wwSelNoMet, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
@@ -139,10 +155,10 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   bool makeTable = false;
   if (makeTable) {
     float tot = wwSF.first*qqww.first+ wwSF.first*ggww.first+ zz.first+wz.first+ 
-      topSF.first*(ttbar.first+tw.first)+dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first+ 
+      topSF.first*(ttbar.first+tw.first)+dyY+pzz.first+pwz.first+ 
       wjets.first+ wgamma.first+wg3l.first*WGstarScaleFactor()+dytt.first; 
     float err = sqrt(pow(wwSF.first*qqww.second,2)+pow(wwSF.first*ggww.second,2)+pow(sqrt(pow(zz.second,2)+pow(wz.second,2)),2)+pow(topSF.first*sqrt(pow(ttbar.second,2)+pow(tw.second,2)),2)+
-		     pow(sqrt(pow(dySF.first*dyll.second,2)/*+pow(dySF.first*dyee.second,2)*/+pow(pzz.second,2)+pow(pwz.second,2)),2)+pow(wjets.second,2)+
+		     pow(sqrt(pow(dyY*(dyMCK-1.),2)+pow(pzz.second,2)+pow(pwz.second,2)),2)+pow(wjets.second,2)+
 		     pow(sqrt(pow(wgamma.second,2)+pow(wg3l.second,2)),2)+pow(dytt.second,2));
     cout << Form(" %6.0f $\\pm$ %6.0f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f & %6.1f $\\pm$ %6.1f \\\\",
 		 data.first,data.second,
@@ -152,7 +168,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 		 topSF.first*(ttbar.first+tw.first), topSF.first*sqrt(pow(ttbar.second,2)+pow(tw.second,2)),
 		 wjets.first, wjets.second,
 		 zz.first+wz.first, sqrt(pow(zz.second,2)+pow(wz.second,2)),
-		 dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first, sqrt(pow(dySF.first*dyll.second,2)/*+pow(dySF.first*dyee.second,2)*/+pow(pzz.second,2)+pow(pwz.second,2)),
+		 dyY+pzz.first+pwz.first, sqrt(pow(dyY*(dyMCK-1.),2)+pow(pzz.second,2)+pow(pwz.second,2)),
 		 wgamma.first+wg3l.first*WGstarScaleFactor(), sqrt(pow(wgamma.second,2)+pow(wg3l.second,2)),
 		 dytt.first, dytt.second) << endl;
   } else {
@@ -177,7 +193,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%-35s %5s %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i \n","process","",-3,-2,-1,0,1,2,3,4,5,6,7,8);
     out << Form("%-35s %5s %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f \n","rate","",
 	   zhww.first, whww.first, qqhww.first, gghww.first, wwSF.first*qqww.first, wwSF.first*ggww.first, zz.first+wz.first, topSF.first*(ttbar.first+tw.first), 
-		dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first, wjets.first, wgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
+		dyY+pzz.first+pwz.first, wjets.first, wgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
     out << Form("%-35s %5s   1.045   1.045   1.045   1.045     -       -     1.045     -       -       -     1.045   1.045\n","lumi","lnN");
     if (mode=="shape" && doResEffSyst) {
       //we do not have WH and ZH for mH=115
@@ -230,8 +246,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%-35s %5s   1.020   1.020     -       -       -       -       -       -       -       -       -       -  \n","QCDscale_VH_ACEPT","lnN");
     out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww_%ij_ttbar",njets),"lnN",
 		1.+topSF.second/topSF.first);
-    out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_%ij_Z",fs.Data(),njets),"lnN",
-		(dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first)>0 ? (1.+dySF.second*(dyll.first/*+dyee.first*/)/(dySF.first*(dyll.first/*+dyee.first*/)+pzz.first+pwz.first)) : 1.0);
+    out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_%ij_Z",fs.Data(),njets),"lnN",dyDDK);
     out << Form("%-35s %5s     -       -       -       -     %5.3f   %5.3f     -       -       -       -       -       -  \n",Form("CMS_hww_%ij_WW",njets),"lnN",
 		1.+wwSF.second/wwSF.first,1.+wwSF.second/wwSF.first);
     out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     %5.3f\n","CMS_hww_Ztt","lnN",
@@ -254,8 +269,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 		  1.+sqrt(pow(zz.second,2)+pow(wz.second,2))/(zz.first+wz.first));
       out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ttbar",fs.Data(),njets),"lnN",
 		  1.+sqrt(pow(ttbar.second,2)+pow(tw.second,2))/(ttbar.first+tw.first));
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_stat_%ij_Z",fs.Data(),njets),"lnN",
-		  (dySF.first*dyll.first/*+dySF.first*dyee.first*/+pzz.first+pwz.first)>0 ? 1.+sqrt(pow(dySF.first*dyll.second,2)/*+pow(dySF.first*dyee.second,2)*/+pow(pzz.second,2)+pow(pwz.second,2))/(dySF.first*dyll.first/*+dySF.first*dyee.first*/+pzz.first+pwz.first) : 1.0);
+      out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_stat_%ij_Z",fs.Data(),njets),"lnN",dyMCK);
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     %5.3f     -       -  \n",Form("CMS_hww%s_stat_%ij_Wjets",fs.Data(),njets),"lnN",
 		  wjets.first>0 ? 1.+wjets.second/wjets.first : 1.);
       out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     %5.3f     -  \n",Form("CMS_hww%s_stat_%ij_Wgamma",fs.Data(),njets),"lnN",
@@ -283,7 +297,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 	out << Form("%-35s %5s     -       -       -       -       -       -     1.000     -       -       -       -       -  \n",Form("CMS_MVAVVStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
       if ((ttbar.first+tw.first)>0.)
 	out << Form("%-35s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n",Form("CMS_MVATopStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
-      if ((dySF.first*dyll.first/*+dySF.first*dyee.first*/+pzz.first+pwz.first)>0.)
+      if ((dyY+pzz.first+pwz.first)>0.)
 	out << Form("%-35s %5s     -       -       -       -       -       -       -       -     1.000     -       -       -  \n",Form("CMS_MVAZjetsStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
       if (wjets.first>0.)
 	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n",Form("CMS_MVAWjetsStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
@@ -305,23 +319,21 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 
 void cardMaker(float lumi, TString mode) {
 
-  //int jets[] = {1};
-  int jets[] = {0,1,2};
+  int jets[] = {2};
+  //int jets[] = {0,1,2};
 
-  int masses[] = {120};
-  //int masses[] = {115,120,130,140,150,160,170,180,190,200,250,300};
+  //int masses[] = {120};
+  int masses[] = {115,120,130,140,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
   int njets = sizeof(jets)/sizeof(int);
   for (int j=0;j<nmasses;++j) {
     int mass = masses[j];
     for (int jj=0;jj<njets;++jj) {
       int jetbin = jets[jj];
-      if (jetbin!=2) {
-	cardMaker(lumi,mass,jetbin,"sffs",mode,true);
-	cardMaker(lumi,mass,jetbin,"offs",mode,true);
-      } else {
-	cardMaker(lumi,mass,jetbin,"","cut",true);
-      }
+      //if (jetbin!=2) {
+      cardMaker(lumi,mass,jetbin,"sffs",mode,true);
+      cardMaker(lumi,mass,jetbin,"offs",mode,true);
+      //} else {cardMaker(lumi,mass,jetbin,"","cut",true);}
     }
     cout << "mH=" << mass << " completed" << endl;
   }
