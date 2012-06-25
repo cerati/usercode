@@ -290,18 +290,21 @@ void makeDYTable(float lumi) {
   outRFile = TFile::Open("outRFile.root","RECREATE");
 
   TString regionIn  = "=leppts=dphicut=ptll45=dpjallfs=";//lep2pt20allfs=
-  TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=";//lep2pt20allfs=
+  TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=";//lep2pt20allfs
 
-  //int jetbins[] = {1};
+  //int jetbins[] = {2};
   int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
-  //int masses[] = {120};
-  //int masses[] = {0,115,120,130,140};
-  int masses[] = {0,115,120,130,140,150,160,170,180,190,200,250,300};
+  //int masses[] = {140,160};
+  int masses[] = {0,115,120,140,160,200};
+  //int masses[] = {0,1,120};
+  //int masses[] = {0,115,120,130,140,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
 
   bool doLatex = false;
+
+  //doMVA=1; //fixme
 
   vector<float> vsf0j;
   vector<float> vk0j;
@@ -326,18 +329,25 @@ void makeDYTable(float lumi) {
     for (int jj=0;jj<nmasses;++jj) {
 
       int mass = masses[jj];
-      if (njets==2 && mass>0) continue;
+      //if (njets==2 && mass>0) continue;
+      if (njets==2 && doMVA) continue;
       if (njets==2) {
-	regionIn+="=looseVBF=";
-	regionOut+="=looseVBF=";
+	//regionIn+="=looseVBF=";
+	//regionOut+="=looseVBF=";
 	doVBF=1;
       }
 
       pair<float, float> dymmMC   = getYield(main_dir+dy_dir+"dyll",  wwSelNoMet, noVeto, mass, njets, "=mmfs=dymvacut=mtcut="+regionOut, lumi, false, applyEff, doFake, doPUw);
       pair<float, float> dyeeMC   = getYield(main_dir+dy_dir+"dyll",  wwSelNoMet, noVeto, mass, njets, "=eefs=dymvacut=mtcut="+regionOut, lumi, false, applyEff, doFake, doPUw);
       
-      pair<float, float> r  = computeRoutinMCwithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
-      //pair<float, float> rd = computeRoutinDatawithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
+      pair<float, float> r;
+      if (njets!=2) {
+	r  = computeRoutinMCwithSyst (wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
+	//r = computeRoutinDatawithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
+      } else {
+	//r  = computeRoutinMCwithSyst (wwSelNoZVNoMet, noVeto, mass, njets, regionIn+"=looseVBF=", regionOut+"=looseVBF=", lumi, useJson, applyEff, doFake, doPUw);
+	r  = computeRoutinDatawithSyst (wwSelNoZVNoMet, noVeto, mass, njets, regionIn/*+"=looseVBF="*/, regionOut/*+"=looseVBF="*/, lumi, useJson, applyEff, doFake, doPUw);
+      }
       //take it from frozen values
       //pair<float, float> r = make_pair<float, float>(RoutinValue(mass,njets),sqrt(pow(RoutinStatError(mass,njets),2)+pow(RoutinSystError(mass,njets),2)));
 
@@ -381,11 +391,11 @@ void makeDYTable(float lumi) {
 	}
       }
 
-      if (mass==0) {
+      if (mass==0||mass==1) {
 	TString formstr = "| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
 	if (doLatex) formstr = " %10s & %6.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
 	cout << Form(formstr,
-		     "WW",
+		     mass==0 ? "WW" : "WW DYMVA",
 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
 		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,

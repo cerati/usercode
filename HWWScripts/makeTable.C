@@ -1,22 +1,23 @@
-void makeTable(float lumi=4.7, int njets=0, int mass=0, bool useSF=false, bool dodata=false){
+void makeTable(float lumi=3.553, int njets=0, int mass=0, bool useSF=false, bool dodata=false){
   //lumi is in /fb
 
   gROOT->Reset();
 
   bool doMC = true;
 
-  TString mcs[] = {"qqww","ggww","dyee","dymm","dytt","ttbar","tw","wz","zz_py","wjets","wgamma","wg3l",Form("hww%i",mass)};
-  float nosfs[] = { 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0, 1.0, 1.0};
+  TString mcs[] = {"qqww","ggww","dyll","ttbar","tw","wz","zz","wjets","wgamma","wglll",Form("hww%i",mass)};
+  float nosfs[] = { 1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0, 1.0, 1.0};
 
   TCut runrange("run>0");//Full2011
-  TString dir = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/wwSelNoLepNoTV/";
-  float sfs0j[] = { 1.0,   1.0,   3.1,   3.1,   1.0,   1.4,    1.4, 1.0, 1.0, 2.6,    1.0, 1.5, 1.0};
-  float sfs1j[] = { 1.0,   1.0,   3.8,   3.8,   1.0,   1.1,    1.1, 1.0, 1.0, 2.4,    1.0, 1.5, 1.0};
+  TString dir = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_52X/mitf-alljets-mm20-dymva/";
+  float sfs0j[] = { 1.0,  1.0,   3.9,   1.1,   1.1,   1.0,    1.0, 1.0, 1.0, 1.6};//,1.0 //DY: 5.2 for HWW, 3.9 for WW xsec
+  float sfs1j[] = { 0.9,  0.9,   4.1,   1.1,   1.1,   1.0,    1.0, 1.0, 1.0, 1.6};//,1.0
+  float sfs2j[] = { 1.0,  1.0,   1.8,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.6};//,1.0
 
   TCut lep1pt,lep2pt,dPhi,mll,mt,himass;
   if (mass==0) {
     lep1pt = "lep1.pt()>20.";
-    lep2pt = "lep2.pt()>10.";
+    lep2pt = "lep2.pt()>20.";
     dPhi = "dPhi<180.*TMath::Pi()/180.";
     mll = "dilep.mass()<999";
     mt = "mt>0&&mt<999";
@@ -129,16 +130,27 @@ void makeTable(float lumi=4.7, int njets=0, int mass=0, bool useSF=false, bool d
     Lep3LooseMuV2     = 1UL<<29, // muon fakeable object selection (relIso<0.4)
     Trigger           = 1UL<<30  // passed a set of triggers
   };
-  unsigned int wwSelectionNoTV = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|FullMET|ZVeto|ExtraLeptonVeto;
-  unsigned int wwSelection     = wwSelectionNoTV|TopVeto;
+  unsigned int wwSelNoMetNoTV = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|ZVeto|ExtraLeptonVeto;
+  unsigned int wwSelNoMet     = wwSelNoMetNoTV|TopVeto;
 
   TCut jets(Form("njets==%i",njets));
-  TCut base(Form("(cuts & %i)==%i",wwSelection,wwSelection));
-  TCut baseNTV(Form("(cuts & %i)==%i",wwSelectionNoTV,wwSelectionNoTV));
+  TCut base(Form("(cuts & %i)==%i",wwSelNoMet,wwSelNoMet));
+  TCut baseNTV(Form("(cuts & %i)==%i",wwSelNoMetNoTV,wwSelNoMetNoTV));
   TCut notTagNotInJets(Form("(cuts & %i)!=%i",TopTagNotInJets,TopTagNotInJets));
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
-  TCut newcuts = "type==1 || type==2 || ( lep2.pt()>15. && min(pmet,pTrackMet)>(37.+nvtx/2.) && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
-  TCut kincuts = "dilep.pt()>45. && ( type==1 || type==2 || dilep.mass()>20.)";
+  /*
+  TCut newcuts = "type==1 || type==2 || ( min(pmet,pTrackMet)>45 && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
+  TCut kincuts = "dilep.pt()>45.";
+  */
+  TCut newcuts = "type==1 || type==2 || ( min(pmet,pTrackMet)>45. && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
+  if (njets==2) newcuts = "type==1 || type==2 || (met>45. && acos(cos( atan2((jet1.py()+jet2.py()),(jet1.px()+jet2.px())) - dilep.phi()))<165.*TMath::Pi()/180.)";
+  if (njets==0 && mass>0 && mass<=140) newcuts = "type==1 || type==2 || dymva>0.6";
+  if (njets==1 && mass>0 && mass<=140) newcuts = "type==1 || type==2 || dymva>0.3";
+  TCut njcut(Form("njets==%i",njets));
+  if (njets==2) njcut = "(njets==2 || (njets==3 && !((jet1.eta()-jet3.eta() > 0 && jet2.eta()-jet3.eta() < 0) || (jet2.eta()-jet3.eta() > 0 && jet1.eta()-jet3.eta() < 0)) ))&&!(TMath::Abs(jet1.eta())>= 4.5||TMath::Abs(jet2.eta()) >= 4.5)";
+  if (njets==-1) njcut = "njets==0 || njets==1 || (njets==2 || (njets==3 && !((jet1.eta()-jet3.eta() > 0 && jet2.eta()-jet3.eta() < 0) || (jet2.eta()-jet3.eta() > 0 && jet1.eta()-jet3.eta() < 0)) ))&&!(TMath::Abs(jet1.eta())>= 4.5||TMath::Abs(jet2.eta()) >= 4.5)";
+  TCut kincuts = "dilep.pt()>45.";
+  if (njets==2 && mass>0) kincuts = "dilep.pt()>45. && TMath::Abs(jet1.eta()-jet2.eta())>3.5 && (((jet1.eta()-lep1.eta() > 0 && jet2.eta()-lep1.eta() < 0) || (jet2.eta()-lep1.eta() > 0 && jet1.eta()-lep1.eta() < 0)) && ((jet1.eta()-lep2.eta() > 0 && jet2.eta()-lep2.eta() < 0) || (jet2.eta()-lep2.eta() > 0 && jet1.eta()-lep2.eta() < 0))) && sqrt(2*jet1.pt()*jet2.pt()*(TMath::CosH(jet1.eta()-jet2.eta())-TMath::Cos(jet1.phi()-jet2.phi())))>450.";
 
   TCut cut = base&&jets&&newcuts&&sigreg&&trig&&kincuts;
   //cout << "cut: " << cut.GetTitle() << endl;
@@ -166,7 +178,7 @@ void makeTable(float lumi=4.7, int njets=0, int mass=0, bool useSF=false, bool d
       float correction = sfs[i];
       if (lumi>0.) mc->SetWeight(lumi*correction);
       //cout << scale1fb_ << endl;
-      mc->Draw("type>>plotmc(4,0,4)",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*sfWeightHPt*(%s)",cut.GetTitle()),"g");
+      mc->Draw("type>>plotmc(4,0,4)",Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",cut.GetTitle()),"g");
       //mc->Draw("type>>plotmc(4,0,4)",Form("scale1fb*(%s)",cut.GetTitle()),"g");
       float nMuMu = plotmc->GetBinContent(1);
       float nElMu = plotmc->GetBinContent(2);

@@ -75,7 +75,7 @@ pair<float,float> getAllBkg(int mass=160, unsigned int njets=0, TString region="
   pair<float, float> sideband_dytt ;//= getYield(main_dir+topww_dir+"dytt",  wwSelNoMet,     veto, mass, njets,  region, lumi, false, applyEff, false, doPUw);
   pair<float, float> sideband_zz   = getYield(main_dir+topww_dir+"zz", wwSelNoMet,     veto, mass, njets,  region, lumi, false, applyEff, false, doPUw);
   pair<float, float> sideband_wz   = getYield(main_dir+topww_dir+"wz",    wwSelNoMet,     veto, mass, njets,  region, lumi, false, applyEff, false, doPUw);
-  pair<float, float> sideband_wg   ;//= getYield(main_dir+topww_dir+"wgamma",wwSelNoMet,     veto, mass, njets,  region, lumi, false, applyEff, false, doPUw);
+  pair<float, float> sideband_wg   = getYield(main_dir+topww_dir+"wgamma",wwSelNoMet,     veto, mass, njets,  region, lumi, false, applyEff, false, doPUw);
   float num_other_mc  = sideband_zz.first+sideband_wz.first+sideband_wg.first+sideband_dytt.first;
   float num_other_err_mc = sqrt(pow(sideband_zz.first*0.5,2)+pow(sideband_wz.first*0.5,2)+pow(sideband_wg.first*0.5,2)+pow(sideband_dytt.first*0.5,2));//fixme 50% for MC based
   //********* get others **********
@@ -205,7 +205,7 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
   //int masses[] = {115,120,130,140,150};
   //int masses[] = {115,130,150,170,190};
   //int masses[] = {120,140,160,180,200};
-  //int masses[] = {115};
+  //int masses[] = {120};
   int nmasses = sizeof(masses)/sizeof(int);
   doLatex=false;
   if (!doLatex) {

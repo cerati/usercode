@@ -23,10 +23,10 @@
 #include <vector>
 #include "Smurf/Core/LeptonScaleLookup.cc"
 #include "CMS2/NtupleMacros/Tools/goodrun.cc"
-#include "Smurf/Analysis/HWWlvlv/OtherBkgScaleFactors.h"  
-#include "Smurf/Analysis/HWWlvlv/DYBkgScaleFactors.h"  
-#include "Smurf/Analysis/HWWlvlv/TopBkgScaleFactors.h"	
-#include "Smurf/Analysis/HWWlvlv/WWBkgScaleFactors.h"	
+#include "Smurf/Analysis/HWWlvlv/OtherBkgScaleFactors_8TeV.h"  
+#include "Smurf/Analysis/HWWlvlv/DYBkgScaleFactors_8TeV.h"  
+#include "Smurf/Analysis/HWWlvlv/TopBkgScaleFactors_8TeV.h"	
+#include "Smurf/Analysis/HWWlvlv/WWBkgScaleFactors_8TeV.h"	
 #include "BDTG.class.C"//add soft link to compute bdtg values
 
 //CERN, Summ12
@@ -100,6 +100,7 @@ unsigned int wwSelectionFOm2 = BaseLine|ChargeMatch|Lep1FullSelection|Lep2LooseM
 unsigned int wwSelectionNoLep= BaseLine|ChargeMatch|FullMET|ZVeto|ExtraLeptonVeto|TopVeto;
 unsigned int wwSelNoLepNoTV  = BaseLine|ChargeMatch|FullMET|ZVeto|ExtraLeptonVeto;
 unsigned int wwSelNoMetNoLep = BaseLine|ChargeMatch|ZVeto|ExtraLeptonVeto|TopVeto;
+unsigned int wwSelNoMetLepTV = BaseLine|ChargeMatch|ZVeto|ExtraLeptonVeto;
 unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|ExtraLeptonVeto;
 unsigned int noVeto          = 1UL<<31;
 unsigned int noCut           = 1UL<<0;
@@ -139,7 +140,7 @@ float getScale1fb(TString sample) {
 
 void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,float& mtL,float& mtH,float& himass/*, bool doMVA=false*/){
 
-  if (mass==0) {
+  if (mass==0 || mass==1) {
     lep1pt = 20.;
     lep2pt = 10.;
     dPhi   = 180.;
@@ -194,6 +195,14 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     mll    = 42.;
     mtL    = 80.;
     mtH    = 122.;
+    himass = 100.;
+  } else if (mass==125) {
+    lep1pt = 23.;
+    lep2pt = 10.;
+    dPhi   = 100.;
+    mll    = 43.;
+    mtL    = 80.;
+    mtH    = 123.;
     himass = 100.;
   } else if (mass==126) {
     lep1pt = 23.;
@@ -309,13 +318,13 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       dPhi   = 180.;
       mtL    = 80.;
       if (doVBF) mtL = 30.;
-    if (mass==0) {
+    if (mass==0 || mass==1) {
       mll    = 9999.;
       mtH    = 9999.;
     } else if (mass==110||mass==115||mass==118||mass==120||mass==122||mass==124 ) {
       mll    = 70.;
       mtH    = ((float) mass);
-    } else if (mass==126||mass==128||mass==130) {
+    } else if (mass==125||mass==126||mass==128||mass==130) {
       mll    = 80.;
       mtH    = ((float) mass);
     } else if (mass==135||mass==140) {
@@ -431,18 +440,18 @@ float efficiencyErr(float eff, float den) {
 }
 
 float discCtrJet(SmurfTree *dataEvent) {
-  float discCtr = dataEvent->jet1ProbBtag_;
-  if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) discCtr = dataEvent->jet2ProbBtag_;
-  //if ( dataEvent->jet3_.pt()>30 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) discCtr = dataEvent->jet3ProbBtag_;
-  //cout << discCtr << endl;
+  //float discCtr = dataEvent->jet1ProbBtag_;
+  //if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) discCtr = dataEvent->jet2ProbBtag_;
+  float discCtr = dataEvent->jet1Btag_;
+  if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) discCtr = dataEvent->jet2Btag_;
   return discCtr;
 }
 
 float discFwdJet(SmurfTree *dataEvent) {
-  float discFwd = dataEvent->jet1ProbBtag_;
-  if ( fabs(dataEvent->jet2_.eta())>fabs(dataEvent->jet1_.eta()) ) discFwd = dataEvent->jet2ProbBtag_;
-  //if ( dataEvent->jet3_.pt()>30 && fabs(dataEvent->jet3_.eta())>max(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) discFwd = dataEvent->jet3ProbBtag_;
-  //cout << discFwd << endl;
+  //float discFwd = dataEvent->jet1ProbBtag_;
+  //if ( fabs(dataEvent->jet2_.eta())>fabs(dataEvent->jet1_.eta()) ) discFwd = dataEvent->jet2ProbBtag_;
+  float discFwd = dataEvent->jet1Btag_;
+  if ( fabs(dataEvent->jet2_.eta())>fabs(dataEvent->jet1_.eta()) ) discFwd = dataEvent->jet2Btag_;
   return discFwd;
 }
 
@@ -498,15 +507,14 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( (region.Contains("=zreg15=")) && fabs(dataEvent->dilep_.mass()-91.1876)>15. ) return 0;
     if ( (region.Contains("=zvetoall=")) && fabs(dataEvent->dilep_.mass()-91.1876)<15. ) return 0;
     //additional higgs cuts
-    if ( region.Contains("=dphijet=") && (mass==0||mass>140) && ( dataEvent->type_!=1 && dataEvent->type_!=2 &&
-								  ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.) || 
-								    (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) )
-								  ) ) return 0;
+    if ( region.Contains("=dphijet=") && (mass==0||mass>140||doVBF) && ( dataEvent->type_!=1 && dataEvent->type_!=2 &&
+									 ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.) || 
+									   (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) )
+									 ) ) return 0;
     if ( region.Contains("=minmet40=")  && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0)) return 0;
-    if ( region.Contains("=dpjallfs=")  && (mass==0||mass>140)  && ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) ||
-								    (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) ) ) return 0;
-    if ( region.Contains("mm20allfs") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0 ) return 0;
-    if ( region.Contains("=mm40allfs=") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0 ) return 0;
+    if ( region.Contains("=dpjallfs=")  && (mass==0||mass>140||doVBF)  && ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) ||
+									    (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) ) ) return 0;
+    if ( region.Contains("=mm20allfs=") && min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0 ) return 0;
     if ( region.Contains("=minmetvtx=") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) return 0;
     if ( region.Contains("=mmvtxallfs=") && ( min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) return 0;
     if ( region.Contains("=met2040=") && dataEvent->type_!=1 && dataEvent->type_!=2 && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>40.0) ) return 0;
@@ -528,16 +536,17 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( region.Contains("=met3037=") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<30.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>37.0) ) return 0;
     if ( region.Contains("=met37up=") &&  min(dataEvent->pmet_,dataEvent->pTrackMet_)<37.0 ) return 0;
     //cuts on btag
-    if ( region.Contains("=btag1or2=")  && dataEvent->jet1ProbBtag_<1.05 && dataEvent->jet2ProbBtag_<1.05 ) return 0;
-    if ( region.Contains("=btag1and2=") && (dataEvent->jet1ProbBtag_<1.05 || dataEvent->jet2ProbBtag_<1.05) ) return 0;
-    if ( region.Contains("=btagJet1=")  && dataEvent->jet1ProbBtag_<1.05 ) return 0;
-    if ( region.Contains("=btagJet2=")  && dataEvent->jet2ProbBtag_<1.05 ) return 0;
-    if ( region.Contains("=nobJet1=")   && dataEvent->jet1ProbBtag_>1.05 ) return 0;
-    if ( region.Contains("=nobJet2=")   && dataEvent->jet2ProbBtag_>1.05 ) return 0;
-    if ( region.Contains("=bTagCtr=")   && discCtrJet(dataEvent)<1.05) return 0;
-    if ( region.Contains("=bTagFwd=")   && (discFwdJet(dataEvent)<1.05) ) return 0;
-    if ( region.Contains("=bVetoFwd=")  && (discFwdJet(dataEvent)>1.05) ) return 0;
-    if ( region.Contains("=bTagNoFwdYesCtr=") && (discFwdJet(dataEvent)>1.05 || discCtrJet(dataEvent)<1.05) ) return 0;
+    if ( region.Contains("=btag1or2=")  && dataEvent->jet1Btag_<2.1 && dataEvent->jet2Btag_<2.1 ) return 0;
+    if ( region.Contains("=btag1and2=") && (dataEvent->jet1Btag_<2.1 || dataEvent->jet2Btag_<2.1) ) return 0;
+    if ( region.Contains("=btagJet1=")  && dataEvent->jet1Btag_<2.1 ) return 0;
+    if ( region.Contains("=btagJet2=")  && dataEvent->jet2Btag_<2.1 ) return 0;
+    if ( region.Contains("=nobJet1=")   && dataEvent->jet1Btag_>2.1 ) return 0;
+    if ( region.Contains("=nobJet2=")   && dataEvent->jet2Btag_>2.1 ) return 0;
+    if ( region.Contains("=nobJet3=")   && dataEvent->jet3Btag_>2.1 ) return 0;
+    if ( region.Contains("=bTagCtr=")   && discCtrJet(dataEvent)<2.1) return 0;
+    if ( region.Contains("=bTagFwd=")   && (discFwdJet(dataEvent)<2.1) ) return 0;
+    if ( region.Contains("=bVetoFwd=")  && (discFwdJet(dataEvent)>2.1) ) return 0;
+    if ( region.Contains("=bTagNoFwdYesCtr=") && (discFwdJet(dataEvent)>2.1 || discCtrJet(dataEvent)<2.1) ) return 0;
     if ( region.Contains("=noSoftMu=")  && dataEvent->nSoftMuons_>0 ) return 0;
     //check peaking at MC level
     if ( region.Contains("=fromZ=") && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
@@ -642,19 +651,56 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
       }
     } 
 
-//     if (!isMC && dataEvent->type_==3) {
-//       cout << dataEvent->run_ << " " << dataEvent->event_ << " "
-// 	   << dataEvent->pmet_ << " " << dataEvent->pTrackMet_ << " " 
-// 	   << dataEvent->lep1_.pt() << " " << dataEvent->lep2_.pt() << " " 
-// 	   << dataEvent->jet1_.pt() << " " << dataEvent->jet1_.eta() << " " 
-// 	   << dataEvent->dilep_.mass() << " " << dataEvent->dPhiDiLepJet1_*180./TMath::Pi() << " "
-// 	   << dataEvent->jet1Btag_ << " " 
-// 	   << dataEvent->jet1ProbBtag_ << " " 
-// 	   << dataEvent->jet1Dz_ << " " 
-// 	   << dataEvent->lq1_ << " " 
-// 	   << dataEvent->lq2_ << " " 
-// 	   << endl;
-//     }
+    if ( region.Contains("=loosedymva=") ) {
+      if (njets<=1) {
+	if (mass>0 && mass<=140) {
+	  float dymvaval = getDyMvaVal(dataEvent);
+	  if (dymvaval<mva_xbins[1]||dymvaval>=mva_xbins[4]) return 0;
+	} else {
+	  if (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>=45.0) return 0;
+	}
+      } else {
+	if (dataEvent->met_<20.0||dataEvent->met_>=45.0) return 0;
+      }
+    } 
+
+    if ( region.Contains("=dymvazloose=") ) {
+      if (njets<=1) {
+	if (mass>0 && mass<=140) {
+	  float dymvaval = getDyMvaVal(dataEvent);
+	  if (dymvaval>=mva_xbins[4]) return 0;
+	} else {
+	  if (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>=45.0) return 0;
+	}
+      } else {
+	if (dataEvent->met_<20.0||dataEvent->met_>=45.0) return 0;
+      }
+    } 
+
+    double etaCtr = min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta()));
+    etaCtr = min(etaCtr,2.499);
+    if ( region.Contains("=ctrjetbin1=") && (etaCtr<0.0||etaCtr>=0.5) ) return 0;
+    if ( region.Contains("=ctrjetbin2=") && (etaCtr<0.5||etaCtr>=1.0) ) return 0;
+    if ( region.Contains("=ctrjetbin3=") && (etaCtr<1.0||etaCtr>=1.5) ) return 0;
+    if ( region.Contains("=ctrjetbin4=") && (etaCtr<1.5||etaCtr>=2.0) ) return 0;
+    if ( region.Contains("=ctrjetbin5=") && (etaCtr<2.0||etaCtr>=2.5) ) return 0;
+
+    /*
+    if (dataEvent->dstype_==1) {
+      cout << dataEvent->run_ << " " << dataEvent->event_ << " "
+	   << dataEvent->pmet_ << " " << dataEvent->pTrackMet_ << " " 
+	   << dataEvent->lep1_.pt() << " " << dataEvent->lep2_.pt() << " " 
+	   << dataEvent->jet1_.pt() << " " << dataEvent->jet1_.eta() << " " 
+	   << dataEvent->dilep_.mass() << " " << dataEvent->dPhiDiLepJet1_*180./TMath::Pi() << " "
+	   << dataEvent->jet1Btag_ << " " 
+	   << dataEvent->jet1ProbBtag_ << " " 
+	   << dataEvent->jet1Dz_ << " " 
+	   << dataEvent->lq1_ << " " 
+	   << dataEvent->lq2_ << " " 
+	   << fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() << " " 
+	   << endl;
+    }
+    */
 
     return 1;  
 }
@@ -916,6 +962,15 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
     }
   }
 
+  //zeta method
+  TFile* fzeta = 0;
+  TH1F* zeta = 0;
+  if (syst.Contains("zeta")){
+    fzeta = TFile::Open("zeta_one.root");
+    if (mass>140) zeta = (TH1F*) fzeta->Get(Form("zeta_cut_%ij",njets)); 
+    else zeta = (TH1F*) fzeta->Get(Form("zeta_dymva_%ij",njets)); 
+  }
+
   if (!isMC && useJson && jsonFile!=""){
     if (jsonFile.Contains(".txt")) set_goodrun_file(jsonFile);
     else set_goodrun_file_json(jsonFile);
@@ -1086,6 +1141,7 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 
     if (!doFake) {
       float effSF=1.;
+      float zetaW = 1.;
       if (isMC&&applyEff) {
 	if (redoWeights) {
 	  float pt1 = min(dataEvent->lep1_.pt(),49.);
@@ -1137,9 +1193,16 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	  cout << "njets not supported: " << njets << endl;
 	  return;
 	}
-	h->Fill(rbdtg->GetMvaValue(theInputVals),weight*effSF*puw);
+        if (syst.Contains("zeta")) {
+          float pt = TMath::Min(dataEvent->dilep_.pt(),zeta->GetXaxis()->GetXmax()-0.001);
+          zetaW = zeta->GetBinContent( zeta->FindBin(pt) );
+        }
+        h->Fill(rbdtg->GetMvaValue(theInputVals),weight*effSF*puw*zetaW);
       } else if (var=="mll") {
 	h->Fill(dataEvent->dilep_.mass(),weight*effSF*puw);
+      } else if (var=="ptll") {
+        float pt = TMath::Min(dataEvent->dilep_.pt(),h->GetXaxis()->GetXmax()-0.001);
+        h->Fill(pt,weight*effSF*puw);
       } else if (var=="ctrjetetapt") {
 	TH2* h2 = dynamic_cast<TH2*>(h);
 	assert(h2);
@@ -1207,6 +1270,9 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
     //delete HiggsPtKFactor;
     delete HiggsPtKFactorSyst;
     fHiggsPtKFactorFile->Close();
+  }
+  if (syst.Contains("zeta")){
+    fzeta->Close();
   }
   dataEvent->tree_->Delete();
   delete dataEvent;

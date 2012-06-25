@@ -231,11 +231,14 @@ void skim(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-all
   skim(smurfFDir,"wjets.root",outputDir,cut);
   skim(smurfFDir,"wz.root",outputDir,cut);
   skim(smurfFDir,"zz.root",outputDir,cut);
+  skim(smurfFDir,"wgamma.root",outputDir,cut);
+  skim(smurfFDir,"wglll.root",outputDir,cut);
+  skim(smurfFDir,"ttbar_powheg.root",outputDir,cut);
+  skim(smurfFDir,"wwmcnlodown.root",outputDir,cut);
+  skim(smurfFDir,"wwmcnlo.root",outputDir,cut);
+  skim(smurfFDir,"wwmcnloup.root",outputDir,cut);
   return;
 }
 
 /*
-backgroundA.root        data_skim2.root  hww110.root  hww125.root  hww140.root  hww160.root  hww190.root  hww300.root  hww450.root  hww600.root          qqww_py.root  tw.root     zz.root
-backgroundA_skim2.root  dyll.root        hww115.root  hww130.root  hww145.root  hww170.root  hww200.root  hww350.root  hww500.root  hww_syst.root        qqww.root     wjets.root
-data.root               ggww.root        hww120.root  hww135.root  hww150.root  hww180.root  hww250.root  hww400.root  hww550.root  hww_syst_skim2.root  ttbar.root    wz.root
 */

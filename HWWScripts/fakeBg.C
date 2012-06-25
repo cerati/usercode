@@ -20,8 +20,8 @@ pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int
   pair<float, float> dyllFake  = getYield(dir+"dyll",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> wzFake    = getYield(dir+"wz",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> zzFake    = getYield(dir+"zz",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> wgFake    ;//= getYield(dir+"wgamma",cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> wg3lFake  ;//= getYield(dir+"wg3l",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> wgFake    = getYield(dir+"wgamma",cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> wg3lFake  = getYield(dir+"wglll",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   float spillYield = qqwwFake.first+ggwwFake.first+ttbarFake.first+twFake.first+wzFake.first+zzFake.first+
                      //dySF*dymmFake.first+dySF*dyeeFake.first+
                      dySF*dyllFake.first+
@@ -52,7 +52,7 @@ pair<float, float> fakeBgEstimation(TString dir, unsigned int cut, unsigned int 
   pair<float, float> dataFake  = getYield(dir+"data.root", cut_nolep, veto, mass, njets, region, 0, useJson, false, true, false);
   //correct for spillage...
   pair<float, float> spill=getSpillage(dir,  cut_nolep, veto, mass, njets, region, lumi, applyEff, doPUw);
-  float fakeYield = dataFake.first-spill.first;
+  float fakeYield = max(float(0.),dataFake.first-spill.first);
   float fakeError = sqrt(pow(dataFake.second,2)+pow(spill.second,2));
   if (debug) {
     cout << "total estimate, bare data, spill: " << fakeYield  << "+/-" << fakeError 
@@ -136,12 +136,12 @@ void makeSSTable(float lumi) {
   bool applyTnPSF = true;
   bool doPUw = true;
 
-  TString dir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-alljets_Full2011/";
+  TString dir = "/smurf/data/Run2012_Summer12_SmurfV9_52X/mitf-alljets/";
 
   bool doSpillage = 1;
 
   int mass = 0;
-  TString region = "=dphireg=dphijet=minmetvtx=lep2pt15=ptll45=";
+  TString region = "=dphireg=dphijet=dymvacut=ptll45=";
 
   int jetbins[] = {0};
   //int jetbins[] = {0,1,2};
@@ -151,37 +151,36 @@ void makeSSTable(float lumi) {
 
     int njets = jetbins[j];
 
-    unsigned int wwSel_noq = wwSelection&~ChargeMatch;
+    unsigned int wwSel_noq = wwSelNoMet&~ChargeMatch;
     pair<float, float> ssData = getYield(dir+"data",  wwSel_noq, ChargeMatch, mass, njets, region, 0., useJson, false, false, false);
     cout << "SS data: " << ssData.first << " +/- " << ssData.second << endl;
 
-    unsigned int wwSelNoLep_noq = wwSelectionNoLep&~ChargeMatch;
-    pair<float, float> ssFake = getYield(dir+"data",  wwSelNoLep_noq, ChargeMatch, mass, njets, region, 0., useJson, false, true, false);
+    pair<float, float> ssFake = fakeBgEstimation(dir,  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, true, true);
     cout << "SS fake: " << ssFake.first << " +/- " << ssFake.second << endl;
 
-    pair<float, float> spill = make_pair<float, float>(0,0);
-    if (doSpillage) {
-      spill = getSpillage(dir,wwSelectionNoLep, noVeto, mass, njets, region+"=mefs=", lumi, applyTnPSF, doPUw);
-    }
-    cout << "spill: " << spill.first << " " << spill.second << endl;
-
     pair<float, float> ssWw = getYield(dir+"qqww",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    ssWw = make_pair<float, float>(WWBkgScaleFactorCutBased(115,njets)*ssWw.first,WWBkgScaleFactorCutBased(115,njets)*ssWw.second);
     cout << "SS ww: " << ssWw.first << " +/- " << ssWw.second << endl;
 
     pair<float, float> ssTtbar = getYield(dir+"ttbar",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    ssTtbar = make_pair<float, float>(TopBkgScaleFactor(njets)*ssTtbar.first,TopBkgScaleFactor(njets)*ssTtbar.second);
     cout << "SS ttbar: " << ssTtbar.first << " +/- " << ssTtbar.second << endl;
 
     pair<float, float> ssWgamma = getYield(dir+"wgamma",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     cout << "SS wgamma: " << ssWgamma.first << " +/- " << ssWgamma.second << endl;
 
+    pair<float, float> ssWglll = getYield(dir+"wglll",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    ssWglll = make_pair<float, float>(WGstarScaleFactor()*ssWglll.first,WGstarScaleFactor()*ssWglll.second);
+    cout << "SS wglll: " << ssWglll.first << " +/- " << ssWglll.second << endl;
+
     pair<float, float> ssWz = getYield(dir+"wz",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     cout << "SS wz: " << ssWz.first << " +/- " << ssWz.second << endl;
-
-    pair<float, float> ssZz = getYield(dir+"zz_py",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+ 
+    pair<float, float> ssZz = getYield(dir+"zz",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     cout << "SS zz: " << ssZz.first << " +/- " << ssZz.second << endl;
 
-    cout << "total expected: " << ssFake.first-spill.first+ssWw.first+ssTtbar.first+ssWgamma.first+ssWz.first+ssZz.first << " +/- " 
-	 << sqrt(pow(ssFake.second,2)+pow(spill.second,2)+pow(ssWw.second,2)+pow(ssTtbar.second,2)+pow(ssWgamma.second,2)+pow(ssWz.second,2)+pow(ssZz.second,2)) << endl;
+    cout << "total expected: " << ssFake.first/*-spill.first*/+ssWw.first+ssTtbar.first+ssWgamma.first+ssWglll.first+ssWz.first+ssZz.first << " +/- " 
+	 << sqrt(pow(ssFake.second,2)/*+pow(spill.second,2)*/+pow(ssWw.second,2)+pow(ssTtbar.second,2)+pow(ssWgamma.second,2)+pow(ssWglll.second,2)+pow(ssWz.second,2)+pow(ssZz.second,2)) << endl;
 
 
   }
