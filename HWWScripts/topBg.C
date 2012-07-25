@@ -123,6 +123,9 @@ pair<float, float> topBgEstimation(int mass=160, unsigned int njets=0, float lum
     eff_veto_data = tagEff.first;
     eff_err_veto_data = tagEff.second;
   }
+
+  if (debug) cout << "using eff=" << eff_veto_data << " +/- " << eff_err_veto_data << endl;
+
   //compute the number of top events
   float num_top_data = sideband_data_tag*(1.-eff_veto_data)/eff_veto_data;
   float num_top_err_data = sqrt( pow((1.-eff_veto_data)/eff_veto_data,2)*pow(sideband_data_tag_err,2) + pow(sideband_data_tag,2)*pow(eff_err_veto_data,2)/pow(eff_veto_data,4) );

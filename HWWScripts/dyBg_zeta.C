@@ -97,7 +97,13 @@ pair<float, float> dyBkgEstimation(unsigned int cut, unsigned int veto, int mass
   if (mass>0 && mass<=140 && njets<2) {
     zeta = (TH1F*) fzeta->Get(Form("zeta_dymva_mass0_%ij",njets)); 
   } else {
-    zeta = (TH1F*) fzeta->Get(Form("zeta_cut_mass%i_%ij",mass,njets)); 
+    if (doMVA) zeta = (TH1F*) fzeta->Get(Form("zeta_cut_mass0_%ij",njets)); 
+    else {
+      int mymass = mass;
+      if (mass==125) mymass = 120;
+      if (mass==145) mymass = 140;
+      zeta = (TH1F*) fzeta->Get(Form("zeta_cut_mass%i_%ij",mymass,njets)); 
+    }
   }
   assert(zeta);
   //data SF
@@ -130,6 +136,7 @@ pair<float, float> dyBkgEstimation(unsigned int cut, unsigned int veto, int mass
   delete lomet_wz;
   delete lomet_zz;
 
+  fzeta->Close();
   //get the estimate
   float dy_est = TMath::Max(yield,float(0.));;
   float dy_est_err = sqrt(error2);//only stat for now
@@ -342,7 +349,7 @@ void makeDYTableFast(float lumi) {
   //int masses[] = {0};
   //int masses[] = {140,160};
   //int masses[] = {0,120,140,160,180,200};
-  int masses[] = {0,115,120,130,140,150,160,170,180,190,200,250,300};
+  int masses[] = {0,115,120,125,130,140,145,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
 
   vector<float> vsf0j;
@@ -373,6 +380,7 @@ void makeDYTableFast(float lumi) {
 
       int mass = masses[jj];
       if (njets==2 && doMVA) continue;
+      doVBF=0;
       if (njets==2) doVBF=1;
 
       pair<float, float> dymmMC   = getYield(main_dir+dy_dir+"dyll",  wwSelNoZVNoMet, noVeto, mass, njets, "=mmfs=dymvacut="+dyregion, lumi, false, applyEff, doFake, doPUw);
@@ -387,7 +395,7 @@ void makeDYTableFast(float lumi) {
       cout << Form("| %3i GeV | %5.2f +/- %-5.2f | %5.1f +/- %-5.1f | %5.2f +/- %-5.2f | %5.1f +/- %-5.1f | %5.2f +/- %-5.2f |  %5.1f +/- %-5.1f |%5.2f +/- %-5.2f |",
 		   mass,dymmMC.first,dymmMC.second,dymmPred.first,dymmPred.second,dyeeMC.first,dyeeMC.second,dyeePred.first,dyeePred.second,
 		   dymmPred.first/dyeePred.first,ratioPoissErr(dymmPred.first, dymmPred.second, dyeePred.first, dyeePred.second),
-		   dymmPred.first+dyeePred.first,sqrt(pow(dymmPred.second,2)+pow(dyeePred.second,2)+pow(0.4*dymmPred.first,2)+pow(0.4*dyeePred.first,2)),sf,sf_err) << endl;
+		   dymmPred.first+dyeePred.first,sqrt(pow(dymmPred.second,2)+pow(dyeePred.second,2)+pow(0.4*dymmPred.first+0.4*dyeePred.first,2)),sf,sf_err) << endl;
       
       if (njets==0) {
 	vsf0j.push_back(sf);
@@ -405,6 +413,7 @@ void makeDYTableFast(float lumi) {
 
   }
 
+  /*
   if (nmasses==13) {
     ofstream myfile;
     TString fname = "DYBkgScaleFactors.h";
@@ -455,9 +464,13 @@ void makeDYTableFast(float lumi) {
     out << Form("  }\n");
     out << Form("}\n");
   }
+  */
 
 }
 
 void dyBg_zeta(float lumi) {
   makeDYTableFast(lumi);
+  doMVA=1;
+  makeDYTableFast(lumi);
+  doMVA=0;
 }

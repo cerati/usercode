@@ -145,7 +145,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     lep2pt = 10.;
     dPhi   = 180.;
     mll    = 9999.;
-    mtL    = 0.;
+    mtL    = 80.;//fixme: set to 80 for zeta method
     mtH    = 9999.;
     himass = 100.;
   } else if (mass==110) {
@@ -236,7 +236,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     mtL    = 80.;
     mtH    = 128.;
     himass = 100.;
-  } else if (mass==140) {
+  } else if (mass==140 || mass==145) {
     lep1pt = 25.;
     lep2pt = 15.;
     dPhi   = 90.;
@@ -330,7 +330,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     } else if (mass==135||mass==140) {
       mll    = 90.;
       mtH    = ((float) mass);
-    } else if (mass==150) {
+    } else if (mass==145||mass==150) {
       mll    = 100.;
       mtH    = ((float) mass);
     } else if (mass==160) {
@@ -394,8 +394,8 @@ void getCutMasks(unsigned int njets, unsigned int& baseline_toptag, unsigned int
   } else if (njets==2) {
     veto = veto0j;
   }
-  baseline_toptag = wwSelectionNoTV|ttag;
-  control_top     = wwSelectionNoTV|top_sel;
+  baseline_toptag = wwSelNoMetNoTV|ttag;
+  control_top     = wwSelNoMetNoTV|top_sel;
   control_toptag  = control_top|ttag;
 }
 
