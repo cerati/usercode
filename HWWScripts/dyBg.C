@@ -2,6 +2,7 @@
 #include "Smurf/Analysis/HWWlvlv/DYRoutinValues.h"
 
 TFile* outRFile;
+bool saveRFile = false;
 
 float getK(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, float lumiSample, 
 	   bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false){
@@ -97,13 +98,13 @@ pair<float, float> computeRoutinDatawithSyst(unsigned int cut, unsigned int veto
 
   pair<float, float> rbin4 = computeRoutinData(cut, veto, mass, njets, regionIn+"=zregion=", regionOut, "=routinbin4=", lumi, kee, useJson);
 
-  outRFile->cd();
+  if (saveRFile) outRFile->cd();
   TH1F* rplot = new TH1F(Form("data_mh%i_%ij",mass,njets),Form("data_mh%i_%ij",mass,njets),4,0,4);
   rplot->SetBinContent(1,rbin1.first);rplot->SetBinError(1,rbin1.second);
   rplot->SetBinContent(2,rbin2.first);rplot->SetBinError(2,rbin2.second);
   rplot->SetBinContent(3,rbin3.first);rplot->SetBinError(3,rbin3.second);
   rplot->SetBinContent(4,rbin4.first);rplot->SetBinError(4,rbin4.second);
-  rplot->Write();
+  if (saveRFile) rplot->Write();
   delete rplot;
 
   if (printAll) {
@@ -163,13 +164,13 @@ pair<float, float> computeRoutinMCwithSyst(unsigned int cut, unsigned int veto, 
   float r_all_syst_err = max(fabs(r_all-rbin4.first),max(fabs(r_all-rbin2.first),fabs(r_all-rbin1.first)));
   float r_all_err = sqrt( pow(r_all_stat_err,2) + pow(r_all_syst_err,2) );
 
-  outRFile->cd();
+  if (saveRFile) outRFile->cd();
   TH1F* rplot = new TH1F(Form("mc_mh%i_%ij",mass,njets),Form("mc_mh%i_%ij",mass,njets),4,0,4);
   rplot->SetBinContent(1,rbin1.first);rplot->SetBinError(1,rbin1.second);
   rplot->SetBinContent(2,rbin2.first);rplot->SetBinError(2,rbin2.second);
   rplot->SetBinContent(3,rbin3.first);rplot->SetBinError(3,rbin3.second);
   rplot->SetBinContent(4,rbin4.first);rplot->SetBinError(4,rbin4.second);
-  rplot->Write();
+  if (saveRFile) rplot->Write();
   delete rplot;
 
   if (printAll) {
@@ -228,8 +229,10 @@ void makeDYTable(float lumi) {
   bool doFake   = false;
   bool doPUw    = true;
 
-  if (doMVA) outRFile = TFile::Open("outRFile_shape.root","RECREATE");
-  else outRFile = TFile::Open("outRFile_cut.root","RECREATE");
+  if (saveRFile) {
+    if (doMVA) outRFile = TFile::Open("outRFile_shape.root","RECREATE");
+    else outRFile = TFile::Open("outRFile_cut.root","RECREATE");
+  }
 
   TString regionIn  = "=leppts=dphicut=ptll45=zregion=dpjallfs=";//lep2pt20allfs=
   TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=";//lep2pt20allfs
@@ -335,28 +338,22 @@ void makeDYTable(float lumi) {
       }
 
       if (mass==0||mass==1) {
-	TString formstr = "| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
-	if (doLatex) formstr = " %10s & %6.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
+	TString formstr = "| %10s | %6.1f +/- %-5.1f | %5.2f +/- %-5.2f | %5.1f +/- %-5.1f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
+	if (doLatex) formstr = " %10s & %6.1f $\\pm$ %-5.1f & %5.2f $\\pm$ %-5.2f & %5.1f $\\pm$ %-5.1f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
 	cout << Form(formstr,
 		     mass==0 ? "WW" : "WW DYMVA",
-		     round(100.*z.first)/100.,round(100.*z.second)/100.,
-		     round(100.*r.first)/100.,round(100.*r.second)/100.,
-		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
-		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
-		     //round(100.*sf)/100.,round(10.*sf_percerr)/10.)
-		     round(100.*sf)/100.,round(100.*sf_err)/100.)
+		     z.first,z.second,r.first,r.second,dyData.first,dyData.second,
+		     (dymmMC.first+dyeeMC.first),sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)),
+		     sf,sf_err)
 	     << endl;
       } else {
-	TString formstr = "| %6i GeV | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
-	if (doLatex) formstr = " %6i \\GeVcc & %6.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
+	TString formstr = "| %6i GeV | %6.1f +/- %-5.1f | %5.2f +/- %-5.2f | %5.1f +/- %-5.1f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
+	if (doLatex) formstr = " %6i \\GeVcc & %6.1f $\\pm$ %-5.1f & %5.2f $\\pm$ %-5.2f & %5.1f $\\pm$ %-5.1f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
 	cout << Form(formstr,
 		     mass,
-		     round(100.*z.first)/100.,round(100.*z.second)/100.,
-		     round(100.*r.first)/100.,round(100.*r.second)/100.,
-		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
-		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
-		     //round(100.*sf)/100.,round(10.*sf_percerr)/10.)
-		     round(100.*sf)/100.,round(100.*sf_err)/100.)
+		     z.first,z.second,r.first,r.second,dyData.first,dyData.second,
+		     (dymmMC.first+dyeeMC.first),sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)),
+		     sf,sf_err)
 	     << endl;
       }
     }
@@ -364,26 +361,32 @@ void makeDYTable(float lumi) {
     else cout << "\\hline" << endl;
   }
 
-  /*
-  if (nmasses==13) {
+  if (nmasses>10 && njetbins==3 && masses[0]==0) {
     ofstream myfile;
     TString fname = "DYBkgScaleFactors.h";
-    myfile.open(fname);
+    if (!doMVA) myfile.open(fname);
+    else myfile.open(fname,ios::app);
     ostream &out = myfile;
 
-    out << Form("Double_t DYBkgScaleFactor(Int_t mH, Int_t jetBin) {\n");
-    out << Form("  Int_t mHiggs[12] = {115,120,130,140,150,160,170,180,190,200,250,300};\n");
+    if (!doMVA) out << Form("Double_t DYBkgScaleFactor(Int_t mH, Int_t jetBin) {\n");
+    else  out << Form("Double_t DYBkgScaleFactorBDT(Int_t mH, Int_t jetBin) {\n");
+    out << Form("  Int_t mHiggs[%i] = {",nmasses-1);
+    for (int j=1;j<nmasses-1;++j) out << Form("%i,",masses[j]);
+    out << Form("%i};\n",masses[nmasses-1]);
     out << Form("  Double_t DYBkgScaleFactorWWPreselection[3] = { %7.5f,%7.5f,%7.5f  };\n",vsf0j[0],vsf1j[0],vsf2j[0]);
-    out << Form("  Double_t DYBkgScaleFactorHiggsSelection[3][12] = { \n");
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f },\n",
-	   vsf0j[1],vsf0j[2],vsf0j[3],vsf0j[4],vsf0j[5],vsf0j[6],vsf0j[7],vsf0j[8],vsf0j[9],vsf0j[10],vsf0j[11],vsf0j[12]);
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f },\n",
-	   vsf1j[1],vsf1j[2],vsf1j[3],vsf1j[4],vsf1j[5],vsf1j[6],vsf1j[7],vsf1j[8],vsf1j[9],vsf1j[10],vsf1j[11],vsf1j[12]);
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f } };\n",
-	   vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0],vsf2j[0]);
+    out << Form("  Double_t DYBkgScaleFactorHiggsSelection[3][%i] = { \n",nmasses-1);
+    out << Form("    { ");
+    for (int j=1;j<nmasses-1;++j) out << Form("%7.5f,",vsf0j[j]);
+    out << Form("%7.5f}, \n",vsf0j[nmasses-1]);
+    out << Form("    { ");
+    for (int j=1;j<nmasses-1;++j) out << Form("%7.5f,",vsf1j[j]);
+    out << Form("%7.5f}, \n",vsf1j[nmasses-1]);
+    out << Form("    { ");
+    for (int j=1;j<nmasses-1;++j) out << Form("%7.5f,",vsf2j[j]);
+    out << Form("%7.5f} }; \n",vsf2j[nmasses-1]);
     out << Form("  if(mH == 0) return DYBkgScaleFactorWWPreselection[jetBin];\n");
     out << Form("  Int_t massIndex = -1;\n");
-    out << Form("  for (UInt_t m=0; m < 12 ; ++m) {\n");
+    out << Form("  for (UInt_t m=0; m < %i ; ++m) {\n",nmasses);
     out << Form("    if (mH == mHiggs[m]) massIndex = m;\n");
     out << Form("  }\n");
     out << Form("  if (massIndex >= 0) {\n");
@@ -393,19 +396,25 @@ void makeDYTable(float lumi) {
     out << Form("  }\n");
     out << Form("}\n");
 
-    out << Form("Double_t DYBkgScaleFactorKappa(Int_t mH, Int_t jetBin) {\n");
-    out << Form("  Int_t mHiggs[12] = {115,120,130,140,150,160,170,180,190,200,250,300};\n");
+    if (!doMVA) out << Form("Double_t DYBkgScaleFactorKappa(Int_t mH, Int_t jetBin) {\n");
+    else  out << Form("Double_t DYBkgScaleFactorBDTKappa(Int_t mH, Int_t jetBin) {\n");
+    out << Form("  Int_t mHiggs[%i] = {",nmasses-1);
+    for (int j=1;j<nmasses-1;++j) out << Form("%i,",masses[j]);
+    out << Form("%i};\n",masses[nmasses-1]);
     out << Form("  Double_t DYBkgScaleFactorWWPreselectionKappa[3] = { %7.5f,%7.5f,%7.5f  };\n",vk0j[0],vk1j[0],vk2j[0]);
-    out << Form("  Double_t DYBkgScaleFactorHiggsSelectionKappa[3][12] = { \n");
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f },\n",
-	   vk0j[1],vk0j[2],vk0j[3],vk0j[4],vk0j[5],vk0j[6],vk0j[7],vk0j[8],vk0j[9],vk0j[10],vk0j[11],vk0j[12]);
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f },\n",
-	   vk1j[1],vk1j[2],vk1j[3],vk1j[4],vk1j[5],vk1j[6],vk1j[7],vk1j[8],vk1j[9],vk1j[10],vk1j[11],vk1j[12]);
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f } };\n",
-	   vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0],vk2j[0]);
+    out << Form("  Double_t DYBkgScaleFactorHiggsSelectionKappa[3][%i] = { \n",nmasses-1);
+    out << Form("    { ");
+    for (int j=1;j<nmasses-1;++j) out << Form("%7.5f,",vk0j[j]);
+    out << Form("%7.5f}, \n",vk0j[nmasses-1]);
+    out << Form("    { ");
+    for (int j=1;j<nmasses-1;++j) out << Form("%7.5f,",vk1j[j]);
+    out << Form("%7.5f}, \n",vk1j[nmasses-1]);
+    out << Form("    { ");
+    for (int j=1;j<nmasses-1;++j) out << Form("%7.5f,",vk2j[j]);
+    out << Form("%7.5f} }; \n",vk2j[nmasses-1]);
     out << Form("  if(mH == 0) return DYBkgScaleFactorWWPreselectionKappa[jetBin];\n");
     out << Form("  Int_t massIndex = -1;\n");
-    out << Form("  for (UInt_t m=0; m < 12 ; ++m) {\n");
+    out << Form("  for (UInt_t m=0; m < %i ; ++m) {\n",nmasses);
     out << Form("    if (mH == mHiggs[m]) massIndex = m;\n");
     out << Form("  }\n");
     out << Form("  if (massIndex >= 0) {\n");
@@ -415,9 +424,8 @@ void makeDYTable(float lumi) {
     out << Form("  }\n");
     out << Form("}\n");
   }
-  */
 
-  outRFile->Close();
+  if (saveRFile) outRFile->Close();
 
 }
 

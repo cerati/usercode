@@ -31,8 +31,8 @@ void mvaSyst(float lumi) {
     float wwSFe  = 0.*WWBkgScaleFactorCutBased(115,njets)*(WWBkgScaleFactorKappaCutBased(115,njets)-1.);
     float topSF  = TopBkgScaleFactor(njets);
     float topSFe = 0.*TopBkgScaleFactor(njets)*(TopBkgScaleFactorKappa(njets)-1.);
-    wwSF=1.;
-    topSF=1.;
+    //wwSF=1.;
+    //topSF=1.;
 
     pair<float, float> qqwwDen = getYield(dir+"qqww",  wwSelNoMet, veto, mass, njets, regionDen, lumi, useJson, applyTnPSF, false, doPUw);
     pair<float, float> qqwwNum = getYield(dir+"qqww",  wwSelNoMet, veto, mass, njets, regionNum, lumi, useJson, applyTnPSF, false, doPUw);

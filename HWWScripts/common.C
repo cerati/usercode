@@ -48,7 +48,7 @@ bool redoWeights  = 0;
 bool checkWeights = 0;
 bool doMVA = 0;
 bool doVBF = 0;
-bool doResEffSyst = 1;
+bool doResEffSyst = 0;
 ReadBDTG* rbdtg = 0;
 
 //copy here to avoid SmurfTree::
@@ -148,15 +148,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     mtL    = 80.;//fixme: set to 80 for zeta method
     mtH    = 9999.;
     himass = 100.;
-  } else if (mass==110) {
-    lep1pt = 20.;
-    lep2pt = 10.;
-    dPhi   = 115.;
-    mll    = 40.;
-    mtL    = 80.;
-    mtH    = 110.;
-    himass = 100.;
-  } else if (mass==115) {
+  } else if (mass==110||mass==115) {
     lep1pt = 20.;
     lep2pt = 10.;
     dPhi   = 115.;
@@ -549,8 +541,8 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( region.Contains("=bTagNoFwdYesCtr=") && (discFwdJet(dataEvent)>2.1 || discCtrJet(dataEvent)<2.1) ) return 0;
     if ( region.Contains("=noSoftMu=")  && dataEvent->nSoftMuons_>0 ) return 0;
     //check peaking at MC level
-    if ( region.Contains("=fromZ=") && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
-    if ( region.Contains("=notZ=") && !(dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
+    if ( region.Contains("=fromZ=") && isMC && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
+    if ( region.Contains("=notZ=") && isMC && !(dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
     //spillage
     if ( region.Contains("=spill=") && dataEvent->dstype_!=SmurfTree::wgamma && dataEvent->dstype_!=SmurfTree::wgstar && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) return 0;
 
@@ -966,9 +958,9 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
   TFile* fzeta = 0;
   TH1F* zeta = 0;
   if (syst.Contains("zeta")){
-    fzeta = TFile::Open("zeta_one.root");
-    if (mass>140) zeta = (TH1F*) fzeta->Get(Form("zeta_cut_%ij",njets)); 
-    else zeta = (TH1F*) fzeta->Get(Form("zeta_dymva_%ij",njets)); 
+    fzeta = TFile::Open("zeta_allmasses.root");
+    if (mass>140) zeta = (TH1F*) fzeta->Get(Form("zeta_cut_mass0_%ij",njets)); 
+    else zeta = (TH1F*) fzeta->Get(Form("zeta_dymva_mass0_%ij",njets)); 
   }
 
   if (!isMC && useJson && jsonFile!=""){

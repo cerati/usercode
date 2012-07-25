@@ -330,8 +330,8 @@ void cardMaker(float lumi, TString mode) {
   //int jets[] = {2};
   int jets[] = {0,1,2};
 
-  //int masses[] = {140,160};
-  int masses[] = {115,120,130,140,150,160,170,180,190,200,250,300};
+  int masses[] = {125};
+  //int masses[] = {115,120,125,130,140,145,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
   int njets = sizeof(jets)/sizeof(int);
   for (int j=0;j<nmasses;++j) {

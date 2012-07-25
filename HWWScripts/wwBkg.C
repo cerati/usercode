@@ -201,11 +201,11 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
   //   cout << "topVeto eff 0j: " << tagEff0j.first << "+/-" << tagEff0j.second << endl;
   //   cout << "topVeto eff 1j: " << tagEff1j.first << "+/-" << tagEff1j.second << endl;
 
-  int masses[] = {115,120,130,140,150,160,170,180,190};
+  int masses[] = {115,120,125,130,140,145,150,160,170,180,190,200};
   //int masses[] = {115,120,130,140,150};
   //int masses[] = {115,130,150,170,190};
   //int masses[] = {120,140,160,180,200};
-  //int masses[] = {120};
+  //int masses[] = {125,145};
   int nmasses = sizeof(masses)/sizeof(int);
   doLatex=false;
   if (!doLatex) {
@@ -234,16 +234,7 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
 
     TString raw = "| %i | %5.1f +/- %4.1f | %5.1f +/- %4.1f | %5.2f +/- %4.2f | %5.1f +/- %4.1f | %5.1f +/- %4.1f | %5.2f +/- %4.2f |";
     if (doLatex) raw = "%i & %5.1f $\\pm$ %4.1f & %5.1f $\\pm$ %4.1f & %4.2f $\\pm$ %4.2f & %5.1f $\\pm$ %4.1f & %5.1f $\\pm$ %4.1f & %4.2f $\\pm$ %4.2f \\\\";
-    cout << Form(raw.Data(),mass,
-		 round(j0dd.first*10.)/10.,round(j0dd.second*10.)/10.,
-		 round(j0mc.first*10.)/10.,round(j0mc.second*10.)/10.,
-		 round(sf0j*100)/100.,
-		 round(sf0je*100)/100.,
-		 round(j1dd.first*10.)/10.,round(j1dd.second*10.)/10.,
-		 round(j1mc.first*10.)/10.,round(j1mc.second*10.)/10.,
-		 round(sf1j*100)/100.,
-		 round(sf1je*100)/100.) 
-	 << endl;
+    cout << Form(raw.Data(),mass,j0dd.first,j0dd.second,j0mc.first,j0mc.second,sf0j,sf0je,j1dd.first,j1dd.second,j1mc.first,j1mc.second,sf1j,sf1je) << endl;
     vsf0j.push_back(sf0j);
     vk0j.push_back(1.+sf0je/sf0j);
     vsf1j.push_back(sf1j);
@@ -252,7 +243,7 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
 
   if (!doLatex) cout << "-------------------------------------------------------------------------------------------------------------" << endl;
 
-  if (nmasses==9) {
+  if (nmasses>=5) {
 
     ofstream myfile;
     TString fname = "WWBkgScaleFactors.h";
@@ -263,12 +254,18 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
     if (!doMVA) out << Form("Double_t WWBkgScaleFactorCutBased(Int_t mH, Int_t jetBin) {\n");
     else out << Form("Double_t WWBkgScaleFactorMVA(Int_t mH, Int_t jetBin) {\n");
     out << Form("assert(jetBin >= 0 && jetBin <= 1);\n");
-    out << Form("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
-    out << Form("  Double_t WWBkgScaleFactorHiggsSelection[2][9] = { \n");
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f},\n",vsf0j[0],vsf0j[1],vsf0j[2],vsf0j[3],vsf0j[4],vsf0j[5],vsf0j[6],vsf0j[7],vsf0j[8]);
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f} };\n",vsf1j[0],vsf1j[1],vsf1j[2],vsf1j[3],vsf1j[4],vsf1j[5],vsf1j[6],vsf1j[7],vsf1j[8]);
+    out << Form("  Int_t mHiggs[%i] = {",nmasses);
+    for (int j=0;j<nmasses-1;++j) out << Form("%i,",masses[j]);
+    out << Form("%i};\n",masses[nmasses-1]);
+    out << Form("  Double_t WWBkgScaleFactorHiggsSelection[2][%i] = { \n",nmasses);
+    out << Form("    { ");
+    for (int j=0;j<nmasses-1;++j) out << Form("%7.5f,",vsf0j[j]);
+    out << Form("%7.5f}, \n",vsf0j[nmasses-1]);
+    out << Form("    { ");
+    for (int j=0;j<nmasses-1;++j) out << Form("%7.5f,",vsf1j[j]);
+    out << Form("%7.5f} }; \n",vsf1j[nmasses-1]);
     out << Form("  Int_t massIndex = -1;\n");
-    out << Form("  for (UInt_t m=0; m < 9 ; ++m) {\n");
+    out << Form("  for (UInt_t m=0; m < %i ; ++m) {\n",nmasses);
     out << Form("    if (mH == mHiggs[m]) massIndex = m;\n");
     out << Form("  }\n");
     out << Form("  if (massIndex >= 0) {\n");
@@ -277,16 +274,21 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
     out << Form("    return 1.0;\n");
     out << Form("  }\n");
     out << Form("}\n");
-    
     if (!doMVA) out << Form("Double_t WWBkgScaleFactorKappaCutBased(Int_t mH, Int_t jetBin) {\n");
     else out << Form("Double_t WWBkgScaleFactorKappaMVA(Int_t mH, Int_t jetBin) {\n");
     out << Form("assert(jetBin >= 0 && jetBin <= 1);\n");
-    out << Form("  Int_t mHiggs[9] = {115,120,130,140,150,160,170,180,190};\n");
-    out << Form("  Double_t WWBkgScaleFactorKappaHiggsSelection[2][9] = { \n");
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f},\n",vk0j[0],vk0j[1],vk0j[2],vk0j[3],vk0j[4],vk0j[5],vk0j[6],vk0j[7],vk0j[8]);
-    out << Form("    { %7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f,%7.5f} };\n",vk1j[0],vk1j[1],vk1j[2],vk1j[3],vk1j[4],vk1j[5],vk1j[6],vk1j[7],vk1j[8]);
+    out << Form("  Int_t mHiggs[%i] = {",nmasses);
+    for (int j=0;j<nmasses-1;++j) out << Form("%i,",masses[j]);
+    out << Form("%i};\n",masses[nmasses-1]);
+    out << Form("  Double_t WWBkgScaleFactorKappaHiggsSelection[2][%i] = { \n",nmasses);
+    out << Form("    { ");
+    for (int j=0;j<nmasses-1;++j) out << Form("%7.5f,",vk0j[j]);
+    out << Form("%7.5f}, \n",vk0j[nmasses-1]);
+    out << Form("    { ");
+    for (int j=0;j<nmasses-1;++j) out << Form("%7.5f,",vk1j[j]);
+    out << Form("%7.5f} }; \n",vk1j[nmasses-1]);
     out << Form("  Int_t massIndex = -1;\n");
-    out << Form("  for (UInt_t m=0; m < 9 ; ++m) {\n");
+    out << Form("  for (UInt_t m=0; m < %i ; ++m) {\n",nmasses);
     out << Form("    if (mH == mHiggs[m]) massIndex = m;\n");
     out << Form("  }\n");
     out << Form("  if (massIndex >= 0) {\n");

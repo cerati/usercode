@@ -83,9 +83,12 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   float maxx = 1.;
 
   TString sigreg = "=dphireg=dphijet=dymvacut=ptll45=";
-  TString sigreg_lowmet = sigreg;
+  TString sigreg_lowmet = sigreg+"=zvetoall=";
   sigreg_lowmet.ReplaceAll("=dymvacut=","=loosedymva=");//fixme
   sigreg_lowmet.ReplaceAll("=dphijet=","=dpjallfs=");//fixme
+  TString sigreg_himet = sigreg+"=zvetoall=";
+  sigreg_himet.ReplaceAll("=dymvacut=","=dymvaallfs=");//fixme
+  sigreg_himet.ReplaceAll("=dphijet=","=dpjallfs=");//fixme
 
   //cout << sigreg << endl;
   //cout << sigreg_lowmet << endl;
@@ -167,10 +170,8 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   //Top
   TH1F* ttbar_h = new TH1F("histo_ttbar","histo_ttbar",nbins,minx,maxx);
   fillPlot("bdtg",ttbar_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  cout << "ttbar: " << ttbar_h->GetEntries() << endl;
   ttbar_h->Scale(TopBkgScaleFactor(njets));
   TH1F* tw_h = new TH1F("histo_tw","histo_tw",nbins,minx,maxx);
-  cout << "tw: " << tw_h->GetEntries() << endl;
   fillPlot("bdtg",tw_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   tw_h->Scale(TopBkgScaleFactor(njets));
   TH1F* top_h = new TH1F("histo_Top","histo_Top",nbins,minx,maxx);
@@ -178,8 +179,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   top_h->Add(tw_h);
   //shape variation: use madgraph ttbar and ds tw
   TH1F* ttbar_var_h = new TH1F("histo_ttbar_var","histo_ttbar_var",nbins,minx,maxx);
-  fillPlot("bdtg",ttbar_var_h, dir+"ttbar_powheg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  cout << "ttbar_var: " << ttbar_var_h->GetEntries() << endl;
+  fillPlot("bdtg",ttbar_var_h, dir+"ttbar_mg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   ttbar_var_h->Scale(1.43);//fixme scale 7 TeV xsec
   //scaleIntegral(ttbar_h,ttbar_var_h);
   TH1F* tw_ds_h = new TH1F("histo_tw_ds","histo_tw_ds",nbins,minx,maxx);
@@ -195,10 +195,8 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   //Wgamma
   TH1F* wg_h = new TH1F("histo_wg","histo_wg",nbins,minx,maxx);
   fillPlot("bdtg",wg_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  cout << "wg: " << wg_h->GetEntries() << endl;
   TH1F* wg3l_h = new TH1F("histo_wg3l","histo_wg3l",nbins,minx,maxx);
   fillPlot("bdtg",wg3l_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  cout << "wg3l: " << wg3l_h->GetEntries() << endl;
   wg3l_h->Scale(WGstarScaleFactor());
   TH1F* wgamma_h = new TH1F("histo_Wgamma","histo_Wgamma",nbins,minx,maxx);
   wgamma_h->Add(wg_h);
@@ -208,9 +206,9 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   float dysf = 1.;
   TH1F* dyll_lowmet_h = new TH1F("histo_dyll_lowmet","histo_dyll_lowmet",nbins,minx,maxx);
   fillPlot("bdtg",dyll_lowmet_h, dirdy+"dyll"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+fs, lumi, useJson, applyEff, doFake, doPUw);
-  cout << "dyll: " << dyll_lowmet_h->GetEntries() << endl;
+  float dyY = 0;
   if (fs.Contains("sffs")) {
-    float dyY = DYBkgScaleFactorBDT(mass,njets);
+    dyY = DYBkgScaleFactorBDT(mass,njets);
     dyll_lowmet_h->Scale(dyY/dyll_lowmet_h->Integral());
   } else {
     TH1F* dyll_vtx_h = new TH1F("histo_dyll_vtx","histo_dyll_vtx",nbins,minx,maxx);
@@ -233,10 +231,8 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
     float lumicorr = (1.+kee*kee)/(2.*kee);
     TH1F* sffs_lowmet_new_h = new TH1F("histo_sffs_lowmet_new","histo_sffs_lowmet_new",nbins,minx,maxx);
     fillPlot("bdtg",sffs_lowmet_new_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", 0, useJson, false, false, false,"");//fixme add zeta method
-    cout << "sffs_lowmet: " << sffs_lowmet_new_h->GetEntries() << endl;
     TH1F* offs_lowmet_new_h = new TH1F("histo_offs_lowmet_new","histo_offs_lowmet_new",nbins,minx,maxx);
     fillPlot("bdtg",offs_lowmet_new_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=offs=", 0, useJson, false, false, false,"");
-    cout << "offs_lowmet: " << offs_lowmet_new_h->GetEntries() << endl;
     TH1F* wz_lowmet_new_h = new TH1F("histo_wz_lowmet_new","histo_wz_lowmet_new",nbins,minx,maxx);
     fillPlot("bdtg",wz_lowmet_new_h, dirdy+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
     TH1F* zz_lowmet_new_h = new TH1F("histo_zz_lowmet_new","histo_zz_lowmet_new",nbins,minx,maxx);
@@ -247,12 +243,12 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
     zjets_h_up->Add(zz_lowmet_new_h,-1);
   }
   avoidNegativeBins(zjets_h_up);
+  zjets_h_up->Scale(dyY/zjets_h_up->Integral());
   zjets_h_up->Add(pwz_h);
   zjets_h_up->Add(pzz_h);
-  scaleIntegral(zjets_h,zjets_h_up);
   TH1F* zjets_h_down = new TH1F(Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijDown",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets),Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijDown",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets),nbins,minx,maxx);
   fillDownMirrorUp(zjets_h,zjets_h_up,zjets_h_down);
-  /*
+
   //old shape variation: use full MET cuts
   TH1F* zjets_h_old_up = new TH1F(Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijUpOld",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets),
                               Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijUpOld",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets),nbins,minx,maxx);
@@ -267,7 +263,53 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
     scaleIntegral(zjets_h,zjets_h_old_up);
     fillDownMirrorUp(zjets_h,zjets_h_old_up,zjets_h_old_down);
   }
-  */
+
+  // OF,VZ subtraction
+  TH1F* zjets_h_up_himet = new TH1F(Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijUpOFHiMet",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets),Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijUpOFHiMet",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets),nbins,minx,maxx);
+  if (fs.Contains("sffs")) {
+    float kee = 0.8;//getK(main_dir+dy_dir+"data", wwSelNoZVNoMet, noVeto, 0, njets, 0., useJson, false, doFake, false);
+    float lumicorr = (1.+kee*kee)/(2.*kee);
+    TH1F* sffs_himet_h = new TH1F("histo_sffs_himet","histo_sffs_himet",nbins,minx,maxx);
+    fillPlot("bdtg",sffs_himet_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=sffs=", 0, useJson, false, false, false,"");
+    TH1F* offs_himet_h = new TH1F("histo_offs_himet","histo_offs_himet",nbins,minx,maxx);
+    fillPlot("bdtg",offs_himet_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=offs=", 0, useJson, false, false, false,"");
+    TH1F* wz_himet_h = new TH1F("histo_wz_himet","histo_wz_himet",nbins,minx,maxx);
+    fillPlot("bdtg",wz_himet_h, dirdy+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    TH1F* zz_himet_h = new TH1F("histo_zz_himet","histo_zz_himet",nbins,minx,maxx);
+    fillPlot("bdtg",zz_himet_h, dirdy+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    zjets_h_up_himet->Add(sffs_himet_h);
+    zjets_h_up_himet->Add(offs_himet_h,-1.*lumicorr);
+    zjets_h_up_himet->Add(wz_himet_h,-1);
+    zjets_h_up_himet->Add(zz_himet_h,-1);
+  }
+  avoidNegativeBins(zjets_h_up_himet);
+  zjets_h_up_himet->Scale(dyY/zjets_h_up_himet->Integral());
+  zjets_h_up_himet->Add(pwz_h);
+  zjets_h_up_himet->Add(pzz_h);
+
+  // histo_Zjets_CMS_MVAZBounding_hwwsf_0jUpZeta
+  // zeta method
+  TH1F* zjets_h_up_zeta = new TH1F(Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijUpZeta",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets),Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijUpZeta",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets),nbins,minx,maxx);
+  if (fs.Contains("sffs")) {
+    float kee = 0.8;//getK(main_dir+dy_dir+"data", wwSelNoZVNoMet, noVeto, 0, njets, 0., useJson, false, doFake, false);
+    float lumicorr = (1.+kee*kee)/(2.*kee);
+    TH1F* sffs_lowmet_zeta_h = new TH1F("histo_sffs_lowmet_zeta","histo_sffs_lowmet_zeta",nbins,minx,maxx);
+    fillPlot("bdtg",sffs_lowmet_zeta_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", 0, useJson, false, false, false,"zeta");
+    TH1F* offs_lowmet_zeta_h = new TH1F("histo_offs_lowmet_zeta","histo_offs_lowmet_zeta",nbins,minx,maxx);
+    fillPlot("bdtg",offs_lowmet_zeta_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=offs=", 0, useJson, false, false, false,"zeta");
+    TH1F* wz_lowmet_zeta_h = new TH1F("histo_wz_lowmet_zeta","histo_wz_lowmet_zeta",nbins,minx,maxx);
+    fillPlot("bdtg",wz_lowmet_zeta_h, dirdy+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    TH1F* zz_lowmet_zeta_h = new TH1F("histo_zz_lowmet_zeta","histo_zz_lowmet_zeta",nbins,minx,maxx);
+    fillPlot("bdtg",zz_lowmet_zeta_h, dirdy+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    zjets_h_up_zeta->Add(sffs_lowmet_zeta_h);
+    zjets_h_up_zeta->Add(offs_lowmet_zeta_h,-1.*lumicorr);
+    zjets_h_up_zeta->Add(wz_lowmet_zeta_h,-1);
+    zjets_h_up_zeta->Add(zz_lowmet_zeta_h,-1);
+  }
+  avoidNegativeBins(zjets_h_up_zeta);
+  zjets_h_up_zeta->Scale(dyY/zjets_h_up_zeta->Integral());
+  zjets_h_up_zeta->Add(pwz_h);
+  zjets_h_up_zeta->Add(pzz_h);
 
   //Ztt
   TH1F* dytt_1_h = new TH1F("histo_dytt_1","histo_dytt_1",nbins,minx,maxx);
@@ -284,7 +326,6 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   //Wjets
   TH1F* datafake_h = new TH1F("datafake","datafake",nbins,minx,maxx);
   fillPlot("bdtg",datafake_h,dir+"data"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, 0, useJson, false, true, false);
-  cout << "wj: " << datafake_h->GetEntries() << endl;
   TH1F* qqwwfake_h = new TH1F("qqwwfake","qqwwfake",nbins,minx,maxx);
   fillPlot("bdtg",qqwwfake_h,dir+"qqww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* ggwwfake_h = new TH1F("ggwwfake","ggwwfake",nbins,minx,maxx);
@@ -309,14 +350,12 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   //syst 1: MC closure test
   TH1F* wjets_mc_up_h = new TH1F("histo_Wjets_CMS_MVAWMCBounding_hwwUp","histo_Wjets_CMS_MVAWMCBounding_hwwUp",nbins,minx,maxx);
   fillPlot("bdtg",wjets_mc_up_h,dir+"wjets"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
-  cout << "wj_mc: " << wjets_mc_up_h->GetEntries() << endl;
   scaleIntegral(wjets_h,wjets_mc_up_h);
   TH1F* wjets_mc_down_h = new TH1F("histo_Wjets_CMS_MVAWMCBounding_hwwDown","histo_Wjets_CMS_MVAWMCBounding_hwwDown",nbins,minx,maxx);
   fillDownMirrorUp(wjets_h,wjets_mc_up_h,wjets_mc_down_h);
   //syst 2: alternative fakebale object definition
   TH1F* datafake_fr_up_h = new TH1F("datafake_fr_up","datafake_fr_up",nbins,minx,maxx);
   fillPlot("bdtg",datafake_fr_up_h,dir+"data"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, 0, useJson, false, true, false);
-  cout << "wj_up: " << datafake_fr_up_h->GetEntries() << endl;
   TH1F* qqwwfake_fr_up_h = new TH1F("qqwwfake_fr_up","qqwwfake_fr_up",nbins,minx,maxx);
   fillPlot("bdtg",qqwwfake_fr_up_h,dir+"qqww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* ggwwfake_fr_up_h = new TH1F("ggwwfake_fr_up","ggwwfake_fr_up",nbins,minx,maxx);
@@ -1045,8 +1084,11 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   if (fs.Contains("sffs")) {
     zjets_h_up->Write();
     zjets_h_down->Write();
-    //zjets_h_old_up->Write();
-    //zjets_h_old_down->Write();
+
+    zjets_h_old_up->Write();
+    zjets_h_old_down->Write();
+    zjets_h_up_zeta->Write();
+    zjets_h_up_himet->Write();
   }
 
   wjets_fr_up_h->Write();

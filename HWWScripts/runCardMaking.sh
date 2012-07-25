@@ -1,5 +1,5 @@
 #!/bin/bash                                                                                                                                                                  
 
-root -b -q -l cardMaker.C++\(4.7,\"cut\"\)
-root -b -q -l cardMaker.C++\(4.7,\"shape\"\)
-./shapeMaker.py 4.7
+root -b -q -l cardMaker.C++\(5.098,\"cut\"\)
+root -b -q -l cardMaker.C++\(5.098,\"shape\"\)
+./shapeMaker.py 5.098
