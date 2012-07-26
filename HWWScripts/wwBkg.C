@@ -297,6 +297,8 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
     out << Form("    return 1.0;\n");
     out << Form("  }\n");
     out << Form("}\n");
+
+    myfile.close();
   }
 
 }

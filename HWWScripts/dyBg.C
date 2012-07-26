@@ -273,7 +273,11 @@ void makeDYTable(float lumi) {
 
       int mass = masses[jj];
       //if (njets==2 && mass>0) continue;
-      if (njets==2 && doMVA) continue;
+      if (njets==2 && doMVA) {
+	vsf2j.push_back(1.0);
+	vk2j.push_back(1.0);
+	continue;
+      }
       doVBF=0;
       if (njets==2) {
 	//regionIn+="=looseVBF=";
@@ -361,11 +365,14 @@ void makeDYTable(float lumi) {
     else cout << "\\hline" << endl;
   }
 
-  if (nmasses>10 && njetbins==3 && masses[0]==0) {
+  if (nmasses>6 && njetbins==3 && masses[0]==0) {
     ofstream myfile;
     TString fname = "DYBkgScaleFactors.h";
-    if (!doMVA) myfile.open(fname);
-    else myfile.open(fname,ios::app);
+    if (!doMVA) {
+      myfile.open(fname);
+    } else {
+      myfile.open(fname,ios::app);
+    }
     ostream &out = myfile;
 
     if (!doMVA) out << Form("Double_t DYBkgScaleFactor(Int_t mH, Int_t jetBin) {\n");
@@ -423,9 +430,12 @@ void makeDYTable(float lumi) {
     out << Form("    return DYBkgScaleFactorWWPreselectionKappa[jetBin];\n");
     out << Form("  }\n");
     out << Form("}\n");
+
+    myfile.close();
   }
 
   if (saveRFile) outRFile->Close();
+  return;
 
 }
 
