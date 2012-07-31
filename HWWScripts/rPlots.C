@@ -27,8 +27,20 @@
       mc->SetLineWidth(2);
       mc->SetTitle(Form("mh=%i njets=%i",mass,njets));
       mc->GetYaxis()->SetTitle("R(out/in)");
-      if (mass>0&&mass<=140) mc->GetXaxis()->SetTitle("dymva bin");
-      else mc->GetXaxis()->SetTitle("min-MET bin");
+      if (mass>0&&mass<=140) {
+	mc->GetXaxis()->SetTitle("dymva bin");
+	mc->GetXaxis()->SetBinLabel(1,"[-0.9,-0.85)");
+	mc->GetXaxis()->SetBinLabel(2,"[-0.85,-0.6)");
+	mc->GetXaxis()->SetBinLabel(3,"[-0.6,WP)");
+	mc->GetXaxis()->SetBinLabel(4,"[WP,1)");
+      } else {
+	mc->GetXaxis()->SetTitle("min-MET bin");
+	mc->GetXaxis()->SetBinLabel(1,"[20,25)");
+	mc->GetXaxis()->SetBinLabel(2,"[25,30)");
+	mc->GetXaxis()->SetBinLabel(3,"[30,45)");
+	mc->GetXaxis()->SetBinLabel(4,"[45,#infty)");
+      }
+      mc->GetXaxis()->SetLabelSize(0.06);
       mc->GetYaxis()->SetRangeUser(0,1);
       mc->GetYaxis()->SetRangeUser(-0.5,3);
       mc->Draw("PE");
