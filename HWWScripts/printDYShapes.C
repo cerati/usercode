@@ -9,6 +9,7 @@ void printDYShapes(int nj,int mass){
   TH1F* down    = (TH1F*) _file->Get(Form("histo_Zjets_CMS_MVAZBounding_hwwsf_%ijDown",nj));
 
   TH1F* mc      = (TH1F*) _file->Get(Form("histo_Zjets_CMS_MVAZBounding_hwwsf_%ijUpOld",nj));
+  TH1F* of      = (TH1F*) _file->Get(Form("histo_Zjets_CMS_MVAZBounding_hwwsf_%ijUpOFHiMet",nj));
 
   TH1F* syst = nominal->Clone("syst");
   for (int bb=1;bb<=syst->GetNbinsX();++bb){
@@ -22,18 +23,21 @@ void printDYShapes(int nj,int mass){
   float max1 = nominal->GetBinContent(nominal->GetMaximumBin());
   float max2 = up->GetBinContent(up->GetMaximumBin());
   float max3 = down->GetBinContent(down->GetMaximumBin());
-
-  float max = TMath::Max(max1,TMath::Max(max2,max3));
+  float max4 = mc->GetBinContent(mc->GetMaximumBin());
+  float max5 = of->GetBinContent(of->GetMaximumBin());
+  float max = TMath::Max(max1,TMath::Max(max2,TMath::Max(max3,TMath::Max(max4,max5))));
 
   mc->SetLineColor(kMagenta);
+  of->SetLineColor(kRed);
 
-  up->SetLineColor(kRed);
-  down->SetLineColor(kBlue);
+//   up->SetLineColor(kRed);
+//   down->SetLineColor(kBlue);
 
-  nominal->GetYaxis()->SetRangeUser(-0.1,1.2*max);
+  nominal->GetYaxis()->SetRangeUser(-2,1.4*max);
 
   nominal->SetLineWidth(2.);
   mc->SetLineWidth(2.);
+  of->SetLineWidth(2.);
   up->SetLineWidth(2.);
   down->SetLineWidth(2.);
 
@@ -43,18 +47,19 @@ void printDYShapes(int nj,int mass){
   nominal->Draw("E1");
   syst->Draw("E2 same");
   nominal->Draw("E1 same");
-  mc->Draw("E1 same");
+  of->Draw("E1 same");
 //   up->Draw("HIST same");
 //   down->Draw("HIST same");
 
-  TLegend* leg = new TLegend(0.65,0.73,0.85,0.88);
+  TLegend* leg = new TLegend(0.63,0.70,0.85,0.88);
   leg->SetFillColor(kWhite);
   leg->SetBorderSize(0);
-  leg->AddEntry(nominal,"Default+Stat Band","le");
-  //leg->AddEntry(up,"Syst Up","l");
-  //leg->AddEntry(down,"Syst Down","l");
-  leg->AddEntry(syst,"Syst+Stat Band","f");
-  leg->AddEntry(mc,"MC High MET","le");
+  leg->AddEntry(nominal," Default+Stat Band","le");
+  //leg->AddEntry(up," Syst Up","l");
+  //leg->AddEntry(down," Syst Down","l");
+  leg->AddEntry(syst," Syst+Stat Band","f");
+  //leg->AddEntry(mc," MC High MET","le");
+  leg->AddEntry(of," Data OF,VZ subtr.","le");
   leg->Draw();
 
   c1.SaveAs(Form("zjets_shape_mh%i_%ijet.png",mass,nj));
