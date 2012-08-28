@@ -439,6 +439,65 @@ void makeDYTable(float lumi) {
 
 }
 
+
+
+void makeOFVZSubtrTable(float lumi) {
+
+  doMVA=0; //fixme
+
+  bool useJson  = true;
+  bool applyEff = true;
+  bool doFake   = false;
+  bool doPUw    = true;
+
+  TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=";//lep2pt20allfs
+
+  //int jetbins[] = {0};
+  int jetbins[] = {0,1,2};
+  int njetbins = sizeof(jetbins)/sizeof(int);
+
+  //int masses[] = {125,160};
+  //int masses[] = {0,115,120,140,160,200};
+  //int masses[] = {0,1,120};
+  int masses[] = {0,115,120,125,130,140,145,150,160,170,180,190,200,250,300};
+  int nmasses = sizeof(masses)/sizeof(int);
+
+  bool doLatex = false;
+
+  for (int j=0;j<njetbins;++j) {
+
+    int njets = jetbins[j];
+//     if (!doLatex) {
+//       cout << "----------------------------------------------- " << njets << "-jet bin -----------------------------------------------" << endl;
+//       cout << Form("| %10s | %-16s | %-15s | %-15s | %-15s | %-14s  |","mass","Nin(data)","R_out/in","Nout(data)","Nout(MC)","SF(Data/MC)") << endl;
+//     } else {
+//       cout << "\\hline" << endl;
+//       cout << Form("\\multicolumn{6}{c}{%i-jet bin} \\\\",njets) << endl;
+//       cout << "\\hline" << endl;
+//       cout << Form(" %10s & %-16s & %-15s & %-15s & %-15s & %-14s  \\\\","mass","$N_{in}$(data)","$R_{out/in}$","$N_{out}$(data)","$N_{out}$(MC)","SF(Data/MC)") << endl;
+//     }
+
+    for (int jj=0;jj<nmasses;++jj) {
+
+      int mass = masses[jj];
+      //if (njets==2 && mass>0) continue;
+      if (njets==2 && doMVA) {
+	continue;
+      }
+      doVBF=0;
+      if (njets==2) {
+	doVBF=1;
+      }
+
+      float kee = getK(main_dir+dy_dir+"data.root", wwSelNoZVNoMet, noVeto, mass, njets, 0, useJson);
+      pair<float, float> dyofvz = getDYYieldInData(main_dir+dy_dir+"data.root", wwSelNoZVNoMet, noVeto, mass, njets, regionOut+"=dymvaallfs=mtcut=", lumi, kee, useJson, applyEff, doFake, doPUw);
+
+      cout << Form("nj=%i mH=%i DY=%5.2f +/- %5.2f",njets,mass,dyofvz.first,dyofvz.second) << endl;
+
+    }
+  }
+}
+
 void dyBg(float lumi) {
   makeDYTable(lumi);
   doMVA=1;
