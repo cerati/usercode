@@ -300,6 +300,54 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     mtL    = 120.;
     mtH    = 300.;
     himass = 100.;
+  } else if (mass==350) {
+    lep1pt = 80.;
+    lep2pt = 25.;
+    dPhi   = 175.;
+    mll    = 250.;
+    mtL    = 120.;
+    mtH    = 350.;
+    himass = 100.;
+  } else if (mass==400) {
+    lep1pt = 90.;
+    lep2pt = 25.;
+    dPhi   = 175.;
+    mll    = 300.;
+    mtL    = 120.;
+    mtH    = 400.;
+    himass = 100.;
+  } else if (mass==450) {
+    lep1pt = 110.;
+    lep2pt = 25.;
+    dPhi   = 175.;
+    mll    = 350.;
+    mtL    = 120.;
+    mtH    = 450.;
+    himass = 100.;
+  } else if (mass==500) {
+    lep1pt = 120.;
+    lep2pt = 25.;
+    dPhi   = 175.;
+    mll    = 400.;
+    mtL    = 120.;
+    mtH    = 500.;
+    himass = 100.;
+  } else if (mass==550) {
+    lep1pt = 130.;
+    lep2pt = 25.;
+    dPhi   = 175.;
+    mll    = 450.;
+    mtL    = 120.;
+    mtH    = 550.;
+    himass = 100.;
+  } else if (mass==600) {
+    lep1pt = 140.;
+    lep2pt = 25.;
+    dPhi   = 175.;
+    mll    = 500.;
+    mtL    = 120.;
+    mtH    = 600.;
+    himass = 100.;
   } else {
     cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
   }
@@ -340,10 +388,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     } else if (mass==200) {
       mll    = 130.;
       mtH    = ((float) mass);
-    } else if (mass==250) {
-      mll    = ((float) mass);
-      mtH    = ((float) mass);
-    } else if (mass==300) {
+    } else if (mass==250||mass==300||mass==350||mass==400||mass==450||mass==500||mass==550||mass==600) {
       mll    = ((float) mass);
       mtH    = ((float) mass);
     } else {
