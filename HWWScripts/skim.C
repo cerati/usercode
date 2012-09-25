@@ -71,6 +71,8 @@ unsigned int wwSelectionFOm1 = BaseLine|ChargeMatch|Lep1LooseMuV2|Lep2FullSelect
 unsigned int wwSelectionFOm2 = BaseLine|ChargeMatch|Lep1FullSelection|Lep2LooseMuV2|FullMET|ZVeto|ExtraLeptonVeto|TopVeto;
 unsigned int wwSelectionNoLep= BaseLine|ChargeMatch|FullMET|ZVeto|ExtraLeptonVeto|TopVeto;
 unsigned int wwSelNoLepNoTV  = BaseLine|ChargeMatch|FullMET|ZVeto|ExtraLeptonVeto;
+unsigned int wwSelNoMetLepTV = BaseLine|ChargeMatch|ZVeto|ExtraLeptonVeto;
+unsigned int wwSelNoMetNoTV  = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|ZVeto|ExtraLeptonVeto;
 unsigned int wwSelLepOnly    = BaseLine|ChargeMatch|Lep1FullSelection|Lep2FullSelection|ExtraLeptonVeto;
 unsigned int noVeto          = 1UL<<31;
 unsigned int noCut           = 1UL<<0;
@@ -143,6 +145,9 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
   float scale1fb = 0.0;
   ch->SetBranchAddress( "scale1fb"      , &scale1fb     );   
 
+  float dymva_ = 0.0;
+  ch->SetBranchAddress( "dymva"      , &dymva_     );   
+
   unsigned int nvtx_ = 0;
   ch->SetBranchAddress( "nvtx"     , &nvtx_     );     
   unsigned int npu_ = 0;
@@ -164,6 +169,13 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
     if ( int(njets_) > 3 ) continue;
 
     if ( dilep_->mass() < 12.0) continue;
+
+    //generic skimming
+    if (cutstring=="mm20") {
+      unsigned int selBLCMELV    = BaseLine|ChargeMatch|ExtraLeptonVeto;
+      if ((cuts_ & selBLCMELV) != selBLCMELV) continue;
+      if (min(pmet_,pTrackMet_)<20.0) continue;
+    }
     
     //this is for dy
     if (cutstring=="dy") {
@@ -171,15 +183,30 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
       if (min(pmet_,pTrackMet_)<20.0) continue;
     }
 
-    if (cutstring=="mm20") {
-      unsigned int selBLCMELV    = BaseLine|ChargeMatch|ExtraLeptonVeto;
-      if ((cuts_ & selBLCMELV) != selBLCMELV) continue;
-      if (min(pmet_,pTrackMet_)<20.0) continue;
-    }
-
     //this is for top/ww
     if (cutstring=="topww") {
-      if ((cuts_ & wwSelNoLepNoTV) != wwSelNoLepNoTV) continue;
+      if ((cuts_ & wwSelNoMetNoTV) != wwSelNoMetNoTV) continue;
+      if (min(pmet_,pTrackMet_)<20.0) continue;
+      if ( (type_==0||type_==3) ) {
+	if (njets_==0 && dymva_<0.88 ) continue;
+	if (njets_==1 && dymva_<0.84 ) continue;
+	if (njets_>=2 && met_<45.) continue;
+      }
+    }
+
+    //this is for wj
+    if (cutstring=="topww") {
+      if ((cuts_ & wwSelNoMetLepTV) != wwSelNoMetLepTV) continue;
+      if (min(pmet_,pTrackMet_)<20.0) continue;
+      //keep only Lep+Fake events
+      if ((cuts_ & Lep1FullSelection) == Lep1FullSelection && (cuts_ & Lep2FullSelection) == Lep2FullSelection) continue;
+      if ((cuts_ & Lep1FullSelection) != Lep1FullSelection && (cuts_ & Lep2FullSelection) != Lep2FullSelection) continue;
+      //
+      if ( (type_==0||type_==3) ) {
+	if (njets_==0 && dymva_<0.88 ) continue;
+	if (njets_==1 && dymva_<0.84 ) continue;
+	if (njets_>=2 && met_<45.) continue;
+      }
     }
     
     evt_tree->Fill();
@@ -191,13 +218,15 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
   newfile->Close();
 }  
 
-void skim(TString smurfFDir = "/smurf/data/Run2011_Spring11_SmurfV7_42X/mitf-alljets_Full2011/", TString outputDir = "/smurf/cerati/skims/", TString cut = "topww") {
-  if (cut!="dy" && cut!="topww" && cut!="mm20") {
+void skim(TString smurfFDir = "/smurf/data/Run2011_Summer12_SmurfV9_53X/mitf-alljets/", TString outputDir = "/smurf/cerati/skims/", TString cut = "mm20") {
+  if (cut!="dy" && cut!="topww" && cut!="wj" && cut!="mm20") {
     cout << "cut not supported. please use dy or topww or mm20" << endl;
     return; 
   }
-  if (cut=="topww" && !outputDir.Contains("wwSelNoLepNoTV")) outputDir+="/wwSelNoLepNoTV/";
-  else if (cut=="dy" && !outputDir.Contains("wwSelNoMetNoZVminMET20")) outputDir+="/wwSelNoMetNoZVminMET20/";
+  if (cut=="mm20" && !outputDir.Contains("skim_mm20") ) outputDir+="/skim_mm20/";
+  else if (cut=="topww" && !outputDir.Contains("skim_topww") ) outputDir+="/skim_topww/";
+  else if (cut=="dy" && !outputDir.Contains("skim_dy") ) outputDir+="/skim_dy/";
+  else if (cut=="wj" && !outputDir.Contains("skim_wj") ) outputDir+="/skim_wj/";
   gSystem->Exec("mkdir -p "+outputDir);
   skim(smurfFDir,"data.root",outputDir,cut);
   skim(smurfFDir,"dyll.root",outputDir,cut);
