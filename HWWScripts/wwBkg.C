@@ -50,7 +50,7 @@ pair<float,float> getAllBkg(int mass=160, unsigned int njets=0, TString region="
   //********* get top **********
 
   //********* get w+jets **********
-  pair<float, float> wj = fakeBgEstimationWithSyst(main_dir+topww_dir,wwSelNoMet, veto, mass, njets, region, lumi, useJson, applyEff, doPUw);
+  pair<float, float> wj = fakeBgEstimationWithSyst(main_dir+wj_dir,wwSelNoMet, veto, mass, njets, region, lumi, useJson, applyEff, doPUw);
   float num_wjets_data = wj.first;
   float num_wjets_err_data = wj.second;
   //********* get w+jets **********

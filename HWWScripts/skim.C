@@ -195,13 +195,17 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
     }
 
     //this is for wj
-    if (cutstring=="topww") {
-      if ((cuts_ & wwSelNoMetLepTV) != wwSelNoMetLepTV) continue;
+    if (cutstring=="wj") {
+      if ((cuts_ & BaseLine) != BaseLine) continue;
+      if ((cuts_ & ExtraLeptonVeto) != ExtraLeptonVeto) continue;
       if (min(pmet_,pTrackMet_)<20.0) continue;
-      //keep only Lep+Fake events
-      if ((cuts_ & Lep1FullSelection) == Lep1FullSelection && (cuts_ & Lep2FullSelection) == Lep2FullSelection) continue;
-      if ((cuts_ & Lep1FullSelection) != Lep1FullSelection && (cuts_ & Lep2FullSelection) != Lep2FullSelection) continue;
-      //
+      //keep all SS
+      if ((cuts_ & ChargeMatch) == ChargeMatch) {
+	//for OS keep only Lep+Fake events
+	if ((cuts_ & Lep1FullSelection) == Lep1FullSelection && (cuts_ & Lep2FullSelection) == Lep2FullSelection) continue;
+	if ((cuts_ & Lep1FullSelection) != Lep1FullSelection && (cuts_ & Lep2FullSelection) != Lep2FullSelection) continue;
+	//
+      }
       if ( (type_==0||type_==3) ) {
 	if (njets_==0 && dymva_<0.88 ) continue;
 	if (njets_==1 && dymva_<0.84 ) continue;
@@ -270,4 +274,5 @@ void skim(TString smurfFDir = "/smurf/data/Run2011_Summer12_SmurfV9_53X/mitf-all
 }
 
 /*
+for i in topww dy wj; do root -b -q skim.C+\(\"/smurf/cerati/data/Run2012_Summer12_SmurfV9_52X/mitf-alljets-HCPdymva/\",\"/smurf/cerati/skims/Run2012_Summer12_SmurfV9_52X/\",\"${i}\"\); done
 */

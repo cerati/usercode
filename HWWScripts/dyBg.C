@@ -1,8 +1,10 @@
 #include "common.C"
-#include "Smurf/Analysis/HWWlvlv/DYRoutinValues.h"
+//#include "Smurf/Analysis/HWWlvlv/DYRoutinValues.h"
+#include "DYRoutinValues_MC.h"
 
 TFile* outRFile;
-bool saveRFile = false;
+bool saveRFile = true;
+bool takeRFromFile = false;
 
 float getK(TString sample, unsigned int cut, unsigned int veto, int mass, unsigned int njets, float lumiSample, 
 	   bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false){
@@ -237,7 +239,7 @@ void makeDYTable(float lumi) {
   TString regionIn  = "=leppts=dphicut=ptll45=zregion=dpjallfs=";//lep2pt20allfs=
   TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=";//lep2pt20allfs
 
-  //int jetbins[] = {2};
+  //int jetbins[] = {0};
   int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
@@ -290,15 +292,18 @@ void makeDYTable(float lumi) {
       
       pair<float, float> r;
       pair<float, float> r2;
-      if (njets!=2) {
-	r  = computeRoutinMCwithSyst (wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
-	r2 = computeRoutinDatawithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
+      if (takeRFromFile) {
+	//take it from frozen values
+	r = make_pair<float, float>(RoutinValue(mass,njets),sqrt(pow(RoutinStatError(mass,njets),2)+pow(RoutinSystError(mass,njets),2)));
       } else {
-	r2 = computeRoutinMCwithSyst  (wwSelNoZVNoMet, noVeto, mass, njets, regionIn/*+"=looseVBF="*/, regionOut/*+"=looseVBF="*/, lumi, useJson, applyEff, doFake, doPUw);
-	r  = computeRoutinDatawithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn/*+"=looseVBF="*/, regionOut/*+"=looseVBF="*/, lumi, useJson, applyEff, doFake, doPUw);
+	if (njets!=2) {
+	  r2 = computeRoutinMCwithSyst (wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
+	  r  = computeRoutinDatawithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
+	} else {
+	  r2 = computeRoutinMCwithSyst  (wwSelNoZVNoMet, noVeto, mass, njets, regionIn/*+"=looseVBF="*/, regionOut/*+"=looseVBF="*/, lumi, useJson, applyEff, doFake, doPUw);
+	  r  = computeRoutinDatawithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn/*+"=looseVBF="*/, regionOut/*+"=looseVBF="*/, lumi, useJson, applyEff, doFake, doPUw);
+	}
       }
-      //take it from frozen values
-      //pair<float, float> r = make_pair<float, float>(RoutinValue(mass,njets),sqrt(pow(RoutinStatError(mass,njets),2)+pow(RoutinSystError(mass,njets),2)));
 
       float kee = getK(main_dir+dy_dir+"data.root", wwSelNoZVNoMet, noVeto, mass, njets, 0, useJson);
       pair<float, float> z = getDYYieldInData(main_dir+dy_dir+"data.root", wwSelNoZVNoMet, noVeto, mass, njets, regionIn+"=dymvaallfs=mtcut=fromZ=", lumi, kee, useJson, applyEff, doFake, doPUw);
@@ -500,7 +505,7 @@ void makeOFVZSubtrTable(float lumi) {
 
 void dyBg(float lumi) {
   makeDYTable(lumi);
-  doMVA=1;
-  makeDYTable(lumi);
-  doMVA=0;
+  //doMVA=1;
+  //makeDYTable(lumi);
+  //doMVA=0;
 }

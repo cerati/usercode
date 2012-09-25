@@ -20,7 +20,7 @@ pair<float, float> evaluateBackground(TString dir, unsigned int cut, unsigned in
   float wg   = getYield(dir+"wgamma",cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doFake, doPUw).first;
 
   float mc_other = qqww + ggww + dyll/* + dyee*/ + dytt + zz+ wz+wg;
-  pair<float, float> nwj = fakeBgEstimationWithSyst(main_dir+topww_dir,cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doPUw);
+  pair<float, float> nwj = fakeBgEstimationWithSyst(main_dir+wj_dir,cut, veto, mass, njets, myRegion, lumi, useJson, applyEff, doPUw);
 
   float background = mc_other+nwj.first;
   float backgr_err = sqrt(pow(0.5*qqww,2) + pow(0.5*ggww,2) + pow(0.5*dyll,2)/* + pow(0.5*dyee,2)*/ + pow(0.5*dytt,2) + pow(0.5*zz,2)+ pow(0.5*wz,2)+pow(0.5*wg,2)+pow(nwj.second,2));//take 50% for MC based
@@ -190,11 +190,11 @@ void makeTopTable(float lumi) {
   fillPlot("ctrjetetapt",wg_ctrtag_2j_h, main_dir+topww_dir+"wgamma", wwSelNoMetNoTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=", lumi, useJson, applyEff, doFake, doPUw);
   TH2F* wj_ctrtag_2j_h = new TH2F("wj_ctrtag_2j_h","wj_ctrtag_2j_h",5,0,2.5,1,0,200);
   //fillPlot("ctrjetetapt",wj_ctrtag_2j_h,main_dir+topww_dir+"data",   wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=", 0, useJson, 0, 1, 0);//fixme
-  //   pair<float,float> wj_ctrtag_2j_bin1 = fakeBgEstimationWithSyst(main_dir+topww_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin1=", lumi, useJson, applyEff, doPUw);
-  //   pair<float,float> wj_ctrtag_2j_bin2 = fakeBgEstimationWithSyst(main_dir+topww_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin2=", lumi, useJson, applyEff, doPUw);
-  //   pair<float,float> wj_ctrtag_2j_bin3 = fakeBgEstimationWithSyst(main_dir+topww_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin3=", lumi, useJson, applyEff, doPUw);
-  //   pair<float,float> wj_ctrtag_2j_bin4 = fakeBgEstimationWithSyst(main_dir+topww_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin4=", lumi, useJson, applyEff, doPUw);
-  //   pair<float,float> wj_ctrtag_2j_bin5 = fakeBgEstimationWithSyst(main_dir+topww_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin5=", lumi, useJson, applyEff, doPUw);
+  //   pair<float,float> wj_ctrtag_2j_bin1 = fakeBgEstimationWithSyst(main_dir+wj_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin1=", lumi, useJson, applyEff, doPUw);
+  //   pair<float,float> wj_ctrtag_2j_bin2 = fakeBgEstimationWithSyst(main_dir+wj_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin2=", lumi, useJson, applyEff, doPUw);
+  //   pair<float,float> wj_ctrtag_2j_bin3 = fakeBgEstimationWithSyst(main_dir+wj_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin3=", lumi, useJson, applyEff, doPUw);
+  //   pair<float,float> wj_ctrtag_2j_bin4 = fakeBgEstimationWithSyst(main_dir+wj_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin4=", lumi, useJson, applyEff, doPUw);
+  //   pair<float,float> wj_ctrtag_2j_bin5 = fakeBgEstimationWithSyst(main_dir+wj_dir, wwSelNoMetLepTV, TopTagNotInJets, mass, 2, anaRegion+"=nobJet3=bTagNoFwdYesCtr=ctrjetbin5=", lumi, useJson, applyEff, doPUw);
   //   wj_ctrtag_2j_h->SetBinContent(1,1,wj_ctrtag_2j_bin1.first);
   //   wj_ctrtag_2j_h->SetBinContent(2,1,wj_ctrtag_2j_bin1.first);
   //   wj_ctrtag_2j_h->SetBinContent(3,1,wj_ctrtag_2j_bin1.first);

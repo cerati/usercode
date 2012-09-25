@@ -136,15 +136,13 @@ void makeSSTable(float lumi) {
   bool applyTnPSF = true;
   bool doPUw = true;
 
-  TString dir = "/smurf/data/Run2012_Summer12_SmurfV9_52X/mitf-alljets/";
-
   bool doSpillage = 1;
 
   int mass = 0;
   TString region = "=dphireg=dphijet=dymvacut=ptll45=";
 
-  int jetbins[] = {0};
-  //int jetbins[] = {0,1,2};
+  //int jetbins[] = {0};
+  int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
   for (int j=0;j<njetbins;++j) {
@@ -152,31 +150,31 @@ void makeSSTable(float lumi) {
     int njets = jetbins[j];
 
     unsigned int wwSel_noq = wwSelNoMet&~ChargeMatch;
-    pair<float, float> ssData = getYield(dir+"data",  wwSel_noq, ChargeMatch, mass, njets, region, 0., useJson, false, false, false);
+    pair<float, float> ssData = getYield(main_dir+wj_dir+"data",  wwSel_noq, ChargeMatch, mass, njets, region, 0., useJson, false, false, false);
     cout << "SS data: " << ssData.first << " +/- " << ssData.second << endl;
 
-    pair<float, float> ssFake = fakeBgEstimation(dir,  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, true, true);
+    pair<float, float> ssFake = fakeBgEstimation(main_dir+wj_dir,  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, true, true);
     cout << "SS fake: " << ssFake.first << " +/- " << ssFake.second << endl;
 
-    pair<float, float> ssWw = getYield(dir+"qqww",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ssWw = getYield(main_dir+wj_dir+"qqww",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     ssWw = make_pair<float, float>(WWBkgScaleFactorCutBased(115,njets)*ssWw.first,WWBkgScaleFactorCutBased(115,njets)*ssWw.second);
     cout << "SS ww: " << ssWw.first << " +/- " << ssWw.second << endl;
 
-    pair<float, float> ssTtbar = getYield(dir+"ttbar",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ssTtbar = getYield(main_dir+wj_dir+"ttbar",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     ssTtbar = make_pair<float, float>(TopBkgScaleFactor(njets)*ssTtbar.first,TopBkgScaleFactor(njets)*ssTtbar.second);
     cout << "SS ttbar: " << ssTtbar.first << " +/- " << ssTtbar.second << endl;
 
-    pair<float, float> ssWgamma = getYield(dir+"wgamma",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ssWgamma = getYield(main_dir+wj_dir+"wgamma",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     cout << "SS wgamma: " << ssWgamma.first << " +/- " << ssWgamma.second << endl;
 
-    pair<float, float> ssWglll = getYield(dir+"wglll",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ssWglll = getYield(main_dir+wj_dir+"wglll",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     ssWglll = make_pair<float, float>(WGstarScaleFactor()*ssWglll.first,WGstarScaleFactor()*ssWglll.second);
     cout << "SS wglll: " << ssWglll.first << " +/- " << ssWglll.second << endl;
 
-    pair<float, float> ssWz = getYield(dir+"wz",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ssWz = getYield(main_dir+wj_dir+"wz",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     cout << "SS wz: " << ssWz.first << " +/- " << ssWz.second << endl;
  
-    pair<float, float> ssZz = getYield(dir+"zz",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ssZz = getYield(main_dir+wj_dir+"zz",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     cout << "SS zz: " << ssZz.first << " +/- " << ssZz.second << endl;
 
     cout << "total expected: " << ssFake.first/*-spill.first*/+ssWw.first+ssTtbar.first+ssWgamma.first+ssWglll.first+ssWz.first+ssZz.first << " +/- " 
