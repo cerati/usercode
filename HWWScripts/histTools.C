@@ -16,6 +16,21 @@ float efficiencyErr(float eff, float den) {
   return sqrt( eff*(1-eff)/den );
 }
 
+void avoidNegativeBins(TH1F* h) {
+  for (int bin=1;bin<=h->GetNbinsX();++bin) {
+    if (h->GetBinContent(bin)<0) h->SetBinContent(bin,0);
+  }
+}
+
+void fillDownMirrorUp(TH1F* central,TH1F* up,TH1F* down) {
+  down->Add(up);
+  down->Scale(-1);
+  down->Add(central);
+  down->Add(central);
+  //need to avoid negative values...
+  avoidNegativeBins(down);
+}
+
 void divideHisto(TH1F* num,TH1F* den){
   for (int bin=1;bin<=num->GetNbinsX();++bin) {
     if (fabs(den->GetBinContent(bin)>0) ) {
@@ -24,6 +39,16 @@ void divideHisto(TH1F* num,TH1F* den){
       num->SetBinContent(bin,num->GetBinContent(bin)/den->GetBinContent(bin));
     } else num->SetBinContent(bin,0);
   }
+}
+
+void multiplyHisto(TH1F* num,TH1F* den){
+  for (int bin=1;bin<=num->GetNbinsX();++bin) {
+    num->SetBinContent(bin,num->GetBinContent(bin)*den->GetBinContent(bin));
+  }
+}
+
+void scaleIntegral(TH1F* central,TH1F* other) {
+  if (other->Integral()>0) other->Scale(central->Integral()/other->Integral());
 }
 
 void overFlowInLastBin(TH1F* h) {

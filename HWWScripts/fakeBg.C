@@ -4,7 +4,7 @@
 
 pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int veto, int mass, int njets, TString region, float lumi, bool applyEff, bool doPUw) {
 
-  bool debug = 1;
+  bool debug = 0;
   region = region+="=spill=";
   //get scale factors for DY
   float dySF = DYBkgScaleFactor(0,njets);

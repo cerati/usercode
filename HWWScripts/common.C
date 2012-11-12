@@ -29,6 +29,7 @@
 #include "Smurf/Analysis/HWWlvlv/TopVBFBkgScaleFactors_8TeV.h"	
 #include "Smurf/Analysis/HWWlvlv/WWBkgScaleFactors_8TeV.h"	
 #include "BDTG.class.C"//add soft link to compute bdtg values
+#include "histTools.C"
 
 //CERN, Summ12
 TString main_dir    = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_53X/";
@@ -484,15 +485,6 @@ float getPileupReweightFactor(int nvtx, TH1F* puweights=0) {
     else if(nvtx >=19) weight = 0.01000;  
     return weight;
   }
-}
-
-
-float ratioPoissErr(float nval, float nerr, float dval, float derr) {
-  return sqrt( pow(nerr/dval,2) + pow(nval*derr/pow(dval,2),2) );
-}
-
-float efficiencyErr(float eff, float den) {
-  return sqrt( eff*(1-eff)/den );
 }
 
 float discCtrJet(SmurfTree *dataEvent) {

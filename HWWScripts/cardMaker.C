@@ -8,6 +8,8 @@
 
 void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mode, bool saveFile=false) {
 
+  bool inj125 = 0;
+
   if (fs!="sffs" && fs!="offs" && fs!="" ) {
     cout << "final state not supported" << endl;
     return;
@@ -62,6 +64,9 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     else if (mode=="shape") wwSF = make_pair<float, float>(WWBkgScaleFactorMVA(massForWW,njets), WWBkgScaleFactorMVA(massForWW,njets)*(WWBkgScaleFactorKappaMVA(massForWW,njets)-1.));
   }
 
+
+  if (inj125) mass=125;
+
   //uncertainty on population of jet bins
   float v_QCDscale_WW    = 1.000;
   float v_QCDscale_WW1in = 1.000;
@@ -101,7 +106,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   } //else dySF = make_pair<float, float>(0., 0);
   fs=fs+"=";
 
-  pair<float, float> data;// = getYield(dir+"data", wwSelNoMet, veto, mass, njets, sigreg+fs, 0.,   useJson, false, false, false);
+  pair<float, float> data = getYield(dir+"data", wwSelNoMet, veto, mass, njets, sigreg+fs, 0.,   useJson, false, false, false);
 
   pair<float, float> qqww = getYield(dir+"qqww", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   //pair<float, float> qqww = getYield(dir+"ww_mcnlo", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
@@ -338,8 +343,8 @@ void cardMaker(float lumi, TString mode) {
 
   //int masses[] = {250};
   //int masses[] = {125,200,350};
-  //int masses[] = {120,130,160,250};
-  int masses[] = {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350,400,450,500,550,600};
+  int masses[] = {110,125,160,250,600};
+  //int masses[] = {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350,400,450,500,550,600};
   int nmasses = sizeof(masses)/sizeof(int);
   int njets = sizeof(jets)/sizeof(int);
   for (int j=0;j<nmasses;++j) {

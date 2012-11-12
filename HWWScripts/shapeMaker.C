@@ -1,5 +1,6 @@
 #include "common.C"
 
+/*
 void printBins(TH1F* h) {
   cout << h->GetName() << endl;
   for (int bin=1;bin<=h->GetNbinsX();++bin) {
@@ -46,6 +47,7 @@ void multiplyHisto(TH1F* num,TH1F* den){
 void scaleIntegral(TH1F* central,TH1F* other) {
   if (other->Integral()>0) other->Scale(central->Integral()/other->Integral());
 }
+*/
 
 void writeStatUpDown(TH1F* central,bool down, int njets, TString fs) {
   TString proc = TString(central->GetName());
