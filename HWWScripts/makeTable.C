@@ -5,14 +5,14 @@ void makeTable(float lumi=3.553, int njets=0, int mass=0, bool useSF=false, bool
 
   bool doMC = true;
 
-  TString mcs[] = {"qqww","ggww","dyll","ttbar","tw","wz","zz","wjets","wgamma","wglll",Form("hww%i",mass)};
-  float nosfs[] = { 1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,    1.0, 1.0, 1.0};
+  TString mcs[] = {"qqww","ggww","dyll","ttbar_powheg","tw","wz","zz","www","wjets","wgamma","zgamma","wglll",Form("hww%i",mass)};
+  float nosfs[] = { 1.0,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0, 1.0,    1.0, 1.0,1.0, 1.0};
 
   TCut runrange("run>0");//Full2011
   TString dir = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_52X/mitf-alljets-mm20-dymva/";
-  float sfs0j[] = { 1.0,  1.0,   3.9,   1.1,   1.1,   1.0,    1.0, 1.0, 1.0, 1.6};//,1.0 //DY: 5.2 for HWW, 3.9 for WW xsec
-  float sfs1j[] = { 0.9,  0.9,   4.1,   1.1,   1.1,   1.0,    1.0, 1.0, 1.0, 1.6};//,1.0
-  float sfs2j[] = { 1.0,  1.0,   1.8,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.6};//,1.0
+  float sfs0j[] = { 1.0,  1.0,   3.9,   1.1,   1.1,   1.0,    1.0, 1.0, 1.0, 1.0,1.0, 1.6};//,1.0 //DY: 5.2 for HWW, 3.9 for WW xsec
+  float sfs1j[] = { 0.9,  0.9,   4.1,   1.1,   1.1,   1.0,    1.0, 1.0, 1.0, 1.0,1.0, 1.6};//,1.0
+  float sfs2j[] = { 1.0,  1.0,   1.8,   1.0,   1.0,   1.0,    1.0, 1.0, 1.0, 1.0,1.0, 1.6};//,1.0
 
   TCut lep1pt,lep2pt,dPhi,mll,mt,himass;
   if (mass==0) {

@@ -16,7 +16,7 @@ void plotBaby_PU(float lumi=1.6, int njets=0, int mass=0, TString fs="", bool do
 
   TString extension = ".eps";
 
-  TString mcs[] = {"qqww","ggww","dyll","ttbar","tw","wz","zz","wjets"};
+  TString mcs[] = {"qqww","ggww","dyll","ttbar_powheg","tw","wz","zz","wjets"};
   int  colors[] = {kAzure-9,kAzure-9,kGreen+2,kYellow,kYellow,kAzure-2,kAzure-2,kGray+1};
 
   TCut runrange("run>0");//Full2011

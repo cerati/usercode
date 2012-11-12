@@ -27,7 +27,7 @@
       mc->SetLineWidth(2);
       mc->SetTitle(Form("mh=%i njets=%i",mass,njets));
       mc->GetYaxis()->SetTitle("R(out/in)");
-      if (mass>0&&mass<=140) {
+      if (njets<2) {
 	mc->GetXaxis()->SetTitle("dymva bin");
 	mc->GetXaxis()->SetBinLabel(1,"[-0.9,-0.85)");
 	mc->GetXaxis()->SetBinLabel(2,"[-0.85,-0.6)");
@@ -50,6 +50,7 @@
       dd->SetMarkerColor(kBlue);
       dd->SetMarkerStyle(21);
       dd->SetLineWidth(2);
+      dd->SetBinContent(4,-999);
       dd->Draw("PE,SAME");
 
       TLegend* leg = new TLegend(0.5,0.92,0.9,1.0);

@@ -102,6 +102,7 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
   LorentzVector*  lep2_ = 0;
   LorentzVector*  dilep_ = 0;
   int type_ = 0; // 0/1/2/3 for mm/me/em/ee
+  int dstype_ = 0;
   float pmet_ = 0.0;
   float pTrackMet_ = 0.0;
   unsigned int run_ = 0;
@@ -125,6 +126,7 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
   ch->SetBranchAddress( "lep2"      , &lep2_      );   
   ch->SetBranchAddress( "dilep"      , &dilep_      );   
   ch->SetBranchAddress( "type"      , &type_     );     
+  ch->SetBranchAddress( "dstype"      , &dstype_     );     
   ch->SetBranchAddress( "pmet"      , &pmet_     );     
   ch->SetBranchAddress( "pTrackMet"      , &pTrackMet_     );   
   ch->SetBranchAddress( "run"     , &run_     );     
@@ -142,20 +144,23 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
   ch->SetBranchAddress( "jet3Btag"      , &jet3Btag_      );   
   ch->SetBranchAddress( "nSoftMuons"      , &nSoftMuons_      );   
 
-  float scale1fb = 0.0;
-  ch->SetBranchAddress( "scale1fb"      , &scale1fb     );   
+  float scale1fb_ = 0.0;
+  ch->SetBranchAddress( "scale1fb"      , &scale1fb_     );   
 
   float dymva_ = 0.0;
   ch->SetBranchAddress( "dymva"      , &dymva_     );   
 
   unsigned int nvtx_ = 0;
   ch->SetBranchAddress( "nvtx"     , &nvtx_     );     
-  unsigned int npu_ = 0;
+  float npu_ = 0;
   ch->SetBranchAddress( "npu"     , &npu_     );     
 
   float sfWeightPU_ = 1.;
   ch->SetBranchAddress("sfWeightPU",    &sfWeightPU_ );  
-
+  float sfWeightTrig_ = 1.;
+  ch->SetBranchAddress("sfWeightTrig",    &sfWeightTrig_ );  
+  float sfWeightEff_ = 1.;
+  ch->SetBranchAddress("sfWeightEff",    &sfWeightEff_ );  
   
   //==========================================
   // Loop All Events
@@ -169,6 +174,7 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
     if ( int(njets_) > 3 ) continue;
 
     if ( dilep_->mass() < 12.0) continue;
+    if ( dilep_->pt() < 30.0) continue;
 
     //generic skimming
     if (cutstring=="mm20") {
@@ -202,14 +208,20 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
       //keep all SS
       if ((cuts_ & ChargeMatch) == ChargeMatch) {
 	//for OS keep only Lep+Fake events
-	if ((cuts_ & Lep1FullSelection) == Lep1FullSelection && (cuts_ & Lep2FullSelection) == Lep2FullSelection) continue;
-	if ((cuts_ & Lep1FullSelection) != Lep1FullSelection && (cuts_ & Lep2FullSelection) != Lep2FullSelection) continue;
+	if ( ((cuts_ & Lep1FullSelection) == Lep1FullSelection) && ((cuts_ & Lep2FullSelection) == Lep2FullSelection) ) continue;
+	if ( ((cuts_ & Lep1FullSelection) != Lep1FullSelection) && ((cuts_ & Lep2FullSelection) != Lep2FullSelection) ) continue;
 	//
       }
       if ( (type_==0||type_==3) ) {
-	if (njets_==0 && dymva_<0.88 ) continue;
-	if (njets_==1 && dymva_<0.84 ) continue;
-	if (njets_>=2 && met_<45.) continue;
+      	if (njets_==0 && dymva_<0.88 ) continue;
+      	if (njets_==1 && dymva_<0.84 ) continue;
+      	if (njets_>=2 && met_<45.) continue;
+      }
+      if (dstype_==0) {
+	scale1fb_ = 1.;
+	sfWeightTrig_ = 1.;
+	sfWeightEff_ = 1.;
+	sfWeightPU_ = 1.;
       }
     }
     
@@ -264,7 +276,9 @@ void skim(TString smurfFDir = "/smurf/data/Run2011_Summer12_SmurfV9_53X/mitf-all
   skim(smurfFDir,"wjets.root",outputDir,cut);
   skim(smurfFDir,"wz.root",outputDir,cut);
   skim(smurfFDir,"zz.root",outputDir,cut);
+  skim(smurfFDir,"www.root",outputDir,cut);
   skim(smurfFDir,"wgamma.root",outputDir,cut);
+  skim(smurfFDir,"zgamma.root",outputDir,cut);
   skim(smurfFDir,"wglll.root",outputDir,cut);
   skim(smurfFDir,"ttbar_powheg.root",outputDir,cut);
   skim(smurfFDir,"wwmcnlodown.root",outputDir,cut);
@@ -274,5 +288,7 @@ void skim(TString smurfFDir = "/smurf/data/Run2011_Summer12_SmurfV9_53X/mitf-all
 }
 
 /*
-for i in topww dy wj; do root -b -q skim.C+\(\"/smurf/cerati/data/Run2012_Summer12_SmurfV9_52X/mitf-alljets-HCPdymva/\",\"/smurf/cerati/skims/Run2012_Summer12_SmurfV9_52X/\",\"${i}\"\); done
+for i in topww dy wj; do root -b -q skim.C+\(\"/smurf/data/Run2012_Summer12_SmurfV9_53X/mitf-alljets/\",\"/smurf/cerati/skims/Run2012_Summer12_SmurfV9_53X/\",\"${i}\"\); done
+cd /smurf/cerati/skims/Run2012_Summer12_SmurfV9_53X/skim_wj/
+hadd data_spill.root data.root qqww.root ggww.root ttbar_powheg.root tw.root www.root zz.root wz.root
 */

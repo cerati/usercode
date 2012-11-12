@@ -68,10 +68,11 @@ void writeStatUpDown(TH1F* central, int njets, TString fs) {
   writeStatUpDown(central,false, njets, fs);
 }
 
-void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
+void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TString plotvar="bdtg") {
 
   TString dir = main_dir+topww_dir;
   TString dirdy = main_dir+dy_dir;
+  TString dirwj = main_dir+wj_dir;
 
   bool useJson = 0;
   bool applyEff=true;
@@ -81,6 +82,11 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   int nbins = 20;
   float minx = -1.;
   float maxx = 1.;
+  if (plotvar=="mtmll2D") {
+    nbins = 80;
+    mtmll2d_lom = new TH2F("mtmll2d_lom","mtmll2d_lom",10,80.,280.,8,0.,200.);
+    mtmll2d_him = new TH2F("mtmll2d_him","mtmll2d_him",10,80.,380.,8,0.,450.);
+  }
 
   TString sigreg = "=dphireg=dphijet=dymvacut=ptll45=";
   TString sigreg_lowmet = sigreg+"=zvetoall=";
@@ -117,15 +123,15 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
   //Data
   TH1F* data_h = new TH1F("histo_Data","histo_Data",nbins,minx,maxx);
-  fillPlot("bdtg",data_h, dir+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, 0, useJson, false, false, false);
+  //fillPlot(plotvar,data_h, dir+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, 0, useJson, false, false, false);
 
   //qqWW
   TH1F* qqww_h = new TH1F("histo_qqWW","histo_qqWW",nbins,minx,maxx);
-  fillPlot("bdtg",qqww_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,qqww_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   qqww_h->Scale(WWBkgScaleFactorMVA(mass,njets));
   //shape variation: 1- mg vs mc@nlo (down mirror);
   TH1F* qqww_mcnlo_h = new TH1F("histo_qqww_mcnlo","histo_qqww_mcnlo",nbins,minx,maxx);
-  fillPlot("bdtg",qqww_mcnlo_h, dir+"wwmcnlo"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,qqww_mcnlo_h, dir+"wwmcnlo"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   qqww_mcnlo_h->Scale(1.23);// fixme 7 TeV xsec
   avoidNegativeBins(qqww_mcnlo_h);
   scaleIntegral(qqww_h,qqww_mcnlo_h);
@@ -135,13 +141,13 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   fillDownMirrorUp(qqww_h,qqww_h_up,qqww_h_down);  
   //shape variation: 2- ratio from mc@nlo w.r.t. QCD up and down
   TH1F* qqww_mcnlo_up_h = new TH1F("histo_qqww_mcnlo_up","histo_qqww_mcnlo_up",nbins,minx,maxx);
-  fillPlot("bdtg",qqww_mcnlo_up_h, dir+"wwmcnloup"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,qqww_mcnlo_up_h, dir+"wwmcnloup"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   qqww_mcnlo_up_h->Scale(1.23);// fixme 7 TeV xsec
   avoidNegativeBins(qqww_mcnlo_up_h);
   scaleIntegral(qqww_h,qqww_mcnlo_up_h);
   divideHisto(qqww_mcnlo_up_h,qqww_mcnlo_h);
   TH1F* qqww_mcnlo_down_h = new TH1F("histo_qqww_mcnlo_down","histo_qqww_mcnlo_down",nbins,minx,maxx);
-  fillPlot("bdtg",qqww_mcnlo_down_h, dir+"wwmcnlodown"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,qqww_mcnlo_down_h, dir+"wwmcnlodown"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   qqww_mcnlo_down_h->Scale(1.23);// fixme 7 TeV xsec
   avoidNegativeBins(qqww_mcnlo_down_h);
   scaleIntegral(qqww_h,qqww_mcnlo_down_h);
@@ -155,35 +161,38 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
   //ggWW
   TH1F* ggww_h = new TH1F("histo_ggWW","histo_ggWW",nbins,minx,maxx);
-  fillPlot("bdtg",ggww_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,ggww_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   ggww_h->Scale(WWBkgScaleFactorMVA(mass,njets));
 
   //VV
   TH1F* wz_h = new TH1F("histo_wz","histo_wz",nbins,minx,maxx);
-  fillPlot("bdtg",wz_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,wz_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
   TH1F* zz_h = new TH1F("histo_zz","histo_zz",nbins,minx,maxx);
-  fillPlot("bdtg",zz_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,zz_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  TH1F* www_h = new TH1F("histo_www","histo_www",nbins,minx,maxx);
+  fillPlot(plotvar,www_h, dir+"www"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
   TH1F* vv_h = new TH1F("histo_VV","histo_VV",nbins,minx,maxx);
   vv_h->Add(wz_h);
   vv_h->Add(zz_h);
+  vv_h->Add(www_h);
 
   //Top
   TH1F* ttbar_h = new TH1F("histo_ttbar","histo_ttbar",nbins,minx,maxx);
-  fillPlot("bdtg",ttbar_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,ttbar_h, dir+"ttbar_powheg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   ttbar_h->Scale(TopBkgScaleFactor(njets));
   TH1F* tw_h = new TH1F("histo_tw","histo_tw",nbins,minx,maxx);
-  fillPlot("bdtg",tw_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,tw_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   tw_h->Scale(TopBkgScaleFactor(njets));
   TH1F* top_h = new TH1F("histo_Top","histo_Top",nbins,minx,maxx);
   top_h->Add(ttbar_h);
   top_h->Add(tw_h);
   //shape variation: use madgraph ttbar and ds tw
   TH1F* ttbar_var_h = new TH1F("histo_ttbar_var","histo_ttbar_var",nbins,minx,maxx);
-  fillPlot("bdtg",ttbar_var_h, dir+"ttbar_mg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,ttbar_var_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   ttbar_var_h->Scale(1.43);//fixme scale 7 TeV xsec
   //scaleIntegral(ttbar_h,ttbar_var_h);
   TH1F* tw_ds_h = new TH1F("histo_tw_ds","histo_tw_ds",nbins,minx,maxx);
-  fillPlot("bdtg",tw_ds_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);//fixme tw_ds
+  fillPlot(plotvar,tw_ds_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);//fixme tw_ds
   //scaleIntegral(tw_h,tw_ds_h);
   TH1F* top_h_up = new TH1F("histo_Top_CMS_MVATopBounding_hwwUp","histo_Top_CMS_MVATopBounding_hwwUp",nbins,minx,maxx);
   top_h_up->Add(ttbar_var_h);
@@ -194,32 +203,35 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
   //Wgamma
   TH1F* wg_h = new TH1F("histo_wg","histo_wg",nbins,minx,maxx);
-  fillPlot("bdtg",wg_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,wg_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  TH1F* zg_h = new TH1F("histo_zg","histo_zg",nbins,minx,maxx);
+  fillPlot(plotvar,zg_h, dir+"zgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   TH1F* wg3l_h = new TH1F("histo_wg3l","histo_wg3l",nbins,minx,maxx);
-  fillPlot("bdtg",wg3l_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,wg3l_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   wg3l_h->Scale(WGstarScaleFactor());
   TH1F* wgamma_h = new TH1F("histo_Wgamma","histo_Wgamma",nbins,minx,maxx);
   wgamma_h->Add(wg_h);
+  wgamma_h->Add(zg_h);
   wgamma_h->Add(wg3l_h);
 
   //Zjets
   float dysf = 1.;
   TH1F* dyll_lowmet_h = new TH1F("histo_dyll_lowmet","histo_dyll_lowmet",nbins,minx,maxx);
-  fillPlot("bdtg",dyll_lowmet_h, dirdy+"dyll"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,dyll_lowmet_h, dirdy+"dyll"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+fs, lumi, useJson, applyEff, doFake, doPUw);
   float dyY = 0;
   if (fs.Contains("sffs")) {
     dyY = DYBkgScaleFactorBDT(mass,njets);
     dyll_lowmet_h->Scale(dyY/dyll_lowmet_h->Integral());
   } else {
     TH1F* dyll_vtx_h = new TH1F("histo_dyll_vtx","histo_dyll_vtx",nbins,minx,maxx);
-    fillPlot("bdtg",dyll_vtx_h, dir+"dyll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+    fillPlot(plotvar,dyll_vtx_h, dir+"dyll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
     dyll_vtx_h->Scale(dysf);
     scaleIntegral(dyll_vtx_h,dyll_lowmet_h);
   }
   TH1F* pwz_h = new TH1F("histo_pwz","histo_pwz",nbins,minx,maxx);
-  fillPlot("bdtg",pwz_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=fromZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,pwz_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=fromZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
   TH1F* pzz_h = new TH1F("histo_pzz","histo_pzz",nbins,minx,maxx);
-  fillPlot("bdtg",pzz_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=fromZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,pzz_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=fromZ="+fs, lumi, useJson, applyEff, doFake, doPUw);
   TH1F* zjets_h = new TH1F("histo_Zjets","histo_Zjets",nbins,minx,maxx);
   zjets_h->Add(dyll_lowmet_h);
   zjets_h->Add(pwz_h);
@@ -230,13 +242,13 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
     float kee = 0.8;//getK(main_dir+dy_dir+"data", wwSelNoZVNoMet, noVeto, 0, njets, 0., useJson, false, doFake, false);
     float lumicorr = (1.+kee*kee)/(2.*kee);
     TH1F* sffs_lowmet_new_h = new TH1F("histo_sffs_lowmet_new","histo_sffs_lowmet_new",nbins,minx,maxx);
-    fillPlot("bdtg",sffs_lowmet_new_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", 0, useJson, false, false, false,"");//fixme add zeta method
+    fillPlot(plotvar,sffs_lowmet_new_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", 0, useJson, false, false, false,"");//fixme add zeta method
     TH1F* offs_lowmet_new_h = new TH1F("histo_offs_lowmet_new","histo_offs_lowmet_new",nbins,minx,maxx);
-    fillPlot("bdtg",offs_lowmet_new_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=offs=", 0, useJson, false, false, false,"");
+    fillPlot(plotvar,offs_lowmet_new_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=offs=", 0, useJson, false, false, false,"");
     TH1F* wz_lowmet_new_h = new TH1F("histo_wz_lowmet_new","histo_wz_lowmet_new",nbins,minx,maxx);
-    fillPlot("bdtg",wz_lowmet_new_h, dirdy+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    fillPlot(plotvar,wz_lowmet_new_h, dirdy+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
     TH1F* zz_lowmet_new_h = new TH1F("histo_zz_lowmet_new","histo_zz_lowmet_new",nbins,minx,maxx);
-    fillPlot("bdtg",zz_lowmet_new_h, dirdy+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    fillPlot(plotvar,zz_lowmet_new_h, dirdy+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
     zjets_h_up->Add(sffs_lowmet_new_h);
     zjets_h_up->Add(offs_lowmet_new_h,-1.*lumicorr);
     zjets_h_up->Add(wz_lowmet_new_h,-1);
@@ -256,7 +268,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
                                 Form("histo_Zjets_CMS_MVAZBounding_hww%s_%ijDownOld",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets),nbins,minx,maxx);
   if (fs.Contains("sffs")) {
     TH1F* dyll_vtx_h = new TH1F("histo_dyll_vtx","histo_dyll_vtx",nbins,minx,maxx);
-    fillPlot("bdtg",dyll_vtx_h, dir+"dyll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
+    fillPlot(plotvar,dyll_vtx_h, dir+"dyll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
     zjets_h_old_up->Add(dyll_vtx_h);
     zjets_h_old_up->Add(pwz_h);
     zjets_h_old_up->Add(pzz_h);
@@ -270,13 +282,13 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
     float kee = 0.8;//getK(main_dir+dy_dir+"data", wwSelNoZVNoMet, noVeto, 0, njets, 0., useJson, false, doFake, false);
     float lumicorr = (1.+kee*kee)/(2.*kee);
     TH1F* sffs_himet_h = new TH1F("histo_sffs_himet","histo_sffs_himet",nbins,minx,maxx);
-    fillPlot("bdtg",sffs_himet_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=sffs=", 0, useJson, false, false, false,"");
+    fillPlot(plotvar,sffs_himet_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=sffs=", 0, useJson, false, false, false,"");
     TH1F* offs_himet_h = new TH1F("histo_offs_himet","histo_offs_himet",nbins,minx,maxx);
-    fillPlot("bdtg",offs_himet_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=offs=", 0, useJson, false, false, false,"");
+    fillPlot(plotvar,offs_himet_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=offs=", 0, useJson, false, false, false,"");
     TH1F* wz_himet_h = new TH1F("histo_wz_himet","histo_wz_himet",nbins,minx,maxx);
-    fillPlot("bdtg",wz_himet_h, dirdy+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    fillPlot(plotvar,wz_himet_h, dirdy+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
     TH1F* zz_himet_h = new TH1F("histo_zz_himet","histo_zz_himet",nbins,minx,maxx);
-    fillPlot("bdtg",zz_himet_h, dirdy+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    fillPlot(plotvar,zz_himet_h, dirdy+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_himet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
     zjets_h_up_himet->Add(sffs_himet_h);
     zjets_h_up_himet->Add(offs_himet_h,-1.*lumicorr);
     zjets_h_up_himet->Add(wz_himet_h,-1);
@@ -294,13 +306,13 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
     float kee = 0.8;//getK(main_dir+dy_dir+"data", wwSelNoZVNoMet, noVeto, 0, njets, 0., useJson, false, doFake, false);
     float lumicorr = (1.+kee*kee)/(2.*kee);
     TH1F* sffs_lowmet_zeta_h = new TH1F("histo_sffs_lowmet_zeta","histo_sffs_lowmet_zeta",nbins,minx,maxx);
-    fillPlot("bdtg",sffs_lowmet_zeta_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", 0, useJson, false, false, false,"zeta");
+    fillPlot(plotvar,sffs_lowmet_zeta_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", 0, useJson, false, false, false,"zeta");
     TH1F* offs_lowmet_zeta_h = new TH1F("histo_offs_lowmet_zeta","histo_offs_lowmet_zeta",nbins,minx,maxx);
-    fillPlot("bdtg",offs_lowmet_zeta_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=offs=", 0, useJson, false, false, false,"zeta");
+    fillPlot(plotvar,offs_lowmet_zeta_h, dirdy+"data"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=offs=", 0, useJson, false, false, false,"zeta");
     TH1F* wz_lowmet_zeta_h = new TH1F("histo_wz_lowmet_zeta","histo_wz_lowmet_zeta",nbins,minx,maxx);
-    fillPlot("bdtg",wz_lowmet_zeta_h, dirdy+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    fillPlot(plotvar,wz_lowmet_zeta_h, dirdy+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
     TH1F* zz_lowmet_zeta_h = new TH1F("histo_zz_lowmet_zeta","histo_zz_lowmet_zeta",nbins,minx,maxx);
-    fillPlot("bdtg",zz_lowmet_zeta_h, dirdy+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
+    fillPlot(plotvar,zz_lowmet_zeta_h, dirdy+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg_lowmet+"=sffs=", lumi, useJson, applyEff, doFake, doPUw,"");
     zjets_h_up_zeta->Add(sffs_lowmet_zeta_h);
     zjets_h_up_zeta->Add(offs_lowmet_zeta_h,-1.*lumicorr);
     zjets_h_up_zeta->Add(wz_lowmet_zeta_h,-1);
@@ -313,11 +325,11 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
   //Ztt
   TH1F* dytt_1_h = new TH1F("histo_dytt_1","histo_dytt_1",nbins,minx,maxx);
-  //fillPlot("bdtg",dytt_1_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
+  //fillPlot(plotvar,dytt_1_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
   TH1F* dytt_2_h = new TH1F("histo_dytt_2","histo_dytt_2",nbins,minx,maxx);
-  //fillPlot("bdtg",dytt_2_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
+  //fillPlot(plotvar,dytt_2_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
   TH1F* dytt_3_h = new TH1F("histo_dytt_3","histo_dytt_3",nbins,minx,maxx);
-  //fillPlot("bdtg",dytt_3_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
+  //fillPlot(plotvar,dytt_3_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
   TH1F* ztt_h = new TH1F("histo_Ztt","histo_Ztt",nbins,minx,maxx);
   ztt_h->Add(dytt_1_h);
   ztt_h->Add(dytt_2_h);
@@ -325,19 +337,19 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
   //Wjets
   TH1F* datafake_h = new TH1F("datafake","datafake",nbins,minx,maxx);
-  fillPlot("bdtg",datafake_h,dir+"data"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, 0, useJson, false, true, false);
+  fillPlot(plotvar,datafake_h,dirwj+"data"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, 0, useJson, false, true, false);
   TH1F* qqwwfake_h = new TH1F("qqwwfake","qqwwfake",nbins,minx,maxx);
-  fillPlot("bdtg",qqwwfake_h,dir+"qqww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,qqwwfake_h,dirwj+"qqww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* ggwwfake_h = new TH1F("ggwwfake","ggwwfake",nbins,minx,maxx);
-  fillPlot("bdtg",ggwwfake_h,dir+"ggww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,ggwwfake_h,dirwj+"ggww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* ttbarfake_h = new TH1F("ttbarfake","ttbarfake",nbins,minx,maxx);
-  fillPlot("bdtg",ttbarfake_h,dir+"ttbar"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,ttbarfake_h,dirwj+"ttbar_powheg"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* twfake_h = new TH1F("twfake","twfake",nbins,minx,maxx);
-  fillPlot("bdtg",twfake_h,dir+"tw"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,twfake_h,dirwj+"tw"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* wzfake_h = new TH1F("wzfake","wzfake",nbins,minx,maxx);
-  fillPlot("bdtg",wzfake_h,dir+"wz"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,wzfake_h,dirwj+"wz"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* zzfake_h = new TH1F("zzfake","zzfake",nbins,minx,maxx);
-  fillPlot("bdtg",zzfake_h,dir+"zz"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,zzfake_h,dirwj+"zz"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* wjets_h = new TH1F("histo_Wjets","histo_Wjets",nbins,minx,maxx);
   wjets_h->Add(datafake_h);
   wjets_h->Add(qqwwfake_h,-1.);
@@ -349,25 +361,25 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   avoidNegativeBins(wjets_h);
   //syst 1: MC closure test
   TH1F* wjets_mc_up_h = new TH1F("histo_Wjets_CMS_MVAWMCBounding_hwwUp","histo_Wjets_CMS_MVAWMCBounding_hwwUp",nbins,minx,maxx);
-  fillPlot("bdtg",wjets_mc_up_h,dir+"wjets"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,wjets_mc_up_h,dirwj+"wjets"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);//fixme is this correct??? shouldn't be doFake=0?
   scaleIntegral(wjets_h,wjets_mc_up_h);
   TH1F* wjets_mc_down_h = new TH1F("histo_Wjets_CMS_MVAWMCBounding_hwwDown","histo_Wjets_CMS_MVAWMCBounding_hwwDown",nbins,minx,maxx);
   fillDownMirrorUp(wjets_h,wjets_mc_up_h,wjets_mc_down_h);
   //syst 2: alternative fakebale object definition
   TH1F* datafake_fr_up_h = new TH1F("datafake_fr_up","datafake_fr_up",nbins,minx,maxx);
-  fillPlot("bdtg",datafake_fr_up_h,dir+"data"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, 0, useJson, false, true, false);
+  fillPlot(plotvar,datafake_fr_up_h,dirwj+"data"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, 0, useJson, false, true, false);
   TH1F* qqwwfake_fr_up_h = new TH1F("qqwwfake_fr_up","qqwwfake_fr_up",nbins,minx,maxx);
-  fillPlot("bdtg",qqwwfake_fr_up_h,dir+"qqww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,qqwwfake_fr_up_h,dirwj+"qqww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* ggwwfake_fr_up_h = new TH1F("ggwwfake_fr_up","ggwwfake_fr_up",nbins,minx,maxx);
-  fillPlot("bdtg",ggwwfake_fr_up_h,dir+"ggww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,ggwwfake_fr_up_h,dirwj+"ggww"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* ttbarfake_fr_up_h = new TH1F("ttbarfake_fr_up","ttbarfake_fr_up",nbins,minx,maxx);
-  fillPlot("bdtg",ttbarfake_fr_up_h,dir+"ttbar"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,ttbarfake_fr_up_h,dirwj+"ttbar_powheg"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* twfake_fr_up_h = new TH1F("twfake_fr_up","twfake_fr_up",nbins,minx,maxx);
-  fillPlot("bdtg",twfake_fr_up_h,dir+"tw"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,twfake_fr_up_h,dirwj+"tw"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* wzfake_fr_up_h = new TH1F("wzfake_fr_up","wzfake_fr_up",nbins,minx,maxx);
-  fillPlot("bdtg",wzfake_fr_up_h,dir+"wz"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,wzfake_fr_up_h,dirwj+"wz"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* zzfake_fr_up_h = new TH1F("zzfake_fr_up","zzfake_fr_up",nbins,minx,maxx);
-  fillPlot("bdtg",zzfake_fr_up_h,dir+"zz"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
+  fillPlot(plotvar,zzfake_fr_up_h,dirwj+"zz"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, lumi, useJson, applyEff, true, doPUw);
   TH1F* wjets_fr_up_h = new TH1F("histo_Wjets_CMS_MVAWBounding_hwwUp","histo_Wjets_CMS_MVAWBounding_hwwUp",nbins,minx,maxx);
   wjets_fr_up_h->Add(datafake_fr_up_h);
   wjets_fr_up_h->Add(qqwwfake_fr_up_h,-1.);
@@ -382,19 +394,19 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
   //Higgs
   TH1F* ggH_h = new TH1F("histo_ggH","histo_ggH",nbins,minx,maxx);
-  fillPlot("bdtg",ggH_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,ggH_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw);
   TH1F* qqH_h = new TH1F("histo_qqH","histo_qqH",nbins,minx,maxx);
-  fillPlot("bdtg",qqH_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,qqH_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw);
   TH1F* WH_h = new TH1F("histo_WH","histo_WH",nbins,minx,maxx);
-  fillPlot("bdtg",WH_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,WH_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw);
   TH1F* ZH_h = new TH1F("histo_ZH","histo_ZH",nbins,minx,maxx);
-  fillPlot("bdtg",ZH_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+  fillPlot(plotvar,ZH_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw);
 
   //ggH k-factor syst  
   TH1F* ggH_up_h = new TH1F("histo_ggH_CMS_MVAggHBoundingUp","histo_ggH_CMS_MVAggHBoundingUp",nbins,minx,maxx);
-  fillPlot("bdtg",ggH_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_up");
+  fillPlot(plotvar,ggH_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_up");
   TH1F* ggH_down_h = new TH1F("histo_ggH_CMS_MVAggHBoundingDown","histo_ggH_CMS_MVAggHBoundingDown",nbins,minx,maxx);
-  fillPlot("bdtg",ggH_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_down");
+  fillPlot(plotvar,ggH_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_down");
 
   //MET RESOLUTION SYSTEMATICS: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
   TH1F *ggH_metres_up_h=0, *ggH_metres_down_h=0, *qqH_metres_up_h=0, *qqH_metres_down_h=0, *WH_metres_up_h=0, *WH_metres_down_h=0, *ZH_metres_up_h=0, *ZH_metres_down_h=0, *qqww_metres_up_h=0, *qqww_metres_down_h=0, 
@@ -412,49 +424,52 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
     //MET RESOLUTION SYSTEMATICS: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
     //Higgs
     ggH_metres_up_h = new TH1F("histo_ggH_CMS_MVAMETResBoundingUp","histo_ggH_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ggH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,ggH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     scaleIntegral(ggH_h,ggH_metres_up_h);//fixme
     ggH_metres_down_h = new TH1F("histo_ggH_CMS_MVAMETResBoundingDown","histo_ggH_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
     fillDownMirrorUp(ggH_h,ggH_metres_up_h,ggH_metres_down_h);
     qqH_metres_up_h = new TH1F("histo_qqH_CMS_MVAMETResBoundingUp","histo_qqH_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",qqH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,qqH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     qqH_metres_down_h = new TH1F("histo_qqH_CMS_MVAMETResBoundingDown","histo_qqH_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
     fillDownMirrorUp(qqH_h,qqH_metres_up_h,qqH_metres_down_h);
     WH_metres_up_h = new TH1F("histo_WH_CMS_MVAMETResBoundingUp","histo_WH_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",WH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,WH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     WH_metres_down_h = new TH1F("histo_WH_CMS_MVAMETResBoundingDown","histo_WH_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
     fillDownMirrorUp(WH_h,WH_metres_up_h,WH_metres_down_h);
     ZH_metres_up_h = new TH1F("histo_ZH_CMS_MVAMETResBoundingUp","histo_ZH_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ZH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,ZH_metres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     ZH_metres_down_h = new TH1F("histo_ZH_CMS_MVAMETResBoundingDown","histo_ZH_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
     fillDownMirrorUp(ZH_h,ZH_metres_up_h,ZH_metres_down_h);
     //WW
     qqww_metres_up_h = new TH1F("histo_qqWW_CMS_MVAMETResBoundingUp","histo_qqWW_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",qqww_metres_up_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,qqww_metres_up_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     qqww_metres_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     qqww_metres_down_h = new TH1F("histo_qqWW_CMS_MVAMETResBoundingDown","histo_qqWW_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
     fillDownMirrorUp(qqww_h,qqww_metres_up_h,qqww_metres_down_h);
     ggww_metres_up_h = new TH1F("histo_ggWW_CMS_MVAMETResBoundingUp","histo_ggWW_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ggww_metres_up_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,ggww_metres_up_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     ggww_metres_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     ggww_metres_down_h = new TH1F("histo_ggWW_CMS_MVAMETResBoundingDown","histo_ggWW_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
     fillDownMirrorUp(ggww_h,ggww_metres_up_h,ggww_metres_down_h);
     //VV
     TH1F* wz_metres_up_h = new TH1F("histo_wz_metres_up","histo_wz_metres_up",nbins,minx,maxx);
-    fillPlot("bdtg",wz_metres_up_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,wz_metres_up_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     TH1F* zz_metres_up_h = new TH1F("histo_zz_metres_up","histo_zz_metres_up",nbins,minx,maxx);
-    fillPlot("bdtg",zz_metres_up_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,zz_metres_up_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    TH1F* www_metres_up_h = new TH1F("histo_www_metres_up","histo_www_metres_up",nbins,minx,maxx);
+    fillPlot(plotvar,www_metres_up_h, dir+"www"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     vv_metres_up_h = new TH1F("histo_VV_CMS_MVAMETResBoundingUp","histo_VV_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
     vv_metres_up_h->Add(wz_metres_up_h);
     vv_metres_up_h->Add(zz_metres_up_h);
+    vv_metres_up_h->Add(www_metres_up_h);
     vv_metres_down_h = new TH1F("histo_VV_CMS_MVAMETResBoundingDown","histo_VV_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
     fillDownMirrorUp(vv_h,vv_metres_up_h,vv_metres_down_h);
     //Top
     TH1F* ttbar_metres_up_h = new TH1F("histo_ttbar_metres_up","histo_ttbar_metres_up",nbins,minx,maxx);
-    fillPlot("bdtg",ttbar_metres_up_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,ttbar_metres_up_h, dir+"ttbar_powheg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     ttbar_metres_up_h->Scale(TopBkgScaleFactor(njets));
     TH1F* tw_metres_up_h = new TH1F("histo_tw_metres_up","histo_tw_metres_up",nbins,minx,maxx);
-    fillPlot("bdtg",tw_metres_up_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,tw_metres_up_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     tw_metres_up_h->Scale(TopBkgScaleFactor(njets));
     top_metres_up_h = new TH1F("histo_Top_CMS_MVAMETResBoundingUp","histo_Top_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
     top_metres_up_h->Add(ttbar_metres_up_h);
@@ -463,22 +478,25 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
     fillDownMirrorUp(top_h,top_metres_up_h,top_metres_down_h);
     //Wgamma
     TH1F* wg_metres_up_h = new TH1F("histo_wg_metres_up","histo_wg_metres_up",nbins,minx,maxx);
-    fillPlot("bdtg",wg_metres_up_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,wg_metres_up_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    TH1F* zg_metres_up_h = new TH1F("histo_zg_metres_up","histo_zg_metres_up",nbins,minx,maxx);
+    fillPlot(plotvar,zg_metres_up_h, dir+"zgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     TH1F* wg3l_metres_up_h = new TH1F("histo_wg3l_metres_up","histo_wg3l_metres_up",nbins,minx,maxx);
-    fillPlot("bdtg",wg3l_metres_up_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
+    fillPlot(plotvar,wg3l_metres_up_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "metSmear");
     wg3l_metres_up_h->Scale(WGstarScaleFactor());
     wgamma_metres_up_h = new TH1F("histo_Wgamma_CMS_MVAMETResBoundingUp","histo_Wgamma_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
     wgamma_metres_up_h->Add(wg_metres_up_h);
+    wgamma_metres_up_h->Add(zg_metres_up_h);
     wgamma_metres_up_h->Add(wg3l_metres_up_h);
     wgamma_metres_down_h = new TH1F("histo_Wgamma_CMS_MVAMETResBoundingDown","histo_Wgamma_CMS_MVAMETResBoundingDown",nbins,minx,maxx);
     fillDownMirrorUp(wgamma_h,wgamma_metres_up_h,wgamma_metres_down_h);
     //Ztt
     TH1F* dytt_1_metres_up_h = new TH1F("histo_dytt_metres_up_1","histo_dytt_metres_up_1",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_1_metres_up_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "metSmear");
+    //fillPlot(plotvar,dytt_1_metres_up_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "metSmear");
     TH1F* dytt_2_metres_up_h = new TH1F("histo_dytt_metres_up_2","histo_dytt_metres_up_2",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_2_metres_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "metSmear");
+    //fillPlot(plotvar,dytt_2_metres_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "metSmear");
     TH1F* dytt_3_metres_up_h = new TH1F("histo_dytt_metres_up_3","histo_dytt_metres_up_3",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_3_metres_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "metSmear");
+    //fillPlot(plotvar,dytt_3_metres_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "metSmear");
     ztt_metres_up_h = new TH1F("histo_Ztt_CMS_MVAMETResBoundingUp","histo_Ztt_CMS_MVAMETResBoundingUp",nbins,minx,maxx);
     ztt_metres_up_h->Add(dytt_1_metres_up_h);
     ztt_metres_up_h->Add(dytt_2_metres_up_h);
@@ -497,102 +515,114 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
     //Lepton energy resolution and scale systematics: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
     ggH_lepres_up_h = new TH1F("histo_ggH_CMS_MVALepResBoundingUp","histo_ggH_CMS_MVALepResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ggH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,ggH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     ggH_lepres_down_h = new TH1F("histo_ggH_CMS_MVALepResBoundingDown","histo_ggH_CMS_MVALepResBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",ggH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,ggH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     qqH_lepres_up_h = new TH1F("histo_qqH_CMS_MVALepResBoundingUp","histo_qqH_CMS_MVALepResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",qqH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,qqH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     qqH_lepres_down_h = new TH1F("histo_qqH_CMS_MVALepResBoundingDown","histo_qqH_CMS_MVALepResBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",qqH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,qqH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     WH_lepres_up_h = new TH1F("histo_WH_CMS_MVALepResBoundingUp","histo_WH_CMS_MVALepResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",WH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,WH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     WH_lepres_down_h = new TH1F("histo_WH_CMS_MVALepResBoundingDown","histo_WH_CMS_MVALepResBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",WH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,WH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     ZH_lepres_up_h = new TH1F("histo_ZH_CMS_MVALepResBoundingUp","histo_ZH_CMS_MVALepResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ZH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,ZH_lepres_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     ZH_lepres_down_h = new TH1F("histo_ZH_CMS_MVALepResBoundingDown","histo_ZH_CMS_MVALepResBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",ZH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,ZH_lepres_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     //WW
     qqww_lepres_up_h = new TH1F("histo_qqWW_CMS_MVALepResBoundingUp","histo_qqWW_CMS_MVALepResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",qqww_lepres_up_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,qqww_lepres_up_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     qqww_lepres_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     ggww_lepres_up_h = new TH1F("histo_ggWW_CMS_MVALepResBoundingUp","histo_ggWW_CMS_MVALepResBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ggww_lepres_up_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,ggww_lepres_up_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     ggww_lepres_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     qqww_lepres_down_h = new TH1F("histo_qqWW_CMS_MVALepResBoundingDown","histo_qqWW_CMS_MVALepResBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",qqww_lepres_down_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,qqww_lepres_down_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     qqww_lepres_down_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     ggww_lepres_down_h = new TH1F("histo_ggWW_CMS_MVALepResBoundingDown","histo_ggWW_CMS_MVALepResBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",ggww_lepres_down_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,ggww_lepres_down_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     ggww_lepres_down_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     //VV
     TH1F* wz_lepres_up_h = new TH1F("histo_wz_lepres_up","histo_wz_lepres_up",nbins,minx,maxx);
-    fillPlot("bdtg",wz_lepres_up_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,wz_lepres_up_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     TH1F* zz_lepres_up_h = new TH1F("histo_zz_lepres_up","histo_zz_lepres_up",nbins,minx,maxx);
-    fillPlot("bdtg",zz_lepres_up_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,zz_lepres_up_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    TH1F* www_lepres_up_h = new TH1F("histo_www_lepres_up","histo_www_lepres_up",nbins,minx,maxx);
+    fillPlot(plotvar,www_lepres_up_h, dir+"www"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     vv_lepres_up_h = new TH1F("histo_VV_CMS_MVALepResBoundingUp","histo_VV_CMS_MVALepResBoundingUp",nbins,minx,maxx);
     vv_lepres_up_h->Add(wz_lepres_up_h);
     vv_lepres_up_h->Add(zz_lepres_up_h);
+    vv_lepres_up_h->Add(www_lepres_up_h);
     TH1F* wz_lepres_down_h = new TH1F("histo_wz_lepres_down","histo_wz_lepres_down",nbins,minx,maxx);
-    fillPlot("bdtg",wz_lepres_down_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,wz_lepres_down_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     TH1F* zz_lepres_down_h = new TH1F("histo_zz_lepres_down","histo_zz_lepres_down",nbins,minx,maxx);
-    fillPlot("bdtg",zz_lepres_down_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,zz_lepres_down_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    TH1F* www_lepres_down_h = new TH1F("histo_www_lepres_down","histo_www_lepres_down",nbins,minx,maxx);
+    fillPlot(plotvar,www_lepres_down_h, dir+"www"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     vv_lepres_down_h = new TH1F("histo_VV_CMS_MVALepResBoundingDown","histo_VV_CMS_MVALepResBoundingDown",nbins,minx,maxx);
     vv_lepres_down_h->Add(wz_lepres_down_h);
     vv_lepres_down_h->Add(zz_lepres_down_h);
+    vv_lepres_down_h->Add(www_lepres_down_h);
     //Top
     TH1F* ttbar_lepres_up_h = new TH1F("histo_ttbar_lepres_up","histo_ttbar_lepres_up",nbins,minx,maxx);
-    fillPlot("bdtg",ttbar_lepres_up_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,ttbar_lepres_up_h, dir+"ttbar_powheg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     ttbar_lepres_up_h->Scale(TopBkgScaleFactor(njets));
     TH1F* tw_lepres_up_h = new TH1F("histo_tw_lepres_up","histo_tw_lepres_up",nbins,minx,maxx);
-    fillPlot("bdtg",tw_lepres_up_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,tw_lepres_up_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     tw_lepres_up_h->Scale(TopBkgScaleFactor(njets));
     top_lepres_up_h = new TH1F("histo_Top_CMS_MVALepResBoundingUp","histo_Top_CMS_MVALepResBoundingUp",nbins,minx,maxx);
     top_lepres_up_h->Add(ttbar_lepres_up_h);
     top_lepres_up_h->Add(tw_lepres_up_h);
     TH1F* ttbar_lepres_down_h = new TH1F("histo_ttbar_lepres_down","histo_ttbar_lepres_down",nbins,minx,maxx);
-    fillPlot("bdtg",ttbar_lepres_down_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,ttbar_lepres_down_h, dir+"ttbar_powheg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     ttbar_lepres_down_h->Scale(TopBkgScaleFactor(njets));
     TH1F* tw_lepres_down_h = new TH1F("histo_tw_lepres_down","histo_tw_lepres_down",nbins,minx,maxx);
-    fillPlot("bdtg",tw_lepres_down_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,tw_lepres_down_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     tw_lepres_down_h->Scale(TopBkgScaleFactor(njets));
     top_lepres_down_h = new TH1F("histo_Top_CMS_MVALepResBoundingDown","histo_Top_CMS_MVALepResBoundingDown",nbins,minx,maxx);
     top_lepres_down_h->Add(ttbar_lepres_down_h);
     top_lepres_down_h->Add(tw_lepres_down_h);
     //Wgamma
     TH1F* wg_lepres_up_h = new TH1F("histo_wg_lepres_up","histo_wg_lepres_up",nbins,minx,maxx);
-    fillPlot("bdtg",wg_lepres_up_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,wg_lepres_up_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    TH1F* zg_lepres_up_h = new TH1F("histo_zg_lepres_up","histo_zg_lepres_up",nbins,minx,maxx);
+    fillPlot(plotvar,zg_lepres_up_h, dir+"zgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     TH1F* wg3l_lepres_up_h = new TH1F("histo_wg3l_lepres_up","histo_wg3l_lepres_up",nbins,minx,maxx);
-    fillPlot("bdtg",wg3l_lepres_up_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
+    fillPlot(plotvar,wg3l_lepres_up_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleUp");
     wg3l_lepres_up_h->Scale(WGstarScaleFactor());
     wgamma_lepres_up_h = new TH1F("histo_Wgamma_CMS_MVALepResBoundingUp","histo_Wgamma_CMS_MVALepResBoundingUp",nbins,minx,maxx);
     wgamma_lepres_up_h->Add(wg_lepres_up_h);
+    wgamma_lepres_up_h->Add(zg_lepres_up_h);
     wgamma_lepres_up_h->Add(wg3l_lepres_up_h);
     TH1F* wg_lepres_down_h = new TH1F("histo_wg_lepres_down","histo_wg_lepres_down",nbins,minx,maxx);
-    fillPlot("bdtg",wg_lepres_down_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,wg_lepres_down_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    TH1F* zg_lepres_down_h = new TH1F("histo_zg_lepres_down","histo_zg_lepres_down",nbins,minx,maxx);
+    fillPlot(plotvar,zg_lepres_down_h, dir+"zgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     TH1F* wg3l_lepres_down_h = new TH1F("histo_wg3l_lepres_down","histo_wg3l_lepres_down",nbins,minx,maxx);
-    fillPlot("bdtg",wg3l_lepres_down_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
+    fillPlot(plotvar,wg3l_lepres_down_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "momScaleDown");
     wg3l_lepres_down_h->Scale(WGstarScaleFactor());
     wgamma_lepres_down_h = new TH1F("histo_Wgamma_CMS_MVALepResBoundingDown","histo_Wgamma_CMS_MVALepResBoundingDown",nbins,minx,maxx);
     wgamma_lepres_down_h->Add(wg_lepres_down_h);
+    wgamma_lepres_down_h->Add(zg_lepres_down_h);
     wgamma_lepres_down_h->Add(wg3l_lepres_down_h);
     //Ztt
     TH1F* dytt_1_lepres_up_h = new TH1F("histo_dytt_lepres_up_1","histo_dytt_lepres_up_1",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_1_lepres_up_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleUp");
+    //fillPlot(plotvar,dytt_1_lepres_up_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleUp");
     TH1F* dytt_2_lepres_up_h = new TH1F("histo_dytt_lepres_up_2","histo_dytt_lepres_up_2",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_2_lepres_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleUp");
+    //fillPlot(plotvar,dytt_2_lepres_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleUp");
     TH1F* dytt_3_lepres_up_h = new TH1F("histo_dytt_lepres_up_3","histo_dytt_lepres_up_3",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_3_lepres_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleUp");
+    //fillPlot(plotvar,dytt_3_lepres_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleUp");
     ztt_lepres_up_h = new TH1F("histo_Ztt_CMS_MVALepResBoundingUp","histo_Ztt_CMS_MVALepResBoundingUp",nbins,minx,maxx);
     ztt_lepres_up_h->Add(dytt_1_lepres_up_h);
     ztt_lepres_up_h->Add(dytt_2_lepres_up_h);
     ztt_lepres_up_h->Add(dytt_3_lepres_up_h);
     TH1F* dytt_1_lepres_down_h = new TH1F("histo_dytt_lepres_down_1","histo_dytt_lepres_down_1",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_1_lepres_down_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleDown");
+    //fillPlot(plotvar,dytt_1_lepres_down_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleDown");
     TH1F* dytt_2_lepres_down_h = new TH1F("histo_dytt_lepres_down_2","histo_dytt_lepres_down_2",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_2_lepres_down_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleDown");
+    //fillPlot(plotvar,dytt_2_lepres_down_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleDown");
     TH1F* dytt_3_lepres_down_h = new TH1F("histo_dytt_lepres_down_3","histo_dytt_lepres_down_3",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_3_lepres_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleDown");
+    //fillPlot(plotvar,dytt_3_lepres_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleDown");
     ztt_lepres_down_h = new TH1F("histo_Ztt_CMS_MVALepResBoundingDown","histo_Ztt_CMS_MVALepResBoundingDown",nbins,minx,maxx);
     ztt_lepres_down_h->Add(dytt_1_lepres_down_h);
     ztt_lepres_down_h->Add(dytt_2_lepres_down_h);
@@ -609,102 +639,114 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
     //JES systematics: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
     ggH_jes_up_h = new TH1F("histo_ggH_CMS_MVAJESBoundingUp","histo_ggH_CMS_MVAJESBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ggH_jes_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,ggH_jes_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     ggH_jes_down_h = new TH1F("histo_ggH_CMS_MVAJESBoundingDown","histo_ggH_CMS_MVAJESBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",ggH_jes_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,ggH_jes_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     qqH_jes_up_h = new TH1F("histo_qqH_CMS_MVAJESBoundingUp","histo_qqH_CMS_MVAJESBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",qqH_jes_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,qqH_jes_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     qqH_jes_down_h = new TH1F("histo_qqH_CMS_MVAJESBoundingDown","histo_qqH_CMS_MVAJESBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",qqH_jes_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,qqH_jes_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     WH_jes_up_h = new TH1F("histo_WH_CMS_MVAJESBoundingUp","histo_WH_CMS_MVAJESBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",WH_jes_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,WH_jes_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     WH_jes_down_h = new TH1F("histo_WH_CMS_MVAJESBoundingDown","histo_WH_CMS_MVAJESBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",WH_jes_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,WH_jes_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     ZH_jes_up_h = new TH1F("histo_ZH_CMS_MVAJESBoundingUp","histo_ZH_CMS_MVAJESBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ZH_jes_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,ZH_jes_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     ZH_jes_down_h = new TH1F("histo_ZH_CMS_MVAJESBoundingDown","histo_ZH_CMS_MVAJESBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",ZH_jes_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,ZH_jes_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     //WW
     qqww_jes_up_h = new TH1F("histo_qqWW_CMS_MVAJESBoundingUp","histo_qqWW_CMS_MVAJESBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",qqww_jes_up_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,qqww_jes_up_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     qqww_jes_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     ggww_jes_up_h = new TH1F("histo_ggWW_CMS_MVAJESBoundingUp","histo_ggWW_CMS_MVAJESBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ggww_jes_up_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,ggww_jes_up_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     ggww_jes_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     qqww_jes_down_h = new TH1F("histo_qqWW_CMS_MVAJESBoundingDown","histo_qqWW_CMS_MVAJESBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",qqww_jes_down_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,qqww_jes_down_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     qqww_jes_down_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     ggww_jes_down_h = new TH1F("histo_ggWW_CMS_MVAJESBoundingDown","histo_ggWW_CMS_MVAJESBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",ggww_jes_down_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,ggww_jes_down_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     ggww_jes_down_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     //VV
     TH1F* wz_jes_up_h = new TH1F("histo_wz_jes_up","histo_wz_jes_up",nbins,minx,maxx);
-    fillPlot("bdtg",wz_jes_up_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,wz_jes_up_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     TH1F* zz_jes_up_h = new TH1F("histo_zz_jes_up","histo_zz_jes_up",nbins,minx,maxx);
-    fillPlot("bdtg",zz_jes_up_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,zz_jes_up_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    TH1F* www_jes_up_h = new TH1F("histo_www_jes_up","histo_www_jes_up",nbins,minx,maxx);
+    fillPlot(plotvar,www_jes_up_h, dir+"www"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     vv_jes_up_h = new TH1F("histo_VV_CMS_MVAJESBoundingUp","histo_VV_CMS_MVAJESBoundingUp",nbins,minx,maxx);
     vv_jes_up_h->Add(wz_jes_up_h);
     vv_jes_up_h->Add(zz_jes_up_h);
+    vv_jes_up_h->Add(www_jes_up_h);
     TH1F* wz_jes_down_h = new TH1F("histo_wz_jes_down","histo_wz_jes_down",nbins,minx,maxx);
-    fillPlot("bdtg",wz_jes_down_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ"+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,wz_jes_down_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ"+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     TH1F* zz_jes_down_h = new TH1F("histo_zz_jes_down","histo_zz_jes_down",nbins,minx,maxx);
-    fillPlot("bdtg",zz_jes_down_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,zz_jes_down_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    TH1F* www_jes_down_h = new TH1F("histo_www_jes_down","histo_www_jes_down",nbins,minx,maxx);
+    fillPlot(plotvar,www_jes_down_h, dir+"www"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     vv_jes_down_h = new TH1F("histo_VV_CMS_MVAJESBoundingDown","histo_VV_CMS_MVAJESBoundingDown",nbins,minx,maxx);
     vv_jes_down_h->Add(wz_jes_down_h);
     vv_jes_down_h->Add(zz_jes_down_h);
+    vv_jes_down_h->Add(www_jes_down_h);
     //Top
     TH1F* ttbar_jes_up_h = new TH1F("histo_ttbar_jes_up","histo_ttbar_jes_up",nbins,minx,maxx);
-    fillPlot("bdtg",ttbar_jes_up_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,ttbar_jes_up_h, dir+"ttbar_powheg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     ttbar_jes_up_h->Scale(TopBkgScaleFactor(njets));
     TH1F* tw_jes_up_h = new TH1F("histo_tw_jes_up","histo_tw_jes_up",nbins,minx,maxx);
-    fillPlot("bdtg",tw_jes_up_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,tw_jes_up_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     tw_jes_up_h->Scale(TopBkgScaleFactor(njets));
     top_jes_up_h = new TH1F("histo_Top_CMS_MVAJESBoundingUp","histo_Top_CMS_MVAJESBoundingUp",nbins,minx,maxx);
     top_jes_up_h->Add(ttbar_jes_up_h);
     top_jes_up_h->Add(tw_jes_up_h);
     TH1F* ttbar_jes_down_h = new TH1F("histo_ttbar_jes_down","histo_ttbar_jes_down",nbins,minx,maxx);
-    fillPlot("bdtg",ttbar_jes_down_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,ttbar_jes_down_h, dir+"ttbar_powheg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     ttbar_jes_down_h->Scale(TopBkgScaleFactor(njets));
     TH1F* tw_jes_down_h = new TH1F("histo_tw_jes_down","histo_tw_jes_down",nbins,minx,maxx);
-    fillPlot("bdtg",tw_jes_down_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,tw_jes_down_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     tw_jes_down_h->Scale(TopBkgScaleFactor(njets));
     top_jes_down_h = new TH1F("histo_Top_CMS_MVAJESBoundingDown","histo_Top_CMS_MVAJESBoundingDown",nbins,minx,maxx);
     top_jes_down_h->Add(ttbar_jes_down_h);
     top_jes_down_h->Add(tw_jes_down_h);
     //Wgamma
     TH1F* wg_jes_up_h = new TH1F("histo_wg_jes_up","histo_wg_jes_up",nbins,minx,maxx);
-    fillPlot("bdtg",wg_jes_up_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,wg_jes_up_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    TH1F* zg_jes_up_h = new TH1F("histo_zg_jes_up","histo_zg_jes_up",nbins,minx,maxx);
+    fillPlot(plotvar,zg_jes_up_h, dir+"zgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     TH1F* wg3l_jes_up_h = new TH1F("histo_wg3l_jes_up","histo_wg3l_jes_up",nbins,minx,maxx);
-    fillPlot("bdtg",wg3l_jes_up_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
+    fillPlot(plotvar,wg3l_jes_up_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesUp");
     wg3l_jes_up_h->Scale(WGstarScaleFactor());
     wgamma_jes_up_h = new TH1F("histo_Wgamma_CMS_MVAJESBoundingUp","histo_Wgamma_CMS_MVAJESBoundingUp",nbins,minx,maxx);
     wgamma_jes_up_h->Add(wg_jes_up_h);
+    wgamma_jes_up_h->Add(zg_jes_up_h);
     wgamma_jes_up_h->Add(wg3l_jes_up_h);
     TH1F* wg_jes_down_h = new TH1F("histo_wg_jes_down","histo_wg_jes_down",nbins,minx,maxx);
-    fillPlot("bdtg",wg_jes_down_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,wg_jes_down_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    TH1F* zg_jes_down_h = new TH1F("histo_zg_jes_down","histo_zg_jes_down",nbins,minx,maxx);
+    fillPlot(plotvar,zg_jes_down_h, dir+"zgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     TH1F* wg3l_jes_down_h = new TH1F("histo_wglll_jes_down","histo_wg3l_jes_down",nbins,minx,maxx);
-    fillPlot("bdtg",wg3l_jes_down_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
+    fillPlot(plotvar,wg3l_jes_down_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "jesDown");
     wg3l_jes_down_h->Scale(WGstarScaleFactor());
     wgamma_jes_down_h = new TH1F("histo_Wgamma_CMS_MVAJESBoundingDown","histo_Wgamma_CMS_MVAJESBoundingDown",nbins,minx,maxx);
     wgamma_jes_down_h->Add(wg_jes_down_h);
+    wgamma_jes_down_h->Add(zg_jes_down_h);
     wgamma_jes_down_h->Add(wg3l_jes_down_h);
     //Ztt
     TH1F* dytt_1_jes_up_h = new TH1F("histo_dytt_jes_up_1","histo_dytt_jes_up_1",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_1_jes_up_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesUp");
+    //fillPlot(plotvar,dytt_1_jes_up_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesUp");
     TH1F* dytt_2_jes_up_h = new TH1F("histo_dytt_jes_up_2","histo_dytt_jes_up_2",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_2_jes_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesUp");
+    //fillPlot(plotvar,dytt_2_jes_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesUp");
     TH1F* dytt_3_jes_up_h = new TH1F("histo_dytt_jes_up_3","histo_dytt_jes_up_3",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_3_jes_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesUp");
+    //fillPlot(plotvar,dytt_3_jes_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesUp");
     ztt_jes_up_h = new TH1F("histo_Ztt_CMS_MVAJESBoundingUp","histo_Ztt_CMS_MVAJESBoundingUp",nbins,minx,maxx);
     ztt_jes_up_h->Add(dytt_1_jes_up_h);
     ztt_jes_up_h->Add(dytt_2_jes_up_h);
     ztt_jes_up_h->Add(dytt_3_jes_up_h);
     TH1F* dytt_1_jes_down_h = new TH1F("histo_dytt_jes_down_1","histo_dytt_jes_down_1",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_1_jes_down_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesDown");
+    //fillPlot(plotvar,dytt_1_jes_down_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesDown");
     TH1F* dytt_2_jes_down_h = new TH1F("histo_dytt_jes_down_2","histo_dytt_jes_down_2",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_2_jes_down_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesDown");
+    //fillPlot(plotvar,dytt_2_jes_down_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesDown");
     TH1F* dytt_3_jes_down_h = new TH1F("histo_dytt_jes_down_3","histo_dytt_jes_down_3",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_3_jes_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesDown");
+    //fillPlot(plotvar,dytt_3_jes_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesDown");
     ztt_jes_down_h = new TH1F("histo_Ztt_CMS_MVAJESBoundingDown","histo_Ztt_CMS_MVAJESBoundingDown",nbins,minx,maxx);
     ztt_jes_down_h->Add(dytt_1_jes_down_h);
     ztt_jes_down_h->Add(dytt_2_jes_down_h);
@@ -721,102 +763,114 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
 
     //Lepton efficiency systematics: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Wgamma and Ztt components (no Top???)
     ggH_lepeff_up_h = new TH1F("histo_ggH_CMS_MVALepEffBoundingUp","histo_ggH_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ggH_lepeff_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,ggH_lepeff_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     ggH_lepeff_down_h = new TH1F("histo_ggH_CMS_MVALepEffBoundingDown","histo_ggH_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",ggH_lepeff_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,ggH_lepeff_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     qqH_lepeff_up_h = new TH1F("histo_qqH_CMS_MVALepEffBoundingUp","histo_qqH_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",qqH_lepeff_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,qqH_lepeff_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     qqH_lepeff_down_h = new TH1F("histo_qqH_CMS_MVALepEffBoundingDown","histo_qqH_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",qqH_lepeff_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,qqH_lepeff_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     WH_lepeff_up_h = new TH1F("histo_WH_CMS_MVALepEffBoundingUp","histo_WH_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",WH_lepeff_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,WH_lepeff_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     WH_lepeff_down_h = new TH1F("histo_WH_CMS_MVALepEffBoundingDown","histo_WH_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",WH_lepeff_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,WH_lepeff_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     ZH_lepeff_up_h = new TH1F("histo_ZH_CMS_MVALepEffBoundingUp","histo_ZH_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ZH_lepeff_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,ZH_lepeff_up_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     ZH_lepeff_down_h = new TH1F("histo_ZH_CMS_MVALepEffBoundingDown","histo_ZH_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",ZH_lepeff_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,ZH_lepeff_down_h, dir+Form("hww%i",mass)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     //WW
     qqww_lepeff_up_h = new TH1F("histo_qqWW_CMS_MVALepEffBoundingUp","histo_qqWW_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",qqww_lepeff_up_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,qqww_lepeff_up_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     qqww_lepeff_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     ggww_lepeff_up_h = new TH1F("histo_ggWW_CMS_MVALepEffBoundingUp","histo_ggWW_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
-    fillPlot("bdtg",ggww_lepeff_up_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,ggww_lepeff_up_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     ggww_lepeff_up_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     qqww_lepeff_down_h = new TH1F("histo_qqWW_CMS_MVALepEffBoundingDown","histo_qqWW_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",qqww_lepeff_down_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,qqww_lepeff_down_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     qqww_lepeff_down_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     ggww_lepeff_down_h = new TH1F("histo_ggWW_CMS_MVALepEffBoundingDown","histo_ggWW_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
-    fillPlot("bdtg",ggww_lepeff_down_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,ggww_lepeff_down_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     ggww_lepeff_down_h->Scale(WWBkgScaleFactorMVA(mass,njets));
     //VV
     TH1F* wz_lepeff_up_h = new TH1F("histo_wz_lepeff_up","histo_wz_lepeff_up",nbins,minx,maxx);
-    fillPlot("bdtg",wz_lepeff_up_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,wz_lepeff_up_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     TH1F* zz_lepeff_up_h = new TH1F("histo_zz_lepeff_up","histo_zz_lepeff_up",nbins,minx,maxx);
-    fillPlot("bdtg",zz_lepeff_up_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,zz_lepeff_up_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    TH1F* www_lepeff_up_h = new TH1F("histo_www_lepeff_up","histo_www_lepeff_up",nbins,minx,maxx);
+    fillPlot(plotvar,www_lepeff_up_h, dir+"www"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     vv_lepeff_up_h = new TH1F("histo_VV_CMS_MVALepEffBoundingUp","histo_VV_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
     vv_lepeff_up_h->Add(wz_lepeff_up_h);
     vv_lepeff_up_h->Add(zz_lepeff_up_h);
+    vv_lepeff_up_h->Add(www_lepeff_up_h);
     TH1F* wz_lepeff_down_h = new TH1F("histo_wz_lepeff_down","histo_wz_lepeff_down",nbins,minx,maxx);
-    fillPlot("bdtg",wz_lepeff_down_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,wz_lepeff_down_h, dir+"wz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     TH1F* zz_lepeff_down_h = new TH1F("histo_zz_lepeff_down","histo_zz_lepeff_down",nbins,minx,maxx);
-    fillPlot("bdtg",zz_lepeff_down_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,zz_lepeff_down_h, dir+"zz"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    TH1F* www_lepeff_down_h = new TH1F("histo_www_lepeff_down","histo_www_lepeff_down",nbins,minx,maxx);
+    fillPlot(plotvar,www_lepeff_down_h, dir+"www"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=notZ="+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     vv_lepeff_down_h = new TH1F("histo_VV_CMS_MVALepEffBoundingDown","histo_VV_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
     vv_lepeff_down_h->Add(wz_lepeff_down_h);
     vv_lepeff_down_h->Add(zz_lepeff_down_h);
+    vv_lepeff_down_h->Add(www_lepeff_down_h);
     //Top
     //TH1F* ttbar_lepeff_up_h = new TH1F("histo_ttbar_lepeff_up","histo_ttbar_lepeff_up",nbins,minx,maxx);
-    //fillPlot("bdtg",ttbar_lepeff_up_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    //fillPlot(plotvar,ttbar_lepeff_up_h, dir+"ttbar_powheg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     //ttbar_lepeff_up_h->Scale(TopBkgScaleFactor(njets));
     //TH1F* tw_lepeff_up_h = new TH1F("histo_tw_lepeff_up","histo_tw_lepeff_up",nbins,minx,maxx);
-    //fillPlot("bdtg",tw_lepeff_up_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    //fillPlot(plotvar,tw_lepeff_up_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     //tw_lepeff_up_h->Scale(TopBkgScaleFactor(njets));
     //top_lepeff_up_h = new TH1F("histo_Top_CMS_MVALepEffBoundingUp","histo_Top_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
     //top_lepeff_up_h->Add(ttbar_lepeff_up_h);
     //top_lepeff_up_h->Add(tw_lepeff_up_h);
     //TH1F* ttbar_lepeff_down_h = new TH1F("histo_ttbar_lepeff_down","histo_ttbar_lepeff_down",nbins,minx,maxx);
-    //fillPlot("bdtg",ttbar_lepeff_down_h, dir+"ttbar"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    //fillPlot(plotvar,ttbar_lepeff_down_h, dir+"ttbar_powheg"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     //ttbar_lepeff_down_h->Scale(TopBkgScaleFactor(njets));
     //TH1F* tw_lepeff_down_h = new TH1F("histo_tw_lepeff_down","histo_tw_lepeff_down",nbins,minx,maxx);
-    //fillPlot("bdtg",tw_lepeff_down_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    //fillPlot(plotvar,tw_lepeff_down_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     //tw_lepeff_down_h->Scale(TopBkgScaleFactor(njets));
     //top_lepeff_down_h = new TH1F("histo_Top_CMS_MVALepEffBoundingDown","histo_Top_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
     //top_lepeff_down_h->Add(ttbar_lepeff_down_h);
     //top_lepeff_down_h->Add(tw_lepeff_down_h);
     //Wgamma
     TH1F* wg_lepeff_up_h = new TH1F("histo_wg_lepeff_up","histo_wg_lepeff_up",nbins,minx,maxx);
-    fillPlot("bdtg",wg_lepeff_up_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,wg_lepeff_up_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    TH1F* zg_lepeff_up_h = new TH1F("histo_zg_lepeff_up","histo_zg_lepeff_up",nbins,minx,maxx);
+    fillPlot(plotvar,zg_lepeff_up_h, dir+"zgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     TH1F* wg3l_lepeff_up_h = new TH1F("histo_wg3l_lepeff_up","histo_wg3l_lepeff_up",nbins,minx,maxx);
-    fillPlot("bdtg",wg3l_lepeff_up_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
+    fillPlot(plotvar,wg3l_lepeff_up_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffUp");
     wg3l_lepeff_up_h->Scale(WGstarScaleFactor());
     wgamma_lepeff_up_h = new TH1F("histo_Wgamma_CMS_MVALepEffBoundingUp","histo_Wgamma_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
     wgamma_lepeff_up_h->Add(wg_lepeff_up_h);
+    wgamma_lepeff_up_h->Add(zg_lepeff_up_h);
     wgamma_lepeff_up_h->Add(wg3l_lepeff_up_h);
     TH1F* wg_lepeff_down_h = new TH1F("histo_wg_lepeff_down","histo_wg_lepeff_down",nbins,minx,maxx);
-    fillPlot("bdtg",wg_lepeff_down_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,wg_lepeff_down_h, dir+"wgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    TH1F* zg_lepeff_down_h = new TH1F("histo_zg_lepeff_down","histo_zg_lepeff_down",nbins,minx,maxx);
+    fillPlot(plotvar,zg_lepeff_down_h, dir+"zgamma"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     TH1F* wg3l_lepeff_down_h = new TH1F("histo_wg3l_lepeff_down","histo_wg3l_lepeff_down",nbins,minx,maxx);
-    fillPlot("bdtg",wg3l_lepeff_down_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
+    fillPlot(plotvar,wg3l_lepeff_down_h, dir+"wglll"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw, "lepeffDown");
     wg3l_lepeff_down_h->Scale(WGstarScaleFactor());
     wgamma_lepeff_down_h = new TH1F("histo_Wgamma_CMS_MVALepEffBoundingDown","histo_Wgamma_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
     wgamma_lepeff_down_h->Add(wg_lepeff_down_h);
+    wgamma_lepeff_down_h->Add(zg_lepeff_down_h);
     wgamma_lepeff_down_h->Add(wg3l_lepeff_down_h);
     //Ztt
     TH1F* dytt_1_lepeff_up_h = new TH1F("histo_dytt_lepeff_up_1","histo_dytt_lepeff_up_1",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_1_lepeff_up_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffUp");
+    //fillPlot(plotvar,dytt_1_lepeff_up_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffUp");
     TH1F* dytt_2_lepeff_up_h = new TH1F("histo_dytt_lepeff_up_2","histo_dytt_lepeff_up_2",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_2_lepeff_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffUp");
+    //fillPlot(plotvar,dytt_2_lepeff_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffUp");
     TH1F* dytt_3_lepeff_up_h = new TH1F("histo_dytt_lepeff_up_3","histo_dytt_lepeff_up_3",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_3_lepeff_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffUp");
+    //fillPlot(plotvar,dytt_3_lepeff_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffUp");
     ztt_lepeff_up_h = new TH1F("histo_Ztt_CMS_MVALepEffBoundingUp","histo_Ztt_CMS_MVALepEffBoundingUp",nbins,minx,maxx);
     ztt_lepeff_up_h->Add(dytt_1_lepeff_up_h);
     ztt_lepeff_up_h->Add(dytt_2_lepeff_up_h);
     ztt_lepeff_up_h->Add(dytt_3_lepeff_up_h);
     TH1F* dytt_1_lepeff_down_h = new TH1F("histo_dytt_lepeff_down_1","histo_dytt_lepeff_down_1",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_1_lepeff_down_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffDown");
+    //fillPlot(plotvar,dytt_1_lepeff_down_h, dir+"data-emb-tau121"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffDown");
     TH1F* dytt_2_lepeff_down_h = new TH1F("histo_dytt_lepeff_down_2","histo_dytt_lepeff_down_2",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_2_lepeff_down_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffDown");
+    //fillPlot(plotvar,dytt_2_lepeff_down_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffDown");
     TH1F* dytt_3_lepeff_down_h = new TH1F("histo_dytt_lepeff_down_3","histo_dytt_lepeff_down_3",nbins,minx,maxx);
-    //fillPlot("bdtg",dytt_3_lepeff_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffDown");
+    //fillPlot(plotvar,dytt_3_lepeff_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffDown");
     ztt_lepeff_down_h = new TH1F("histo_Ztt_CMS_MVALepEffBoundingDown","histo_Ztt_CMS_MVALepEffBoundingDown",nbins,minx,maxx);
     ztt_lepeff_down_h->Add(dytt_1_lepeff_down_h);
     ztt_lepeff_down_h->Add(dytt_2_lepeff_down_h);
@@ -1098,4 +1152,8 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs") {
   
   outfile->Close();
   delete rbdtg;
+  if (plotvar=="mtmll2D") {
+    delete mtmll2d_lom;
+    delete mtmll2d_him;
+  }
 }

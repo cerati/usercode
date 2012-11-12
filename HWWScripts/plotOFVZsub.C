@@ -3,18 +3,20 @@ void plotOFVZsub(TString var, int nb, float min, float max, bool norm, TString m
   gROOT->Reset();
   gStyle->SetOptStat(0);
 
-  TChain *ph = new TChain("tree");
-  ph->Add("./dyll.root");
+  TString dir = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_53X/test/skim_dy/";
 
-  TFile *_da = TFile::Open("./data.root");
+  TChain *ph = new TChain("tree");
+  ph->Add(dir+"./dyll.root");
+
+  TFile *_da = TFile::Open(dir+"./data.root");
   TTree* da = (TTree*) _da->Get("tree");
 
-  TFile *_zz = TFile::Open("./zz.root");
+  TFile *_zz = TFile::Open(dir+"./zz.root");
   TTree* zz = (TTree*) _zz->Get("tree");
-  TFile *_wz = TFile::Open("./wz.root");
+  TFile *_wz = TFile::Open(dir+"./wz.root");
   TTree* wz = (TTree*) _wz->Get("tree");
 
-  TFile *_hw = TFile::Open("./hww125.root");
+  TFile *_hw = TFile::Open(dir+"./hww125.root");
   TTree* hw = (TTree*) _hw->Get("tree");
 
   TH1F* h_zz = new TH1F("h_zz","h_zz",nb,min,max);
@@ -35,21 +37,21 @@ void plotOFVZsub(TString var, int nb, float min, float max, bool norm, TString m
   h_hw->SetLineColor(kCyan);
   h_hw->SetLineWidth(2);
 
-  float lumi = 5.1;
+  float lumi = 11.9;
   float lumicorr = 1.04;
   float dysf = 1.0;
   float dyer = 1.0;
-  if (njets==0) dysf = 4.6;
-  if (njets==1) dysf = 4.1;
-  if (njets==0) dyer = 0.1;
-  if (njets==1) dyer = 0.2;
+  if (njets==0) dysf = 10.75;
+  if (njets==1) dysf =  7.68;
+  if (njets==0) dyer = 0.11;
+  if (njets==1) dyer = 0.11;
 
   TString Met20 = Form("((cuts & 4719111)==4719111)&&njets==%i&&lep1.pt()>20.&&lep2.pt()>10.&&(dstype!=0 || (cuts & 1073741824)==1073741824) && met>20  && dilep.mass()>12. && min(pmet,pTrackMet)>20. && mt>80. && dilep.pt()>45.",njets);
 
   TString cut = Met20;
 
   TString minmet = " && min(pmet,pTrackMet)>45.  && (jet1.pt()<15 || dPhiDiLepJet1<165.*TMath::Pi()/180. )"; 
-  TString dymva = " && ((njets==0 && dymva>0.6) || (njets==1 && dymva>0.3))";
+  TString dymva = " && ((njets==0 && dymva>0.88) || (njets==1 && dymva>0.84))";
 
   if (mycut.Contains("Zp")) cut+="&& abs(dilep.mass()-91)<7.5";
   if (mycut.Contains("oZ")) cut+="&& abs(dilep.mass()-91)>15";
@@ -58,6 +60,8 @@ void plotOFVZsub(TString var, int nb, float min, float max, bool norm, TString m
     cut+="&& dilep.pt()>45.";
     Met20+="&& dilep.pt()>45.";
   }
+
+  if (mycut.Contains("DyMva")) cut+=dymva;
 
   if (mycut.Contains("MetGt45")) cut+=minmet;
   if (mycut.Contains("MetLt45")) cut+="&& min(pmet,pTrackMet)<45.";
@@ -74,65 +78,65 @@ void plotOFVZsub(TString var, int nb, float min, float max, bool norm, TString m
 
   if (mycut.Contains("HWW125")) {
     cut+="&& lep1.pt()>23 &&  lep2.pt()>10 && dPhi<100.*TMath::Pi()/180. && mt>80 && mt<123"+dymva;
-    if (njets==0) dysf = 5.9;
+    if (njets==0) dysf = 8.40;
     if (njets==1) dysf = 1.0;
-    if (njets==0) dyer = 0.4;
+    if (njets==0) dyer = 2.87/8.40;
     if (njets==1) dyer = 1.0;
   }
 
   if (mycut.Contains("HWW145")) {
-    cut+="&& lep1.pt()>25 &&  lep2.pt()>15 && dPhi<90.*TMath::Pi()/180. && mt>80 && mt<130"+minmet;
-    if (njets==0) dysf = 5.3;
+    cut+="&& lep1.pt()>25 &&  lep2.pt()>15 && dPhi<90.*TMath::Pi()/180. && mt>80 && mt<130"+dymva;
+    if (njets==0) dysf = 7.42;
     if (njets==1) dysf = 3.1;
-    if (njets==0) dyer = 0.4;
+    if (njets==0) dyer = 1.71/7.42;
     if (njets==1) dyer = 0.5;
   }
 
   if (mycut.Contains("HWW150")) {
-    cut+="&& lep1.pt()>27 &&  lep2.pt()>25 && dPhi<90.*TMath::Pi()/180. && mt>80 && mt<150"+minmet;
-    if (njets==0) dysf = 2.3;
+    cut+="&& lep1.pt()>27 &&  lep2.pt()>25 && dPhi<90.*TMath::Pi()/180. && mt>80 && mt<150"+dymva;
+    if (njets==0) dysf = 15.78;
     if (njets==1) dysf = 2.8;
-    if (njets==0) dyer = 0.7;
+    if (njets==0) dyer = 4.20/15.78;
     if (njets==1) dyer = 0.5;
   }
 
   if (mycut.Contains("HWW160")) {
-    cut+="&& lep1.pt()>30 &&  lep2.pt()>25 && dPhi<60.*TMath::Pi()/180. && mt>90 && mt<160"+minmet;
-    if (njets==0) dysf = 2.3;
+    cut+="&& lep1.pt()>30 &&  lep2.pt()>25 && dPhi<60.*TMath::Pi()/180. && mt>90 && mt<160"+dymva;
+    if (njets==0) dysf = 11.85;
     if (njets==1) dysf = 3.3;
-    if (njets==0) dyer = 1.5;
+    if (njets==0) dyer = 4.65/11.85;
     if (njets==1) dyer = 0.4;
   }
 
   if (mycut.Contains("HWW170")) {
-    cut+="&& lep1.pt()>34 &&  lep2.pt()>25 && dPhi<60.*TMath::Pi()/180. && mt>110 && mt<170"+minmet;
-    if (njets==0) dysf = 1.4;
+    cut+="&& lep1.pt()>34 &&  lep2.pt()>25 && dPhi<60.*TMath::Pi()/180. && mt>110 && mt<170"+dymva;
+    if (njets==0) dysf = 5.50;
     if (njets==1) dysf = 3.8;
-    if (njets==0) dyer = 1.9;
+    if (njets==0) dyer = 3.62/5.50;
     if (njets==1) dyer = 0.4;
   }
 
   if (mycut.Contains("HWW180")) {
-    cut+="&& lep1.pt()>36 &&  lep2.pt()>25 && dPhi<70.*TMath::Pi()/180. && mt>120 && mt<180"+minmet;
-    if (njets==0) dysf = 0.6;
+    cut+="&& lep1.pt()>36 &&  lep2.pt()>25 && dPhi<70.*TMath::Pi()/180. && mt>120 && mt<180"+dymva;
+    if (njets==0) dysf = 1.0;
     if (njets==1) dysf = 5.0;
-    if (njets==0) dyer = 3.9;
-    if (njets==1) dyer = 0.4;
-  }
-
-  if (mycut.Contains("HWW190")) {
-    cut+="&& lep1.pt()>38 &&  lep2.pt()>25 && dPhi<90.*TMath::Pi()/180. && mt>120 && mt<190"+minmet;
-    if (njets==0) dysf = 1.7;
-    if (njets==1) dysf = 5.2;
     if (njets==0) dyer = 1.0;
     if (njets==1) dyer = 0.4;
   }
 
+  if (mycut.Contains("HWW190")) {
+    cut+="&& lep1.pt()>38 &&  lep2.pt()>25 && dPhi<90.*TMath::Pi()/180. && mt>120 && mt<190"+dymva;
+    if (njets==0) dysf = 11.78;
+    if (njets==1) dysf = 5.2;
+    if (njets==0) dyer = 4.12/11.78;
+    if (njets==1) dyer = 0.4;
+  }
+
   if (mycut.Contains("HWW200")) {
-    cut+="&& lep1.pt()>40 &&  lep2.pt()>25 && dPhi<100.*TMath::Pi()/180. && mt>120 && mt<200"+minmet;
-    if (njets==0) dysf = 2.0;
+    cut+="&& lep1.pt()>40 &&  lep2.pt()>25 && dPhi<100.*TMath::Pi()/180. && mt>120 && mt<200"+dymva;
+    if (njets==0) dysf = 10.18;
     if (njets==1) dysf = 4.9;
-    if (njets==0) dyer = 0.7;
+    if (njets==0) dyer = 3.10/10.18;
     if (njets==1) dyer = 0.4;
   }
 

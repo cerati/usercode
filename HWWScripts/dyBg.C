@@ -1,6 +1,6 @@
 #include "common.C"
 //#include "Smurf/Analysis/HWWlvlv/DYRoutinValues.h"
-#include "DYRoutinValues_MC.h"
+#include "DYRoutinValues_data.h"
 
 TFile* outRFile;
 bool saveRFile = true;
@@ -75,8 +75,8 @@ pair<float, float> computeRoutinData(unsigned int cut, unsigned int veto, int ma
   bool printAll = 0;
   pair<float, float> outYield = getDYYieldInData(main_dir+dy_dir+"data.root", cut, veto, mass, njets, regionOut+metcut, lumi, kee, useJson, applyEff, doFake, doPUw);
   pair<float, float> inzYield = getDYYieldInData(main_dir+dy_dir+"data.root", cut, veto, mass, njets, regionIn +metcut, lumi, kee, useJson, applyEff, doFake, doPUw);
-  float r_all = outYield.first/inzYield.first;
-  float r_all_err = sqrt( pow(outYield.second,2)/pow(inzYield.first,2) + outYield.first*pow(inzYield.second,2)/pow(inzYield.first,4) );
+  float r_all = inzYield.first>0 ? outYield.first/inzYield.first : -1.;
+  float r_all_err = inzYield.first>0 ? sqrt( pow(outYield.second,2)/pow(inzYield.first,2) + pow(outYield.first*inzYield.second,2)/pow(inzYield.first,4) ) : -1.;
   if (printAll) {
     cout << "computing Rout/in for metcut: " << metcut << endl;
     cout << "Nin: " << inzYield.first << "+/-" << inzYield.second << endl;
@@ -88,22 +88,27 @@ pair<float, float> computeRoutinData(unsigned int cut, unsigned int veto, int ma
 
 pair<float, float> computeRoutinDatawithSyst(unsigned int cut, unsigned int veto, int mass, unsigned int njets, TString regionIn, TString regionOut, float lumi, 
 					   bool useJson=false, bool applyEff=false, bool doFake=false, bool doPUw=false)  {
-  bool printAll = 0;
+  bool printAll = 1;
   float kee = getK(main_dir+dy_dir+"data.root", cut, veto, mass, njets, 0, useJson);
   pair<float, float> rbin1 = computeRoutinData(cut, veto, mass, njets, regionIn+"=zregion=", regionOut, "=routinbin1=", lumi, kee, useJson, applyEff, doFake, doPUw);
   pair<float, float> rbin2 = computeRoutinData(cut, veto, mass, njets, regionIn+"=zregion=", regionOut, "=routinbin2=", lumi, kee, useJson, applyEff, doFake, doPUw);
   pair<float, float> rbin3 = computeRoutinData(cut, veto, mass, njets, regionIn+"=zregion=", regionOut, "=routinbin3=", lumi, kee, useJson, applyEff, doFake, doPUw);
+  if (rbin1.first<0) rbin1 = rbin3;
+  if (rbin2.first<0) rbin2 = rbin3;
   float r_all = rbin3.first;
   float r_all_stat_err = rbin3.second;
-  float r_all_syst_err = max(fabs(r_all-rbin2.first),fabs(r_all-rbin1.first));
+  //set a minimum of 30% systematic error
+  float r_all_syst_err = max( float(r_all*0.30), max(fabs(r_all-rbin2.first),fabs(r_all-rbin1.first)) );
   float r_all_err = sqrt( pow(r_all_stat_err,2) + pow(r_all_syst_err,2) );
 
   pair<float, float> rbin4 = computeRoutinData(cut, veto, mass, njets, regionIn+"=zregion=", regionOut, "=routinbin4=", lumi, kee, useJson);
 
   if (saveRFile) outRFile->cd();
   TH1F* rplot = new TH1F(Form("data_mh%i_%ij",mass,njets),Form("data_mh%i_%ij",mass,njets),4,0,4);
-  rplot->SetBinContent(1,rbin1.first);rplot->SetBinError(1,rbin1.second);
-  rplot->SetBinContent(2,rbin2.first);rplot->SetBinError(2,rbin2.second);
+  if (fabs(rbin1.first-rbin3.first)>0.000001 || fabs(rbin1.second-rbin3.second)>0.000001) 
+    {rplot->SetBinContent(1,rbin1.first);rplot->SetBinError(1,rbin1.second);}
+  if (fabs(rbin2.first-rbin3.first)>0.000001 || fabs(rbin2.second-rbin3.second)>0.000001) 
+    {rplot->SetBinContent(2,rbin2.first);rplot->SetBinError(2,rbin2.second);}
   rplot->SetBinContent(3,rbin3.first);rplot->SetBinError(3,rbin3.second);
   rplot->SetBinContent(4,rbin4.first);rplot->SetBinError(4,rbin4.second);
   if (saveRFile) rplot->Write();
@@ -135,8 +140,8 @@ pair<float, float> computeRoutinMC(unsigned int cut, unsigned int veto, int mass
   float zee_out_err = out_ee.second;
   float z_out = zee_out + zmm_out;
   float z_out_err = sqrt( pow(zee_out_err,2) + pow(zmm_out_err,2) );
-  float r_all = z_out/z_in;
-  float r_all_err = r_all*sqrt( pow(z_out_err/z_out,2) + pow(z_in_err/z_in,2) );
+  float r_all = z_in>0 ? z_out/z_in : -1.;
+  float r_all_err = z_in>0 ? sqrt( pow(z_out_err/z_in,2) + pow(z_out*z_in_err,2)/pow(z_in,4) ) : -1.;
   if (printAll) {
     cout << "computing Rout/in for metcut: " << metcut << endl;
     cout << "Nin mm, ee, all: " << zmm_in << "+/-" << zmm_in_err << " " << zee_in << "+/-" << zee_in_err << " " << z_in << "+/-" << z_in_err << endl;
@@ -157,7 +162,10 @@ pair<float, float> computeRoutinMCwithSyst(unsigned int cut, unsigned int veto, 
   pair<float, float> rbin2 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "=routinbin2=", lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> rbin3 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "=routinbin3=", lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> rbin4 = computeRoutinMC(cut, veto, mass, njets, regionIn, regionOut, "=routinbin4=", lumi, useJson, applyEff, doFake, doPUw);
-  if (rbin4.second/rbin4.first>0.40 || !isfinite(rbin4.first)) {
+  pair<float, float> myrbin4 = rbin4;
+  if (rbin1.first<0) rbin1 = rbin3;
+  if (rbin2.first<0) rbin2 = rbin3;
+  if (rbin4.second/rbin4.first>0.40 || rbin4.first<0) {
     //do not consider the last bin
     rbin4 = make_pair<float, float>(rbin3.first,rbin3.second);
   }
@@ -168,10 +176,13 @@ pair<float, float> computeRoutinMCwithSyst(unsigned int cut, unsigned int veto, 
 
   if (saveRFile) outRFile->cd();
   TH1F* rplot = new TH1F(Form("mc_mh%i_%ij",mass,njets),Form("mc_mh%i_%ij",mass,njets),4,0,4);
-  rplot->SetBinContent(1,rbin1.first);rplot->SetBinError(1,rbin1.second);
-  rplot->SetBinContent(2,rbin2.first);rplot->SetBinError(2,rbin2.second);
+  if (fabs(rbin1.first-rbin3.first)>0.000001 || fabs(rbin1.second-rbin3.second)>0.000001) 
+    {rplot->SetBinContent(1,rbin1.first);rplot->SetBinError(1,rbin1.second);}
+  if (fabs(rbin2.first-rbin3.first)>0.000001 || fabs(rbin2.second-rbin3.second)>0.000001) 
+    {rplot->SetBinContent(2,rbin2.first);rplot->SetBinError(2,rbin2.second);}
   rplot->SetBinContent(3,rbin3.first);rplot->SetBinError(3,rbin3.second);
-  rplot->SetBinContent(4,rbin4.first);rplot->SetBinError(4,rbin4.second);
+  if (myrbin4.first>=0) 
+    {rplot->SetBinContent(4,myrbin4.first);rplot->SetBinError(4,myrbin4.second);}
   if (saveRFile) rplot->Write();
   delete rplot;
 
@@ -236,16 +247,17 @@ void makeDYTable(float lumi) {
     else outRFile = TFile::Open("outRFile_cut.root","RECREATE");
   }
 
-  TString regionIn  = "=leppts=dphicut=ptll45=zregion=dpjallfs=";//lep2pt20allfs=
-  TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=";//lep2pt20allfs
+  TString regionIn  = "=leppts=dphicut=ptll45=zregion=dpjallfs=";//lep2pt20allfs=//fixme mtcut
+  TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=";//lep2pt20allfs//fixme mtcut
 
   //int jetbins[] = {0};
   int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
-  //int masses[] = {140,160};
+  //int masses[] = {0,130,150};
   //int masses[] = {0,115,120,140,160,200};
-  //int masses[] = {0,1,120};
+  //int masses[] = {120};
+  //int masses[] = {0,120,140,160,180,200};
   int masses[] = {0,115,120,125,130,140,145,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
 
@@ -282,9 +294,14 @@ void makeDYTable(float lumi) {
       }
       doVBF=0;
       if (njets==2) {
-	//regionIn+="=looseVBF=";
-	//regionOut+="=looseVBF=";
 	doVBF=1;
+	if (mass>100) {
+	  regionIn.ReplaceAll("looseVBF=","");
+	  regionOut.ReplaceAll("looseVBF=","");
+	} else {
+	  regionIn+="=looseVBF=";
+	  regionOut+="=looseVBF=";
+	}
       }
 
       pair<float, float> dymmMC   = getYield(main_dir+dy_dir+"dyll",  wwSelNoMet, noVeto, mass, njets, "=mmfs=dymvacut=mtcut="+regionOut, lumi, false, applyEff, doFake, doPUw);
@@ -297,10 +314,10 @@ void makeDYTable(float lumi) {
 	r = make_pair<float, float>(RoutinValue(mass,njets),sqrt(pow(RoutinStatError(mass,njets),2)+pow(RoutinSystError(mass,njets),2)));
       } else {
 	if (njets!=2) {
-	  r2 = computeRoutinMCwithSyst (wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
+	  //r2 = computeRoutinMCwithSyst (wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
 	  r  = computeRoutinDatawithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn, regionOut, lumi, useJson, applyEff, doFake, doPUw);
 	} else {
-	  r2 = computeRoutinMCwithSyst  (wwSelNoZVNoMet, noVeto, mass, njets, regionIn/*+"=looseVBF="*/, regionOut/*+"=looseVBF="*/, lumi, useJson, applyEff, doFake, doPUw);
+	  //r2 = computeRoutinMCwithSyst  (wwSelNoZVNoMet, noVeto, mass, njets, regionIn/*+"=looseVBF="*/, regionOut/*+"=looseVBF="*/, lumi, useJson, applyEff, doFake, doPUw);
 	  r  = computeRoutinDatawithSyst(wwSelNoZVNoMet, noVeto, mass, njets, regionIn/*+"=looseVBF="*/, regionOut/*+"=looseVBF="*/, lumi, useJson, applyEff, doFake, doPUw);
 	}
       }
@@ -455,16 +472,16 @@ void makeOFVZSubtrTable(float lumi) {
   bool doFake   = false;
   bool doPUw    = true;
 
-  TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=";//lep2pt20allfs
+  TString regionOut = "=leppts=dphicut=ptll45=masscut=zvetoall=dpjallfs=mt80=";//lep2pt20allfs
 
-  //int jetbins[] = {0};
-  int jetbins[] = {0,1,2};
+  int jetbins[] = {0,1};
+  //int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
   //int masses[] = {125,160};
-  //int masses[] = {0,115,120,140,160,200};
-  //int masses[] = {0,1,120};
-  int masses[] = {0,115,120,125,130,140,145,150,160,170,180,190,200,250,300};
+  int masses[] = {0,120,160,200};
+  //int masses[] = {0,120};
+  //int masses[] = {0,115,120,125,130,140,145,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
 
   bool doLatex = false;

@@ -8,6 +8,7 @@
 #include <TMath.h>
 #include <TLegend.h>
 #include <TTree.h>
+#include <TChain.h>
 #include <THStack.h>
 #include <TFile.h>
 #include <TLine.h>
@@ -30,6 +31,12 @@ int getIndexForProcess(TString* mcs, int nMC, TString proc) {
   return -1;
 }
 
+void addInQuadrature(TH1* hnew, TH1* hold, float scale=1) {
+  for (int bin=1;bin<=hold->GetNbinsX();bin++) {
+    hnew->SetBinContent(bin, hnew->GetBinContent(bin)+pow(hold->GetBinContent(bin)*scale,2) );
+  }
+}
+
 void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dodata=1, bool useSF=true, bool logy=0){
   //lumi is in /fb
 
@@ -44,39 +51,52 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
   bool doSignal = 1;
   if (mass==0) doSignal = 0;
 
-  bool doRatio = 0;
+  bool doRatio = 1;
 
-  bool dyFromLowMet = 0;
+  bool dyFromLowMet = 1;
+  //if (mass<=1) dyFromLowMet = 0;
+
+  bool withZpeak = 0;
+
+  bool blindData = 0;
+
+  bool doSyst = 1;
+
+  bool doWWxsec = 0;
+
+  bool topTagged = 0;
+  bool sameSign = 0;
 
   TString extensions[] = {".png"};
   //TString extensions[] = {".png",".eps",".root",".C"};
 
   TString plot[]    = {
-    "dilep.mass()",
-    "dPhi*180./TMath::Pi()",
-    "dilep.pt()",
-    "lep1.pt()",
-    "lep2.pt()",
-    "type",
-    "pmet",
-    "pTrackMet",
-    "mt",
+    "dilep.mass()"
+//     "dPhi*180./TMath::Pi()",
+//     "dilep.pt()",
+//     "lep1.pt()",
+//     "lep2.pt()",
+//     "type",
+//     "pmet",
+//     "pTrackMet",
+//     "mt",
+//     "jet1.pt()",
+//     "jet2.pt()",
+//     "nvtx",
+//     "dymva",
+//     "jet1.eta()",
+//     "jet2.eta()",
+//     "jet1Btag"
+//     "jet1ProbBtag",
+//     "njets"
 //     "abs(atan2((jet1.py()+jet2.py()),(jet1.px()+jet2.px())))*180./TMath::Pi()",
 //     "acos(cos(atan2((jet1.py()+jet2.py()),(jet1.px()+jet2.px()))-dilep.phi()))*180./TMath::Pi()",
 //     "dPhiDiLepJet1*180./TMath::Pi()",
-    "jet1.pt()",
-    "jet2.pt()",
-    "jet1.eta()",
-    "jet2.eta()",
-    "jet1Btag",
-//     "jet1ProbBtag",
-    "nvtx",
-    "dymva"
-    //"abs(jet1.eta()-jet2.eta())"
+//     "abs(jet1.eta()-jet2.eta())"
   };
   int nPlots = sizeof(plot)/sizeof(TString);
 
-  TString mcs[] = {"qqww","ggww","dyll","ttbar","tw","wz","zz","wjets","wgamma","wglll","hww125"};//
+  TString mcs[] = {"qqww","ggww","dyll","ttbar_powheg","tw","wz","zz","www","wjets","wgamma","zgamma","wglll","hww125"};//
   int nMC = sizeof(mcs)/sizeof(TString);
 
   vector<int> colors;
@@ -84,87 +104,81 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
   if (getIndexForProcess(mcs,nMC,"qqww")>=0)   colors[getIndexForProcess(mcs,nMC,"qqww")]   = kAzure-9;
   if (getIndexForProcess(mcs,nMC,"ggww")>=0)   colors[getIndexForProcess(mcs,nMC,"ggww")]   = kAzure-9;
   if (getIndexForProcess(mcs,nMC,"dyll")>=0)   colors[getIndexForProcess(mcs,nMC,"dyll")]   = kGreen+2;
-  if (getIndexForProcess(mcs,nMC,"ttbar")>=0)  colors[getIndexForProcess(mcs,nMC,"ttbar")]  = kYellow;
+  if (getIndexForProcess(mcs,nMC,"ttbar_powheg")>=0)  colors[getIndexForProcess(mcs,nMC,"ttbar_powheg")]  = kYellow;
   if (getIndexForProcess(mcs,nMC,"tw")>=0)     colors[getIndexForProcess(mcs,nMC,"tw")]     = kYellow;
   if (getIndexForProcess(mcs,nMC,"wz")>=0)     colors[getIndexForProcess(mcs,nMC,"wz")]     = kAzure-2;
   if (getIndexForProcess(mcs,nMC,"zz")>=0)     colors[getIndexForProcess(mcs,nMC,"zz")]     = kAzure-2;
+  if (getIndexForProcess(mcs,nMC,"www")>=0)    colors[getIndexForProcess(mcs,nMC,"www")]     = kAzure-2;
   if (getIndexForProcess(mcs,nMC,"wjets")>=0)  colors[getIndexForProcess(mcs,nMC,"wjets")]  = kGray+1;
   if (getIndexForProcess(mcs,nMC,"wgamma")>=0) colors[getIndexForProcess(mcs,nMC,"wgamma")] = kGray+1;
+  if (getIndexForProcess(mcs,nMC,"zgamma")>=0) colors[getIndexForProcess(mcs,nMC,"zgamma")] = kGray+1;
   if (getIndexForProcess(mcs,nMC,"wglll")>=0)  colors[getIndexForProcess(mcs,nMC,"wglll")]  = kGray+1;
   if (getIndexForProcess(mcs,nMC,"hww125")>=0) colors[getIndexForProcess(mcs,nMC,"hww125")] = kRed;
 
   TCut runrange("run>0");//Full dataset
 
-  TString dir = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/wwSelNoLepNoTV/";//wwSelNoMetNoZVminMET20
-  dir = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_52X/mitf-alljets-mm20-dymva/";
+  TString dir = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_53X/skim_topww/";
+  if (withZpeak) dir+="../skim_dy/";
+  if (sameSign) dir+="../skim_wj/";
 
   vector<float> sfs;
   for (int j=0;j<nMC;++j) sfs.push_back(1.0);
+  vector<float> ks;
+  for (int j=0;j<nMC;++j) ks.push_back(1.0);
 
   if (useSF) {
 
-    if (getIndexForProcess(mcs,nMC,"qqww")>=0)  sfs[getIndexForProcess(mcs,nMC,"qqww")]  = WWBkgScaleFactorCutBased(max(115,mass),njets);
-    if (getIndexForProcess(mcs,nMC,"ggww")>=0)  sfs[getIndexForProcess(mcs,nMC,"ggww")]  = WWBkgScaleFactorCutBased(max(115,mass),njets);
+    if (getIndexForProcess(mcs,nMC,"qqww")>=0)  sfs[getIndexForProcess(mcs,nMC,"qqww")]  = WWBkgScaleFactorCutBased(max(115,mass),min(njets,1));
+    if (getIndexForProcess(mcs,nMC,"ggww")>=0)  sfs[getIndexForProcess(mcs,nMC,"ggww")]  = WWBkgScaleFactorCutBased(max(115,mass),min(njets,1));
     if (getIndexForProcess(mcs,nMC,"dyll")>=0)  sfs[getIndexForProcess(mcs,nMC,"dyll")]  = DYBkgScaleFactor(mass,njets);
-    if (getIndexForProcess(mcs,nMC,"ttbar")>=0) sfs[getIndexForProcess(mcs,nMC,"ttbar")] = TopBkgScaleFactor(njets);
+    if (getIndexForProcess(mcs,nMC,"ttbar_powheg")>=0) sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = TopBkgScaleFactor(njets);
     if (getIndexForProcess(mcs,nMC,"tw")>=0)    sfs[getIndexForProcess(mcs,nMC,"tw")]    = TopBkgScaleFactor(njets);
     if (getIndexForProcess(mcs,nMC,"wglll")>=0) sfs[getIndexForProcess(mcs,nMC,"wglll")] = WGstarScaleFactor();
     if (wjetsFromData==0 && getIndexForProcess(mcs,nMC,"wjets")>=0) sfs[getIndexForProcess(mcs,nMC,"wjets")] = WJetsMCScaleFactor();
     
-    //need to set mass dependent scale factors by hand
-    //dy 0-jet
-    if (njets==0) {
-      if (mass==115) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 4.4;
-      if (mass==120) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 4.8;
-      if (mass==125) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 5.9;
-      if (mass==130) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 8.7;
-      if (mass==140) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 8.2;
-      if (mass==145) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 5.3;
-      if (mass==150) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 2.2;
-      if (mass==160) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 2.2;
-      if (mass==170) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 1.4;
-      if (mass==180) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 0.6;
-      if (mass==190) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 1.6;
-      if (mass==200) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 2.0;
-      if (mass==250) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 1.3;
-      if (mass==300) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 3.3;
+    if (getIndexForProcess(mcs,nMC,"qqww")>=0)  ks[getIndexForProcess(mcs,nMC,"qqww")]  = WWBkgScaleFactorKappaCutBased(max(115,mass),min(njets,1));
+    if (getIndexForProcess(mcs,nMC,"ggww")>=0)  ks[getIndexForProcess(mcs,nMC,"ggww")]  = WWBkgScaleFactorKappaCutBased(max(115,mass),min(njets,1));
+    if (getIndexForProcess(mcs,nMC,"dyll")>=0)  ks[getIndexForProcess(mcs,nMC,"dyll")]  = DYBkgScaleFactorKappa(mass,njets);
+    if (getIndexForProcess(mcs,nMC,"ttbar_powheg")>=0) ks[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = TopBkgScaleFactorKappa(njets);
+    if (getIndexForProcess(mcs,nMC,"tw")>=0)    ks[getIndexForProcess(mcs,nMC,"tw")]    = TopBkgScaleFactorKappa(njets);
+    if (getIndexForProcess(mcs,nMC,"wglll")>=0) ks[getIndexForProcess(mcs,nMC,"wglll")] = 1.+WGstarScaleFactorSyst();
+    if (getIndexForProcess(mcs,nMC,"wjets")>=0) ks[getIndexForProcess(mcs,nMC,"wjets")] = 1.360;
+    
+    if (dyFromLowMet) {
+      //put the yields by hand,
+      if (doWWxsec) {
+	if (mass==0&&njets==0) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 73.6;
+	if (mass==0&&njets==1) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 30.3;
+	if (mass==0&&njets==2) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 359.2;
+      } else {
+	if (mass==0&&njets==0) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 119.74;
+	if (mass==0&&njets==1) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 46.99;
+	if (mass==0&&njets==2) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 528.88;
+      }
     }
-    //dy 1-jet
-    if (njets==1) {
-      if (mass==115) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 1.0;
-      if (mass==120) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 1.0;
-      if (mass==125) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 1.0;
-      if (mass==130) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 1.0;
-      if (mass==140) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 1.0;
-      if (mass==150) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 2.8;
-      if (mass==160) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 3.3;
-      if (mass==170) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 3.8;
-      if (mass==180) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 5.0;
-      if (mass==190) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 5.2;
-      if (mass==200) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 4.9;
-      if (mass==250) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 3.3;
-      if (mass==300) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 8.9;
-    }
+
+    /*
+    //need to set mass dependent scale factors by hand //fixme
     if (njets==2) {
-      //dy 2-jet
-      if (mass==115) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 8.0;
-      if (mass==120) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 8.5;
-      if (mass==125) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 9.5;
-      if (mass==130) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 10.2;
-      if (mass==140) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 12.5;
-      if (mass==150) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 13.4;
-      if (mass==160) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 15.2;
-      if (mass==300) sfs[getIndexForProcess(mcs,nMC,"dyll")] = 20.4;
-      //top 2-jet
-      if (mass==115) {sfs[getIndexForProcess(mcs,nMC,"ttbar")] = 7.1; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar")];}
-      if (mass==120) {sfs[getIndexForProcess(mcs,nMC,"ttbar")] = 4.9; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar")];}
-      if (mass==125) {sfs[getIndexForProcess(mcs,nMC,"ttbar")] = 5.2; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar")];}
-      if (mass==130) {sfs[getIndexForProcess(mcs,nMC,"ttbar")] = 4.7; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar")];}
-      if (mass==140) {sfs[getIndexForProcess(mcs,nMC,"ttbar")] = 4.1; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar")];}
-      if (mass==150) {sfs[getIndexForProcess(mcs,nMC,"ttbar")] = 4.1; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar")];}
-      if (mass==160) {sfs[getIndexForProcess(mcs,nMC,"ttbar")] = 4.4; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar")];}
-      if (mass==300) {sfs[getIndexForProcess(mcs,nMC,"ttbar")] = 1.4; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar")];}
+      //top 2-jet 
+      if (mass==115) {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 7.1; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+      if (mass==120) {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 4.9; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+      if (mass==125) {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 5.2; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+      if (mass==130) {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 4.7; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+      if (mass==140) {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 4.1; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+      if (mass==150) {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 4.1; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+      if (mass==160) {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 4.4; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+      if (mass==300) {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 1.4; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
     }
+    */
+    if (doWWxsec) {
+      if (getIndexForProcess(mcs,nMC,"qqww")>=0)  sfs[getIndexForProcess(mcs,nMC,"qqww")]  = WWBkgScaleFactorMVA(max(115,mass),min(njets,1));
+      if (getIndexForProcess(mcs,nMC,"ggww")>=0)  sfs[getIndexForProcess(mcs,nMC,"ggww")]  = WWBkgScaleFactorMVA(max(115,mass),min(njets,1));
+      if (mass==0&&njets==0)   {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 1.02; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+      if (mass==0&&njets==1)   {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 1.07; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+      if (mass==0&&njets==2)   {sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = 1.17; sfs[getIndexForProcess(mcs,nMC,"tw")]=sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")];}
+    }
+
   }
     
   TString mh = Form("%i",mass); 
@@ -189,7 +203,14 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
   TCut mtside   = lep1pt && lep2pt && himass && mt;
   TCut dphiside = lep1pt && lep2pt && himass && mt && dPhi;
 
-  //wwSelNoMetNoLep = wwSelNoMetNoLep&~ZVeto;
+  if (withZpeak) wwSelNoMetNoLep = wwSelNoMetNoLep&~ZVeto;
+  if (topTagged) {
+    wwSelNoMetNoLep = wwSelNoMetNoLep&~TopVeto;
+    wwSelNoMetNoLep = wwSelNoMetNoLep|TopTag;
+  }
+  if (sameSign) {
+    wwSelNoMetNoLep = wwSelNoMetNoLep&~ChargeMatch;
+  }
 
   TCut base(Form("(cuts & %i)==%i",wwSelNoMetNoLep,wwSelNoMetNoLep));
   TCut leps(Form("(cuts & %i)==%i && (cuts & %i)==%i",Lep1FullSelection,Lep1FullSelection,Lep2FullSelection,Lep2FullSelection));
@@ -197,15 +218,21 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
 		   Lep1FullSelection,Lep1FullSelection,Lep2FullSelection,Lep2FullSelection,Lep1FullSelection,Lep1FullSelection,Lep2FullSelection,Lep2FullSelection));
   TCut notTagNotInJets(Form("(cuts & %i)!=%i",TopTagNotInJets,TopTagNotInJets));
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
-  TCut newcuts = "type==1 || type==2 || ( min(pmet,pTrackMet)>45. && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
+  TCut newcuts = "";//"type==1 || type==2 || ( min(pmet,pTrackMet)>45. && (jet1.pt()<15 || dPhiDiLepJet1*180./TMath::Pi()<165.) )";
   if (njets==2) newcuts = "type==1 || type==2 || (met>45. && acos(cos( atan2((jet1.py()+jet2.py()),(jet1.px()+jet2.px())) - dilep.phi()))*180./TMath::Pi()<165.)";
-  if (njets==0 && mass>0 && mass<=140) newcuts = "type==1 || type==2 || dymva>0.6";
-  if (njets==1 && mass>0 && mass<=140) newcuts = "type==1 || type==2 || dymva>0.3";
+  if (njets==0) newcuts = "type==1 || type==2 || dymva>0.88";
+  if (njets==1) newcuts = "type==1 || type==2 || dymva>0.84";
   TCut njcut(Form("njets==%i",njets));
-  if (njets==2) njcut = "(njets==2 || (njets==3 && !((jet1.eta()-jet3.eta() > 0 && jet2.eta()-jet3.eta() < 0) || (jet2.eta()-jet3.eta() > 0 && jet1.eta()-jet3.eta() < 0)) ))&&!(TMath::Abs(jet1.eta())>= 4.5||TMath::Abs(jet2.eta()) >= 4.5)";
+  if (njets==2) njcut = "(njets==2 || (njets==3 && !((jet1.eta()-jet3.eta() > 0 && jet2.eta()-jet3.eta() < 0) || (jet2.eta()-jet3.eta() > 0 && jet1.eta()-jet3.eta() < 0)) ))&&!(TMath::Abs(jet1.eta())>= 4.7||TMath::Abs(jet2.eta()) >= 4.7)";
   if (njets==-1) njcut = "njets==0 || njets==1 || (njets==2 || (njets==3 && !((jet1.eta()-jet3.eta() > 0 && jet2.eta()-jet3.eta() < 0) || (jet2.eta()-jet3.eta() > 0 && jet1.eta()-jet3.eta() < 0)) ))&&!(TMath::Abs(jet1.eta())>= 4.5||TMath::Abs(jet2.eta()) >= 4.5)";
   TCut kincuts = "dilep.pt()>45.";
-  if (njets==2 && mass>0) kincuts = "dilep.pt()>45. && TMath::Abs(jet1.eta()-jet2.eta())>3.5 && (((jet1.eta()-lep1.eta() > 0 && jet2.eta()-lep1.eta() < 0) || (jet2.eta()-lep1.eta() > 0 && jet1.eta()-lep1.eta() < 0)) && ((jet1.eta()-lep2.eta() > 0 && jet2.eta()-lep2.eta() < 0) || (jet2.eta()-lep2.eta() > 0 && jet1.eta()-lep2.eta() < 0))) && sqrt(2*jet1.pt()*jet2.pt()*(TMath::CosH(jet1.eta()-jet2.eta())-TMath::Cos(jet1.phi()-jet2.phi())))>450.";
+  if (njets==2 && mass>0) kincuts = "dilep.pt()>45. && TMath::Abs(jet1.eta()-jet2.eta())>3.5 && (((jet1.eta()-lep1.eta() > 0 && jet2.eta()-lep1.eta() < 0) || (jet2.eta()-lep1.eta() > 0 && jet1.eta()-lep1.eta() < 0)) && ((jet1.eta()-lep2.eta() > 0 && jet2.eta()-lep2.eta() < 0) || (jet2.eta()-lep2.eta() > 0 && jet1.eta()-lep2.eta() < 0))) && sqrt(2*jet1.pt()*jet2.pt()*(TMath::CosH(jet1.eta()-jet2.eta())-TMath::Cos(jet1.phi()-jet2.phi())))>500.";
+  TCut blindDataCut = "(dstype!=0 || dilep.mass()>70)";
+  if (blindData) kincuts = kincuts&&blindDataCut;
+  TCut wwXSecCut = "lep2.pt()>20";
+  if (doWWxsec) kincuts = kincuts&&wwXSecCut;
+  TCut ssCut = "lq1*lq2>0";
+  if (sameSign) kincuts = kincuts&&ssCut;
 
   TCut flav = "";
   TString flavstr = "";
@@ -246,7 +273,7 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
 
   vector<TString> binning;
   for (int j=0;j<nPlots;++j) binning.push_back("");
-  if (getIndexForProcess(plot,nPlots,"dilep.mass()")>=0) binning[getIndexForProcess(plot,nPlots,"dilep.mass()")] = "40,0.,200.";
+  if (getIndexForProcess(plot,nPlots,"dilep.mass()")>=0) binning[getIndexForProcess(plot,nPlots,"dilep.mass()")] = "25,0.,250.";
   if (getIndexForProcess(plot,nPlots,"dPhi*180./TMath::Pi()")>=0) binning[getIndexForProcess(plot,nPlots,"dPhi*180./TMath::Pi()")] = "18,0.,180.";
   if (getIndexForProcess(plot,nPlots,"dPhiDiLepJet1*180./TMath::Pi()")>=0) binning[getIndexForProcess(plot,nPlots,"dPhiDiLepJet1*180./TMath::Pi()")] = "9,0.,180.";
   if (getIndexForProcess(plot,nPlots,"abs(atan2((jet1.py()+jet2.py()),(jet1.px()+jet2.px())))*180./TMath::Pi()")>=0) 
@@ -254,12 +281,12 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
   if (getIndexForProcess(plot,nPlots,"acos(cos(atan2((jet1.py()+jet2.py()),(jet1.px()+jet2.px()))-dilep.phi()))*180./TMath::Pi()")>=0) 
     binning[getIndexForProcess(plot,nPlots,"acos(cos(atan2((jet1.py()+jet2.py()),(jet1.px()+jet2.px()))-dilep.phi()))*180./TMath::Pi()")] = "9,0.,180.";
   if (getIndexForProcess(plot,nPlots,"dilep.pt()")>=0) binning[getIndexForProcess(plot,nPlots,"dilep.pt()")] = "15,0.,150.";
-  if (getIndexForProcess(plot,nPlots,"lep1.pt()")>=0) binning[getIndexForProcess(plot,nPlots,"lep1.pt()")] = "15,0.,120.";
-  if (getIndexForProcess(plot,nPlots,"lep2.pt()")>=0) binning[getIndexForProcess(plot,nPlots,"lep2.pt()")] = "15,0.,120.";
+  if (getIndexForProcess(plot,nPlots,"lep1.pt()")>=0) binning[getIndexForProcess(plot,nPlots,"lep1.pt()")] = "30,0.,150.";
+  if (getIndexForProcess(plot,nPlots,"lep2.pt()")>=0) binning[getIndexForProcess(plot,nPlots,"lep2.pt()")] = "30,0.,150.";
   if (getIndexForProcess(plot,nPlots,"type")>=0) binning[getIndexForProcess(plot,nPlots,"type")] = "4,0,4";
   if (getIndexForProcess(plot,nPlots,"pmet")>=0) binning[getIndexForProcess(plot,nPlots,"pmet")] = "15,0.,150.";
   if (getIndexForProcess(plot,nPlots,"pTrackMet")>=0) binning[getIndexForProcess(plot,nPlots,"pTrackMet")] = "15,0.,150.";
-  if (getIndexForProcess(plot,nPlots,"mt")>=0) binning[getIndexForProcess(plot,nPlots,"mt")] = "20,0.,300.";
+  if (getIndexForProcess(plot,nPlots,"mt")>=0) binning[getIndexForProcess(plot,nPlots,"mt")] = "30,0.,300.";
   if (getIndexForProcess(plot,nPlots,"jet1.pt()")>=0) binning[getIndexForProcess(plot,nPlots,"jet1.pt()")] = njets!=0 ? "20,0.,200." : "6,0.,30.";
   if (getIndexForProcess(plot,nPlots,"jet2.pt()")>=0) binning[getIndexForProcess(plot,nPlots,"jet2.pt()")] = njets==2 ? "20,0.,200." : "6,0.,30.";
   if (getIndexForProcess(plot,nPlots,"jet1.eta()")>=0) binning[getIndexForProcess(plot,nPlots,"jet1.eta()")] = "10,-5.,5.";
@@ -269,6 +296,7 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
   if (getIndexForProcess(plot,nPlots,"nvtx")>=0) binning[getIndexForProcess(plot,nPlots,"nvtx")] = "25,0,50";
   if (getIndexForProcess(plot,nPlots,"dymva")>=0) binning[getIndexForProcess(plot,nPlots,"dymva")] = "21,-1,1.1";
   if (getIndexForProcess(plot,nPlots,"abs(jet1.eta()-jet2.eta())")>=0) binning[getIndexForProcess(plot,nPlots,"abs(jet1.eta()-jet2.eta())")] = "10,0,5.0";
+  if (getIndexForProcess(plot,nPlots,"njets")>=0) binning[getIndexForProcess(plot,nPlots,"njets")] = "11,-0.5,10.5";
 
   vector<TString> xtitle;
   for (int j=0;j<nPlots;++j) xtitle.push_back("");
@@ -295,6 +323,7 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
   if (getIndexForProcess(plot,nPlots,"nvtx")>=0) xtitle[getIndexForProcess(plot,nPlots,"nvtx")] = "N_{vtx}";
   if (getIndexForProcess(plot,nPlots,"dymva")>=0) xtitle[getIndexForProcess(plot,nPlots,"dymva")] = "dymva output";
   if (getIndexForProcess(plot,nPlots,"abs(jet1.eta()-jet2.eta())")>=0) xtitle[getIndexForProcess(plot,nPlots,"abs(jet1.eta()-jet2.eta())")] = "#Delta#eta(j1.j2)";
+  if (getIndexForProcess(plot,nPlots,"njets")>=0) xtitle[getIndexForProcess(plot,nPlots,"njets")] = "N_{jets}";
 
   //if we want to plot signal
   TFile *_signal = 0;
@@ -306,6 +335,11 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
 
   TFile *_data = TFile::Open(dir+"/data.root");
   TTree * data = (TTree*) _data->Get("tree");
+
+  TFile *_spill = TFile::Open(dir+"../skim_wj/data_spill.root");
+  TTree * spill = (TTree*) _spill->Get("tree");
+  TFile *_fakes = TFile::Open(dir+"../skim_wj/data.root");
+  TTree * fakes = (TTree*) _fakes->Get("tree");
 
   bool allleg = false;
 
@@ -323,6 +357,7 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
     minbin.Remove(lastc-firstc-1,bin.Sizeof()-lastc);
 
     //do N-1 plots
+    float x1=-10000,x2=+10000;
     if (mass>0) {
       cut = base&&njcut&&newcuts&&sigreg&&trig&&kincuts&&flav;
       if (plot[pl]=="dilep.mass()") cut = TCut(TString(cut.GetTitle()).ReplaceAll(mll,"dilep.mass()<999"));
@@ -331,6 +366,30 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
       if (plot[pl]=="lep1.pt()") cut = TCut(TString(cut.GetTitle()).ReplaceAll(lep1pt,"lep1.pt()>20."));
       if (plot[pl]=="lep2.pt()") cut = TCut(TString(cut.GetTitle()).ReplaceAll(lep2pt,"lep2.pt()>10."));
       cut.SetName("mh"+mh+"_nj"+nj+flavstr);
+
+      if (plot[pl]=="dilep.mass()") {
+	x1 = 12.;
+	x2 = TString(mll.GetTitle()).ReplaceAll("dilep.mass()<","").Atof();
+      }
+      if (plot[pl]=="dPhi*180./TMath::Pi()") {
+	x1 = -10000.;
+	x2 = TString(dPhi.GetTitle()).ReplaceAll("dPhi<TMath::Pi()*","").ReplaceAll("/180.","").Atof();
+      }
+      if (plot[pl]=="lep1.pt()") {
+	x1 = TString(lep1pt.GetTitle()).ReplaceAll("lep1.pt()>","").Atof();
+	x2 = +10000.;
+      }
+      if (plot[pl]=="lep2.pt()") {
+	x1 = TString(lep2pt.GetTitle()).ReplaceAll("lep2.pt()>","").Atof();
+	x2 = +10000.;
+      }
+      if (plot[pl]=="mt") {
+	TString tit = TString(mt.GetTitle());
+	TString s1 = TString(mt.GetTitle()).Remove(tit.First('&'),tit.Length()-1);
+	TString s2 = TString(mt.GetTitle()).Remove(0,tit.Last('&')+1);
+	x1 = s1.ReplaceAll("mt>","").ReplaceAll("&","").Atof();
+	x2 = s2.ReplaceAll("mt<","").ReplaceAll("&","").Atof();
+      }
     }
 
     TCanvas c;
@@ -346,6 +405,8 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
     TH1F* plotmc = 0;
     TH1F* plotSignal = 0;
     TH1F* plotData = 0;
+    TH1F* h_band = 0;
+    TH1F* plotSyst = new TH1F("plotSyst","plotSyst",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
     TH1F h2("h2","h2",2,0,2);
     TH1F h3("h3","h3",2,0,2);
     TH1F h4("h4","h4",2,0,2);
@@ -356,33 +417,48 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
     if (!compareData) {
       //standard plots
       for (int i=0;i<nMC;++i){    
-	//cout << mcs[i] << endl;
-	TFile *_mc = TFile::Open(dir+"/"+mcs[i]+".root");
+	//cout << mcs[i] << " " << sfs[i] << endl;
+	TFile *_mc = 0;
+	if (dyFromLowMet && mcs[i]=="dyll")  _mc = TFile::Open(dir+"/../skim_dy/"+mcs[i]+".root");
+	else _mc = TFile::Open(dir+"/"+mcs[i]+".root");
 	TTree * mc = (TTree*) _mc->Get("tree");
 	float correction = sfs[i];
-	if (lumi>0.) mc->SetWeight(lumi*correction);
+	if (lumi>0.) {
+	  if (mcs[i]=="dyll" && (mass>1 || fs=="of")) { 
+	    mc->SetWeight(lumi);
+	  } else mc->SetWeight(lumi*correction);
+	}
 	plotmc = new TH1F("plotmc_"+mcs[i],"plotmc",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
 	if (mcs[i].Contains("wjets") && wjetsFromData) {
-	  data->Draw(plot[pl]+">>plotmc_"+mcs[i],Form("sfWeightFR*(%s && %s && %s && sfWeightFR>-99.)",cut.GetTitle(),lplusf.GetTitle(),runrange.GetTitle()),"EP,same");
-	} else if (mcs[i].Contains("dyll") && dyFromLowMet && plot[pl]!="mt" && plot[pl]!="pmet" && plot[pl]!="pTrackMet") {
+	  TH1F* hspill = new TH1F("plotmc_spill","plotmc_spill",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+	  spill->SetWeight(lumi);
+	  spill->Draw(plot[pl]+">>plotmc_spill",Form("scale1fb*sfWeightTrig*sfWeightPU*sfWeightFR*( %s && %s && sfWeightFR>-99. && ( !((abs(lep1McId)==11||abs(lep1McId)==13)&&(abs(lep2McId)==11||abs(lep2McId)==13) )||dstype==51 ) )",cut.GetTitle(),lplusf.GetTitle()),"g");
+	  fakes->Draw(plot[pl]+">>plotmc_"+mcs[i],Form("sfWeightFR*(%s && %s && %s && sfWeightFR>-99.)",cut.GetTitle(),lplusf.GetTitle(),runrange.GetTitle()),"g");
+	  plotmc->Add(hspill);
+	} else if (mcs[i].Contains("dyll") && dyFromLowMet && plot[pl]!="mt" && plot[pl]!="pmet" && plot[pl]!="pTrackMet" && plot[pl]!="dymva") {
 	  TString lm_cut = cut.GetTitle();
-	  if (mass>0&&mass<=140&&njets<2) {
+	  if (njets<2) {
 	    lm_cut = lm_cut.ReplaceAll("dymva>","dymva>-0.9&&dymva<");
-	  } else if (njets<2) {
-	    lm_cut = lm_cut.ReplaceAll("min(pmet,pTrackMet)>45.","min(pmet,pTrackMet)>20.&&min(pmet,pTrackMet)<45.");
 	  } else {
-	    lm_cut = lm_cut.ReplaceAll("pmet>45.","pmet>20.&&pmet<45.");
+	    lm_cut = lm_cut.ReplaceAll("met>45.","pmet>20.&&met<45.");
 	  }
 	  mc->Draw(plot[pl]+">>plotmc_"+mcs[i],Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s && %s)",lm_cut.Data(),leps.GetTitle()),"g");
 	} else {
 	  mc->Draw(plot[pl]+">>plotmc_"+mcs[i],Form("scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s && %s)",cut.GetTitle(),leps.GetTitle()),"g");	
 	}
 	float integral = plotmc->Integral(0,plotmc->GetNbinsX()+1);//integral includes under/over flow bins
+	if ( mcs[i]=="dyll" && dyFromLowMet && fs!="of" ) {
+	  float integral_cut = plotmc->Integral(plotmc->FindBin(x1),plotmc->FindBin(x2));//integral in signal region
+	  if (integral_cut>0) plotmc->Scale(sfs[i]/integral_cut);
+	  integral = plotmc->Integral(0,plotmc->GetNbinsX()+1);
+	}
 	//cout << mcs[i] << " " << integral << endl;
 	plotmc->SetLineColor(colors[i]);
 	plotmc->SetFillColor(colors[i]);
 	fillOverflowInLastBin(plotmc);
 	hs->Add(plotmc);
+	float systerr = ks[i]-1;
+	addInQuadrature(plotSyst,plotmc,systerr);
 	if (allleg) leg->AddEntry(plotmc,TString(mcs[i]+": "+Form("%.2f",integral)),"f");
       }
       if (logy) {
@@ -474,6 +550,21 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
 	  plotcopy.ReplaceAll(")","");
 	  ratio->SaveAs("dirplots/mh"+mh+"_nj"+nj+"/"+plotcopy+"_"+cut.GetName()+".C");
 	  */
+	  if (doSyst) {
+	    h_band = new TH1F("hr_band","hr_band",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+	    for (int mbin=1;mbin<=h_band->GetNbinsX();++mbin) {  
+	      float den = ((TH1*)(hs->GetStack()->Last()))->GetBinContent(mbin);
+	      if (den>0) {
+		h_band->SetBinContent(mbin,1);
+		h_band->SetBinError(mbin,sqrt(plotSyst->GetBinContent(mbin))/den);
+	      }
+	    }
+	    h_band->SetMarkerSize(0);
+	    h_band->SetFillColor(kBlack);
+	    h_band->SetLineColor(kBlack);
+	    h_band->SetFillStyle(3005);//
+	    h_band->Draw("E2 same");
+	  }
 	  TLine line(minbin.Atof(),1,maxbin.Atof(),1);
 	  line.SetLineColor(kRed);
 	  line.Draw("same");
@@ -490,52 +581,23 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
 	  c.SetTopMargin(0.05);
 	}
 	hs->Draw("HIST");
-
-	/*
+	
 	c.Update();  
-	TH1F* h1_band = new TH1F("h1_band","h1_band",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
-        for (int mbin=1;mbin<=h1_band->GetNbinsX();++mbin) {  
-	  h1_band->SetBinContent(mbin,((TH1*)(hs->GetStack()->Last()))->GetBinContent(mbin));
-	  float dyerr = 0.15*( ((TH1*)(hs->GetStack()->At(2)))->GetBinContent(mbin) - ((TH1*)(hs->GetStack()->At(1)))->GetBinContent(mbin));
-	  h1_band->SetBinError(mbin,dyerr);
+	if (doSyst) {
+	  h_band = new TH1F("h_band","h_band",nbins.Atoi(),minbin.Atof(),maxbin.Atof());
+	  for (int mbin=1;mbin<=h_band->GetNbinsX();++mbin) {  
+	    h_band->SetBinContent(mbin,((TH1*)(hs->GetStack()->Last()))->GetBinContent(mbin));
+	    h_band->SetBinError(mbin,sqrt(plotSyst->GetBinContent(mbin)));
+	  }
+	  h_band->SetMarkerSize(0);
+	  h_band->SetFillColor(kBlack);
+	  h_band->SetLineColor(kBlack);
+	  h_band->SetFillStyle(3005);//
+	  h_band->Draw("E2 same");
 	}
-	h1_band->SetMarkerSize(0);
-	h1_band->SetFillColor(kBlack);
-	h1_band->SetLineColor(kBlack);
-	h1_band->SetFillStyle(3005);//
-	h1_band->Draw("E2 same");
-	*/
-
 	if (dodata) plotData->Draw("EP,same");
 	if (doSignal) plotSignal->Draw("same");
 
-	float x1=-10000,x2=-10000;
-	//plots cut band
-	if (mass>0) {
-	  if (plot[pl]=="dilep.mass()") {
-	    x1 = 10.;
-	    x2 = TString(mll.GetTitle()).ReplaceAll("dilep.mass()<","").Atof();
-	  }
-	  if (plot[pl]=="dPhi*180./TMath::Pi()") {
-	    x1 = TString(dPhi.GetTitle()).ReplaceAll("dPhi<TMath::Pi()*","").ReplaceAll("/180.","").Atof();
-	    x2 = x1;
-	  }
-	  if (plot[pl]=="lep1.pt()") {
-	    x1 = TString(lep1pt.GetTitle()).ReplaceAll("lep1.pt()>","").Atof();
-	    x2 = x1;
-	  }
-	  if (plot[pl]=="lep2.pt()") {
-	    x1 = TString(lep2pt.GetTitle()).ReplaceAll("lep2.pt()>","").Atof();
-	    x2 = x1;
-	  }
-	  if (plot[pl]=="mt") {
-	    TString tit = TString(mt.GetTitle());
-	    TString s1 = TString(mt.GetTitle()).Remove(tit.First('&'),tit.Length()-1);
-	    TString s2 = TString(mt.GetTitle()).Remove(0,tit.Last('&')+1);
-	    x1 = s1.ReplaceAll("mt>","").ReplaceAll("&","").Atof();
-	    x2 = s2.ReplaceAll("mt<","").ReplaceAll("&","").Atof();
-	  }
-	}
 	l1 = TLine(x1,0,x1,max*1.1);
 	l2 = TLine(x2,0,x2,max*1.1);
 	l1.SetLineWidth(2.);
@@ -562,22 +624,25 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
 	  h3.SetFillColor(colors[getIndexForProcess(mcs,nMC,"dyll")]); 
 	  leg->AddEntry(&h3," Z/#gamma*","f");
 	}
-	if (getIndexForProcess(mcs,nMC,"ttbar")>=0 || getIndexForProcess(mcs,nMC,"tw")>=0) {
-	  h4.SetFillColor(colors[max(getIndexForProcess(mcs,nMC,"ttbar"),getIndexForProcess(mcs,nMC,"tw"))]);  
+	if (getIndexForProcess(mcs,nMC,"ttbar_powheg")>=0 || getIndexForProcess(mcs,nMC,"tw")>=0) {
+	  h4.SetFillColor(colors[max(getIndexForProcess(mcs,nMC,"ttbar_powheg"),getIndexForProcess(mcs,nMC,"tw"))]);  
 	  leg->AddEntry(&h4," Top","f");
 	}
-	if (getIndexForProcess(mcs,nMC,"wz")>=0 || getIndexForProcess(mcs,nMC,"zz")>=0) {
-	  h5.SetFillColor(colors[max(getIndexForProcess(mcs,nMC,"wz"),getIndexForProcess(mcs,nMC,"zz"))]); 
+	if (getIndexForProcess(mcs,nMC,"wz")>=0 || getIndexForProcess(mcs,nMC,"zz") || getIndexForProcess(mcs,nMC,"www")>=0) {
+	  h5.SetFillColor(colors[max(getIndexForProcess(mcs,nMC,"wz"),max(getIndexForProcess(mcs,nMC,"zz"),getIndexForProcess(mcs,nMC,"www")))]); 
 	  leg->AddEntry(&h5," VZ","f");
 	}
-	if (getIndexForProcess(mcs,nMC,"wjets")>=0 || getIndexForProcess(mcs,nMC,"wgamma")>=0 || getIndexForProcess(mcs,nMC,"wglll")>=0) {
-	  h6.SetFillColor(colors[max(getIndexForProcess(mcs,nMC,"wjets"),max(getIndexForProcess(mcs,nMC,"wgamma"),getIndexForProcess(mcs,nMC,"wglll")))]);  
+	if (getIndexForProcess(mcs,nMC,"wjets")>=0 || getIndexForProcess(mcs,nMC,"wgamma")>=0 || getIndexForProcess(mcs,nMC,"zgamma")>=0 || getIndexForProcess(mcs,nMC,"wglll")>=0) {
+	  h6.SetFillColor(colors[max(getIndexForProcess(mcs,nMC,"wjets"),max(getIndexForProcess(mcs,nMC,"wgamma"),max(getIndexForProcess(mcs,nMC,"zgamma"),getIndexForProcess(mcs,nMC,"wglll"))))]);  
 	  leg->AddEntry(&h6," W+jets","f");
 	} 
 	if (getIndexForProcess(mcs,nMC,"hww125")>=0) {
 	  h7.SetFillColor(colors[getIndexForProcess(mcs,nMC,"hww125")]);  
 	  leg->AddEntry(&h7," HWW125","f");
-	} 
+	}
+	if (doSyst) {
+	  leg->AddEntry(h_band," syst.","f");
+	}
       }
     } else {
       //if we want to compare two different data samples
@@ -634,26 +699,46 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
     labelfs->SetBorderSize(0);
     labelfs->SetTextFont(42);
     labelfs->SetLineWidth(2);
-    if (fs=="of") {
-      labelfs->AddText(Form("%i-j, #mue+e#mu final state",njets));
-    } else if (fs=="sf") {
-      labelfs->AddText(Form("%i-j, #mu#mu+ee final state",njets));
-    } else if (fs=="mm") {
-      labelfs->AddText(Form("%i-j, #mu#mu final state",njets));
-    } else if (fs=="me") {
-      labelfs->AddText(Form("%i-j, #mue final state",njets));
-    } else if (fs=="em") {
-      labelfs->AddText(Form("%i-j, e#mu final state",njets));
-    } else if (fs=="ee") {
-      labelfs->AddText(Form("%i-j, ee final state",njets));
+    if (njets>=0) {
+      if (fs=="of") {
+	labelfs->AddText(Form("%i-j, #mue+e#mu final state",njets));
+      } else if (fs=="sf") {
+	labelfs->AddText(Form("%i-j, #mu#mu+ee final state",njets));
+      } else if (fs=="mm") {
+	labelfs->AddText(Form("%i-j, #mu#mu final state",njets));
+      } else if (fs=="me") {
+	labelfs->AddText(Form("%i-j, #mue final state",njets));
+      } else if (fs=="em") {
+	labelfs->AddText(Form("%i-j, e#mu final state",njets));
+      } else if (fs=="ee") {
+	labelfs->AddText(Form("%i-j, ee final state",njets));
+      } else {
+	labelfs->AddText(Form("%i-j, all final states",njets));
+      } 
     } else {
-      labelfs->AddText(Form("%i-j, all final states",njets));
+      if (fs=="of") {
+	labelfs->AddText("#mue+e#mu final state");
+      } else if (fs=="sf") {
+	labelfs->AddText("#mu#mu+ee final state");
+      } else if (fs=="mm") {
+	labelfs->AddText("#mu#mu final state");
+      } else if (fs=="me") {
+	labelfs->AddText("#mue final state");
+      } else if (fs=="em") {
+	labelfs->AddText("e#mu final state");
+      } else if (fs=="ee") {
+	labelfs->AddText("ee final state");
+      } else {
+	labelfs->AddText("all final states");
+      } 
     }
     labelfs->Draw();
 
     c.Update();  
-    c.GetFrame()->DrawClone();
-    c.RedrawAxis();
+    if (!doRatio) {
+      c.GetFrame()->DrawClone();
+      c.RedrawAxis();
+    }
 
     TString cutName = cut.GetName();
     plot[pl].ReplaceAll(".","");
@@ -668,6 +753,8 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
     for (int ext=0;ext<nExt;++ext) {
       TString extension = extensions[ext];
       if (logy) extension="_log"+extension;
+      if (topTagged) extension="_tt"+extension;
+      if (sameSign) extension="_ss"+extension;
       if (cutName.Length()==0) c.SaveAs("dirplots/mh"+mh+"_nj"+nj+"/"+plot[pl]+extension);
       else c.SaveAs("dirplots/mh"+mh+"_nj"+nj+"/"+plot[pl]+"_"+cutName+extension);
     }

@@ -4,6 +4,7 @@
 bool useTopSF = true;
 
 TString wwSigRegion = "=dphijet=dymvacut=ptll45=";
+//TString wwSigRegion = "=dphijet=dymvacut=ptll45=lep2pt20allfs=sffs=";
 
 pair<float,float> wwEstimationMC(int mass=160, unsigned int njets=0, float lumi = 1./*fb-1*/, 
 				 bool applyEff=true, bool doPUw=true){
@@ -39,7 +40,7 @@ pair<float,float> getAllBkg(int mass=160, unsigned int njets=0, TString region="
   if (useTopSF) {
     //check error...
     float topSF = TopBkgScaleFactor(njets);
-    pair<float, float> tt = getYield(main_dir+topww_dir+"ttbar", wwSelNoMet, veto, mass, njets,  region, lumi, false, applyEff, false, doPUw);
+    pair<float, float> tt = getYield(main_dir+topww_dir+"ttbar_powheg", wwSelNoMet, veto, mass, njets,  region, lumi, false, applyEff, false, doPUw);
     pair<float, float> tw = getYield(main_dir+topww_dir+"tw",    wwSelNoMet, veto, mass, njets,  region, lumi, false, applyEff, false, doPUw);
     top = make_pair<float, float>(topSF*(tt.first+tw.first),sqrt( pow(topSF*tt.second,2) + pow(topSF*tw.second,2) ));
   } else {
@@ -88,7 +89,7 @@ pair<float,float> getAllBkg(int mass=160, unsigned int njets=0, TString region="
 		 num_dy_data,num_dy_err_data,
 		 num_other_mc,num_other_err_mc) << endl;
 
-    pair<float,float> sb_ttbar  = getYield(main_dir+topww_dir+"ttbar", wwSelNoMet, veto, mass, njets, region, lumi, false, applyEff, false, doPUw);
+    pair<float,float> sb_ttbar  = getYield(main_dir+topww_dir+"ttbar_powheg", wwSelNoMet, veto, mass, njets, region, lumi, false, applyEff, false, doPUw);
     pair<float,float> sb_tw     = getYield(main_dir+topww_dir+"tw",    wwSelNoMet, veto, mass, njets, region, lumi, false, applyEff, false, doPUw);
     pair<float,float> sb_wjets  = getYield(main_dir+topww_dir+"wjets", wwSelNoMet, veto, mass, njets, region, lumi, false, applyEff, false, doPUw);
 
@@ -164,7 +165,7 @@ pair<float,float> wwEstimationData(int mass=160, unsigned int njets=0, float lum
   if (printAll) {
     pair<float,float> sb_qqww_l = getYield(main_dir+topww_dir+"qqww",  wwSelNoMet, veto, mass, njets,  "=sideband="+wwSigRegion, lumi, false, applyEff, false, doPUw);
     pair<float,float> sb_ggww_l = getYield(main_dir+topww_dir+"ggww",  wwSelNoMet, veto, mass, njets,  "=sideband="+wwSigRegion, lumi, false, applyEff, false, doPUw);
-    pair<float,float> sb_ttbar  = getYield(main_dir+topww_dir+"ttbar", wwSelNoMet, veto, mass, njets,  "=sideband="+wwSigRegion, lumi, false, applyEff, false, doPUw);
+    pair<float,float> sb_ttbar  = getYield(main_dir+topww_dir+"ttbar_powheg", wwSelNoMet, veto, mass, njets,  "=sideband="+wwSigRegion, lumi, false, applyEff, false, doPUw);
     pair<float,float> sb_tw     = getYield(main_dir+topww_dir+"tw",    wwSelNoMet, veto, mass, njets,  "=sideband="+wwSigRegion, lumi, false, applyEff, false, doPUw);
     pair<float,float> sb_wjets  = getYield(main_dir+topww_dir+"wjets", wwSelNoMet, veto, mass, njets,  "=sideband="+wwSigRegion, lumi, false, applyEff, false, doPUw);
     pair<float,float> sb_dyll   = getYield(main_dir+topww_dir+"dyll",  wwSelNoMet, veto, mass, njets,  "=sideband="+wwSigRegion, lumi, false, applyEff, false, doPUw);
@@ -201,12 +202,16 @@ void makeWWTable(float lumi=1./*fb-1*/, bool doLatex=false) {
   //   cout << "topVeto eff 0j: " << tagEff0j.first << "+/-" << tagEff0j.second << endl;
   //   cout << "topVeto eff 1j: " << tagEff1j.first << "+/-" << tagEff1j.second << endl;
 
-  int masses[] = {115,120,125,130,140,145,150,160,170,180,190,200};
-  //int masses[] = {115,120,130,140,150};
-  //int masses[] = {115,130,150,170,190};
-  //int masses[] = {120,140,160,180,200};
-  //int masses[] = {125,145};
-  int nmasses = sizeof(masses)/sizeof(int);
+  int *masses;
+  int masses_cut[] = {115,120,125,130,140,145,150,160,170,180,190,200};
+  //int masses_cut[] = {0};
+  int masses_mva[] = {115};
+  if (doMVA) {
+    masses = masses_mva;
+  } else {
+    masses = masses_cut;
+  }
+  int nmasses = doMVA ? sizeof(masses_mva)/sizeof(int) : sizeof(masses_cut)/sizeof(int);
   doLatex=false;
   if (!doLatex) {
     cout << "-------------------------------------------------------------------------------------------------------------" << endl;

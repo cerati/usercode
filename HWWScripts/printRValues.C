@@ -49,7 +49,7 @@ void printRValues(bool doMVA=0, bool useMC=1){
 	rbin4 = make_pair<float, float>(h->GetBinContent(4),h->GetBinError(4));
       }
 
-      if (rbin4.second/rbin4.first>0.40 || !isfinite(rbin4.first)) {
+      if (rbin4.second/rbin4.first>0.40 || !isfinite(rbin4.first)|| !useMC) {
 	//do not consider the last bin
 	rbin4 = make_pair<float, float>(rbin3.first,rbin3.second);
       }
@@ -81,7 +81,7 @@ void printRValues(bool doMVA=0, bool useMC=1){
 
   if (nmasses>6 && njetbins==3 && masses[0]==0) {
     ofstream myfile;
-    TString fname = "DYRoutinValues.h";
+    TString fname = useMC ? "DYRoutinValues_MC.h" : "DYRoutinValues_data.h" ;
     if (!doMVA) {
       myfile.open(fname);
     } else {

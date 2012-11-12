@@ -26,11 +26,12 @@
 #include "Smurf/Analysis/HWWlvlv/OtherBkgScaleFactors_8TeV.h"  
 #include "Smurf/Analysis/HWWlvlv/DYBkgScaleFactors_8TeV.h"  
 #include "Smurf/Analysis/HWWlvlv/TopBkgScaleFactors_8TeV.h"	
+#include "Smurf/Analysis/HWWlvlv/TopVBFBkgScaleFactors_8TeV.h"	
 #include "Smurf/Analysis/HWWlvlv/WWBkgScaleFactors_8TeV.h"	
 #include "BDTG.class.C"//add soft link to compute bdtg values
 
 //CERN, Summ12
-TString main_dir    = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_52X/hcp-dymva/";
+TString main_dir    = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_53X/";
 TString topww_dir   = "./skim_topww/";
 TString wj_dir      = "./skim_wj/";
 TString dy_dir      = "./skim_dy/";
@@ -51,6 +52,9 @@ bool doMVA = 0;
 bool doVBF = 0;
 bool doResEffSyst = 0;
 ReadBDTG* rbdtg = 0;
+
+TH2F* mtmll2d_lom = 0;
+TH2F* mtmll2d_him = 0;
 
 //copy here to avoid SmurfTree::
 enum Selection {
@@ -146,7 +150,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     lep2pt = 10.;
     dPhi   = 180.;
     mll    = 9999.;
-    mtL    = 80.;//fixme: set to 80 for zeta method
+    mtL    = 0.;//fixme: set to 80 for zeta method
     mtH    = 9999.;
     himass = 100.;
   } else if (mass==110||mass==115) {
@@ -353,56 +357,70 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
   }
 
-  if (doMVA || doVBF) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
-      mtL    = 80.;
-      if (doVBF) mtL = 30.;
+  if (doVBF&&mass>1) {
+    mtL = 30.;
+    mtH = ((float) mass);
+  }
+
+  if (doMVA) {
+    lep1pt = 20.;
+    lep2pt = 10.;
+    dPhi   = 180.;
+    mtL    = 80.;
     if (mass==0 || mass==1) {
       mll    = 9999.;
       mtH    = 9999.;
-    } else if (mass==110||mass==115||mass==118||mass==120||mass==122||mass==124 ) {
-      mll    = 70.;
-      mtH    = ((float) mass);
-    } else if (mass==125||mass==126||mass==128||mass==130) {
-      mll    = 80.;
-      mtH    = ((float) mass);
-    } else if (mass==135||mass==140) {
-      mll    = 90.;
-      mtH    = ((float) mass);
-    } else if (mass==145||mass==150) {
-      mll    = 100.;
-      mtH    = ((float) mass);
-    } else if (mass==160) {
-      mll    = 100.;
-      mtH    = ((float) mass);
-    } else if (mass==170) {
-      mll    = 100.;
-      mtH    = ((float) mass);
-    } else if (mass==180) {
-      mll    = 110.;
-      mtH    = ((float) mass);
-    } else if (mass==190) {
-      mll    = 120.;
-      mtH    = ((float) mass);
-    } else if (mass==200) {
-      mll    = 130.;
-      mtH    = ((float) mass);
-    } else if (mass==250||mass==300||mass==350||mass==400||mass==450||mass==500||mass==550||mass==600) {
-      mll    = ((float) mass);
-      mtH    = ((float) mass);
+    } else if (mass<300) {
+      mll    = 200.;
+      mtH    = 280.;      
     } else {
-      cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
+      lep1pt = 50.;
+      mll    = 450.;
+      mtH    = 380.;            
     }
     //avoid overlap between WW sideband and signal region
-    himass = max((float) 100.,mll);
-    //if (doVBF) {
-    //mtL    = 0.;
-    //mtH    = 9999.;
-    //}
-  }
+    himass = 100;//max((float) 100.,mll);
 
+    //old approach
+    /*
+      if (mass==0 || mass==1) {
+      mll    = 9999.;
+      mtH    = 9999.;
+      } else if (mass==110||mass==115||mass==118||mass==120||mass==122||mass==124 ) {
+      mll    = 70.;
+      mtH    = ((float) mass);
+      } else if (mass==125||mass==126||mass==128||mass==130) {
+      mll    = 80.;
+      mtH    = ((float) mass);
+      } else if (mass==135||mass==140) {
+      mll    = 90.;
+      mtH    = ((float) mass);
+      } else if (mass==145||mass==150) {
+      mll    = 100.;
+      mtH    = ((float) mass);
+      } else if (mass==160) {
+      mll    = 100.;
+      mtH    = ((float) mass);
+      } else if (mass==170) {
+      mll    = 100.;
+      mtH    = ((float) mass);
+      } else if (mass==180) {
+      mll    = 110.;
+      mtH    = ((float) mass);
+      } else if (mass==190) {
+      mll    = 120.;
+      mtH    = ((float) mass);
+      } else if (mass==200) {
+      mll    = 130.;
+      mtH    = ((float) mass);
+      } else if (mass==250||mass==300||mass==350||mass==400||mass==450||mass==500||mass==550||mass==600) {
+      mll    = ((float) mass);
+      mtH    = ((float) mass);
+      } else {
+      cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
+      }*/
+  }
+  
 }
 
 void getCutMasks(unsigned int njets, unsigned int& baseline_toptag, unsigned int& control_top, unsigned int& control_toptag, unsigned int& veto, unsigned int& nj_top){
@@ -513,14 +531,14 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
       if (dataEvent->njets_!=2 && dataEvent->njets_!=3) return 0;
       if (dataEvent->njets_==3 && dataEvent->jet3_.pt()>30 && ((dataEvent->jet1_.eta()-dataEvent->jet3_.eta() > 0 && dataEvent->jet2_.eta()-dataEvent->jet3_.eta() < 0) ||
 							       (dataEvent->jet2_.eta()-dataEvent->jet3_.eta() > 0 && dataEvent->jet1_.eta()-dataEvent->jet3_.eta() < 0)) ) return 0;
-      if ( TMath::Abs(dataEvent->jet1_.eta()) >= 4.5 || TMath::Abs(dataEvent->jet2_.eta()) >= 4.5) return 0;
+      if ( TMath::Abs(dataEvent->jet1_.eta()) >= 4.7 || TMath::Abs(dataEvent->jet2_.eta()) >= 4.7) return 0;
       if ( region.Contains("=looseVBF=")==0 ) {
 	if ( !(((dataEvent->jet1_.eta()-dataEvent->lep1_.eta() > 0 && dataEvent->jet2_.eta()-dataEvent->lep1_.eta() < 0) ||
 		(dataEvent->jet2_.eta()-dataEvent->lep1_.eta() > 0 && dataEvent->jet1_.eta()-dataEvent->lep1_.eta() < 0)) &&
 	       ((dataEvent->jet1_.eta()-dataEvent->lep2_.eta() > 0 && dataEvent->jet2_.eta()-dataEvent->lep2_.eta() < 0) ||
 		(dataEvent->jet2_.eta()-dataEvent->lep2_.eta() > 0 && dataEvent->jet1_.eta()-dataEvent->lep2_.eta() < 0))) ) return 0;
 	if ( TMath::Abs(dataEvent->jet1_.eta()-dataEvent->jet2_.eta())<=3.5) return 0;
-	if ((dataEvent->jet1_+dataEvent->jet2_).mass()<=450) return 0;
+	if ((dataEvent->jet1_+dataEvent->jet2_).mass()<=500) return 0;
       }
     } else if ( dataEvent->njets_!=njets) return 0;
     if ( (dataEvent->cuts_ & cut) != cut ) return 0;
@@ -540,6 +558,8 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( (region.Contains("=massreg=")||region.Contains("=masscut=")||region.Contains("=mtreg=")||region.Contains("=dphireg=")) && (dataEvent->dilep_.mass()>mll) ) return 0;
     if ( (region.Contains("=mtside=")||region.Contains("=dphiside=")||region.Contains("=mtreg=")||region.Contains("=mtcut=")||region.Contains("=dphireg=")) 
 	 && (dataEvent->mt_<mtL || dataEvent->mt_>mtH) ) return 0;
+    if ( region.Contains("=mt80=") && dataEvent->mt_<80 ) return 0;
+    if ( region.Contains("=mt30=") && dataEvent->mt_<30 ) return 0;
     if ( (region.Contains("=dphiside=")||region.Contains("=dphireg=")||region.Contains("=dphicut=")) && (dataEvent->dPhi_>dPhi*TMath::Pi()/180.) ) return 0;
     if ( (region.Contains("=zregion=")) && fabs(dataEvent->dilep_.mass()-91.1876)>7.5 ) return 0;
     if ( (region.Contains("=zreg15=")) && fabs(dataEvent->dilep_.mass()-91.1876)>15. ) return 0;
@@ -590,7 +610,8 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( region.Contains("=fromZ=") && isMC && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
     if ( region.Contains("=notZ=") && isMC && !(dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
     //spillage
-    if ( region.Contains("=spill=") && dataEvent->dstype_!=SmurfTree::wgamma && dataEvent->dstype_!=SmurfTree::wgstar && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) return 0;
+    if ( region.Contains("=spill=") && dataEvent->dstype_!=SmurfTree::wgamma //&& dataEvent->dstype_!=SmurfTree::wgstar
+	 && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) return 0;
 
     //mll>20 cut
     if ( region.Contains("=mll20=") && dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.mass()<20.) {
@@ -1203,6 +1224,13 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
           zetaW = zeta->GetBinContent( zeta->FindBin(pt) );
         }
         h->Fill(rbdtg->GetMvaValue(theInputVals),weight*effSF*puw*zetaW);
+      } else if (var=="mtmll2D") {
+	//test 2D
+	TH2F* h2 = mass<300 ? mtmll2d_lom : mtmll2d_him;
+	int binx = h2->GetXaxis()->FindBin(dataEvent->mt_);
+	int biny = h2->GetYaxis()->FindBin(dataEvent->dilep_.mass());
+	int bin2d = (binx-1)*h2->GetNbinsY()+biny;
+	h->Fill( h->GetBinCenter(bin2d) ,weight*effSF*puw);
       } else if (var=="mll") {
 	h->Fill(dataEvent->dilep_.mass(),weight*effSF*puw);
       } else if (var=="ptll") {
@@ -1244,6 +1272,13 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	} else frW = fabs(dataEvent->sfWeightFR_);//warning, using fabs, does not work with mixed samples!!!!!
 	if (var=="bdtg") {
 	  h->Fill(rbdtg->GetMvaValue(theInputVals),weight*puw*frW);
+	} else if (var=="mtmll2D") {
+	  //test 2D
+	  TH2F* h2 = mass<300 ? mtmll2d_lom : mtmll2d_him;
+	  int binx = h2->GetXaxis()->FindBin(dataEvent->mt_);
+	  int biny = h2->GetYaxis()->FindBin(dataEvent->dilep_.mass());
+	  int bin2d = (binx-1)*h2->GetNbinsY()+biny;
+	  h->Fill( h->GetBinCenter(bin2d) ,weight*puw*frW);
 	} else if (var=="mll") {
 	  h->Fill(dataEvent->dilep_.mass(),weight*puw*frW);
 	} else if (var=="ctrjetetapt") {

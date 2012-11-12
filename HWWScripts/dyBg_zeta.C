@@ -94,16 +94,12 @@ pair<float, float> dyBkgEstimation(unsigned int cut, unsigned int veto, int mass
 
   TFile* fzeta = TFile::Open("./zeta_allmasses.root");
   TH1F* zeta = 0;
-  if (mass>0 && mass<=140 && njets<2) {
-    zeta = (TH1F*) fzeta->Get(Form("zeta_dymva_mass0_%ij",njets)); 
+  if (njets<2) {
+    if (doMVA) zeta = (TH1F*) fzeta->Get(Form("zeta_dymva_mass0_%ij",njets)); 
+    else zeta = (TH1F*) fzeta->Get(Form("zeta_dymva_mass%i_%ij",mass,njets)); 
   } else {
     if (doMVA) zeta = (TH1F*) fzeta->Get(Form("zeta_cut_mass0_%ij",njets)); 
-    else {
-      int mymass = mass;
-      if (mass==125) mymass = 120;
-      if (mass==145) mymass = 140;
-      zeta = (TH1F*) fzeta->Get(Form("zeta_cut_mass%i_%ij",mymass,njets)); 
-    }
+    else zeta = (TH1F*) fzeta->Get(Form("zeta_cut_mass%i_%ij",mass,njets)); 
   }
   assert(zeta);
   //data SF
@@ -144,6 +140,7 @@ pair<float, float> dyBkgEstimation(unsigned int cut, unsigned int veto, int mass
   return make_pair<float, float>(dy_est,dy_est_err);
 }
 
+/*
 void makeDYTable(float lumi) {
 
   bool useJson  = true;
@@ -155,13 +152,13 @@ void makeDYTable(float lumi) {
   TString dyregion = "=leppts=ptll45=mtcut=dphicut=masscut=zvetoall=dpjallfs=";
 
   //int jetbins[] = {0};
-  int jetbins[] = {0,1};
-  //int jetbins[] = {0,1,2};
+  //int jetbins[] = {0,1};
+  int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
   //int masses[] = {0};
-  int masses[] = {0,120};
-  //int masses[] = {0,120,140,160,180,200};
+  //int masses[] = {0,120};
+  int masses[] = {0,120,140,160,180,200};
   //int masses[] = {0,115,120,130,140,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
 
@@ -244,33 +241,31 @@ void makeDYTable(float lumi) {
 	vk2j.push_back(1.+sf_err/sf);
       }
 
-      /*
-      if (mass==0) {
-	TString formstr = "| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
-	if (doLatex) formstr = " %10s & %6.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
-	cout << Form(formstr,
-		     "WW",
-		     round(100.*z.first)/100.,round(100.*z.second)/100.,
-		     round(100.*r.first)/100.,round(100.*r.second)/100.,
-		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
-		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
-		     //round(100.*sf)/100.,round(10.*sf_percerr)/10.)
-		     round(100.*sf)/100.,round(100.*sf_err)/100.)
-	     << endl;
-      } else {
-	TString formstr = "| %6i GeV | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
-	if (doLatex) formstr = " %6i \\GeVcc & %6.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
-	cout << Form(formstr,
-		     mass,
-		     round(100.*z.first)/100.,round(100.*z.second)/100.,
-		     round(100.*r.first)/100.,round(100.*r.second)/100.,
-		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
-		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
-		     //round(100.*sf)/100.,round(10.*sf_percerr)/10.)
-		     round(100.*sf)/100.,round(100.*sf_err)/100.)
-	     << endl;
-      }
-      */
+//       if (mass==0) {
+// 	TString formstr = "| %10s | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
+// 	if (doLatex) formstr = " %10s & %6.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
+// 	cout << Form(formstr,
+// 		     "WW",
+// 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
+// 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
+// 		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
+// 		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
+// 		     //round(100.*sf)/100.,round(10.*sf_percerr)/10.)
+// 		     round(100.*sf)/100.,round(100.*sf_err)/100.)
+// 	     << endl;
+//       } else {
+// 	TString formstr = "| %6i GeV | %6.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f | %5.2f +/- %-5.2f |";
+// 	if (doLatex) formstr = " %6i \\GeVcc & %6.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f & %5.2f $\\pm$ %-5.2f \\\\";
+// 	cout << Form(formstr,
+// 		     mass,
+// 		     round(100.*z.first)/100.,round(100.*z.second)/100.,
+// 		     round(100.*r.first)/100.,round(100.*r.second)/100.,
+// 		     round(100.*dyData.first)/100.,round(100.*dyData.second)/100.,
+// 		     round(100.*(dymmMC.first+dyeeMC.first))/100.,round(100.*sqrt(pow(dymmMC.second,2)+pow(dyeeMC.second,2)))/100.,
+// 		     //round(100.*sf)/100.,round(10.*sf_percerr)/10.)
+// 		     round(100.*sf)/100.,round(100.*sf_err)/100.)
+// 	     << endl;
+//       }
 
     }
     if (!doLatex) cout << "------------------------------------------------------------------------------------------------------------------------------------------" << endl;
@@ -329,7 +324,7 @@ void makeDYTable(float lumi) {
   }
 
 }
-
+*/
 
 void makeDYTableFast(float lumi) {
 
@@ -339,7 +334,7 @@ void makeDYTableFast(float lumi) {
   bool doPUw    = true;
 
 
-  TString dyregion = "=leppts=ptll45=mtcut=dphicut=masscut=zvetoall=dpjallfs=";
+  TString dyregion = "=leppts=ptll45=mtcut=dphicut=masscut=zvetoall=dpjallfs=mt80=";
 
   //int jetbins[] = {0};
   //int jetbins[] = {0,1};
@@ -348,8 +343,8 @@ void makeDYTableFast(float lumi) {
 
   //int masses[] = {0};
   //int masses[] = {140,160};
-  //int masses[] = {0,120,140,160,180,200};
-  int masses[] = {0,115,120,125,130,140,145,150,160,170,180,190,200,250,300};
+  int masses[] = {0,120,140,160,180,200};
+  //int masses[] = {0,115,120,125,130,140,145,150,160,170,180,190,200,250,300};
   int nmasses = sizeof(masses)/sizeof(int);
 
   vector<float> vsf0j;
@@ -381,7 +376,15 @@ void makeDYTableFast(float lumi) {
       int mass = masses[jj];
       if (njets==2 && doMVA) continue;
       doVBF=0;
-      if (njets==2) doVBF=1;
+      if (njets==2) {
+	doVBF=1;
+	dyregion.ReplaceAll("mt80","mt30");
+	if (mass>100) {
+	  dyregion.ReplaceAll("looseVBF=","");
+	} else {
+	  dyregion+="=looseVBF=";
+	}
+      }
 
       pair<float, float> dymmMC   = getYield(main_dir+dy_dir+"dyll",  wwSelNoZVNoMet, noVeto, mass, njets, "=mmfs=dymvacut="+dyregion, lumi, false, applyEff, doFake, doPUw);
       pair<float, float> dyeeMC   = getYield(main_dir+dy_dir+"dyll",  wwSelNoZVNoMet, noVeto, mass, njets, "=eefs=dymvacut="+dyregion, lumi, false, applyEff, doFake, doPUw);
@@ -470,7 +473,7 @@ void makeDYTableFast(float lumi) {
 
 void dyBg_zeta(float lumi) {
   makeDYTableFast(lumi);
-  doMVA=1;
-  makeDYTableFast(lumi);
-  doMVA=0;
+//   doMVA=1;
+//   makeDYTableFast(lumi);
+//   doMVA=0;
 }

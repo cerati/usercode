@@ -46,8 +46,8 @@ void mvaSyst(float lumi) {
 	 << " ggwwNum: " << wwSF*ggwwNum.first << " +/- " << sqrt(pow(wwSF*ggwwNum.second,2)+pow(wwSFe*ggwwNum.first,2))
 	 << " ggwwEff: " << (wwSF*ggwwNum.first)/(wwSF*ggwwDen.first) << " +/- " << efficiencyErr((wwSF*ggwwNum.first)/(wwSF*ggwwDen.first), wwSF*ggwwDen.first) << endl;
 
-    pair<float, float> ttbarDen = getYield(dir+"ttbar",  wwSelNoMet, veto, mass, njets, regionDen, lumi, useJson, applyTnPSF, false, doPUw);
-    pair<float, float> ttbarNum = getYield(dir+"ttbar",  wwSelNoMet, veto, mass, njets, regionNum, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ttbarDen = getYield(dir+"ttbar_powheg",  wwSelNoMet, veto, mass, njets, regionDen, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ttbarNum = getYield(dir+"ttbar_powheg",  wwSelNoMet, veto, mass, njets, regionNum, lumi, useJson, applyTnPSF, false, doPUw);
     cout << "ttbarDen: " << topSF*ttbarDen.first << " +/- " << sqrt(pow(topSF*ttbarDen.second,2)+ pow(topSFe*ttbarDen.first,2))
 	 << " ttbarNum: " << topSF*ttbarNum.first << " +/- " << sqrt(pow(topSF*ttbarNum.second,2)+ pow(topSFe*ttbarNum.first,2))
 	 << " ttbarEff: " << (topSF*ttbarNum.first)/(topSF*ttbarDen.first) << " +/- " << efficiencyErr((topSF*ttbarNum.first)/(topSF*ttbarDen.first), topSF*ttbarDen.first) << endl;

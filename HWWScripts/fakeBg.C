@@ -4,7 +4,7 @@
 
 pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int veto, int mass, int njets, TString region, float lumi, bool applyEff, bool doPUw) {
 
-  bool debug = 0;
+  bool debug = 1;
   region = region+="=spill=";
   //get scale factors for DY
   float dySF = DYBkgScaleFactor(0,njets);
@@ -13,7 +13,7 @@ pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int
   //correct for spillage...
   pair<float, float> qqwwFake  = getYield(dir+"qqww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> ggwwFake  = getYield(dir+"ggww",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> ttbarFake = getYield(dir+"ttbar", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> ttbarFake = getYield(dir+"ttbar_powheg", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> twFake    = getYield(dir+"tw",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
 //   pair<float, float> dymmFake  = getYield(dir+"dymm",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
 //   pair<float, float> dyeeFake  = getYield(dir+"dyee",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
@@ -21,7 +21,7 @@ pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int
   pair<float, float> wzFake    = getYield(dir+"wz",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> zzFake    = getYield(dir+"zz",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> wgFake    = getYield(dir+"wgamma",cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> wg3lFake  = getYield(dir+"wglll",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> wg3lFake  ;//= getYield(dir+"wglll",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   float spillYield = qqwwFake.first+ggwwFake.first+ttbarFake.first+twFake.first+wzFake.first+zzFake.first+
                      //dySF*dymmFake.first+dySF*dyeeFake.first+
                      dySF*dyllFake.first+
@@ -80,28 +80,28 @@ void makeFakeTable(float lumi) {
   //bool doSpillage = 1;
 
   int mass = 0;
-  TString region = "=dphireg=dphijet=minmetvtx=lep2pt15=ptll45=mll20=";
+  TString region = "=dphireg=dphijet=dymvacut=ptll45=lep2pt20allfs=";
 
-  //int jetbins[] = {0};
-  int jetbins[] = {0,1,2};
+  int jetbins[] = {0};
+  //int jetbins[] = {0,1,2};
   int njetbins = sizeof(jetbins)/sizeof(int);
 
   for (int j=0;j<njetbins;++j) {
 
     int njets = jetbins[j];
 
-    pair<float, float> wjMC   = getYield(main_dir+topww_dir+"/wjets",  wwSelection, noVeto, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
-    //pair<float, float> wjMC_mm   = getYield(main_dir+topww_dir+"/wjets",  wwSelection, noVeto, mass, njets, region+"mmfs", lumi, useJson, applyTnPSF, false, doPUw);
-    //pair<float, float> wjMC_em   = getYield(main_dir+topww_dir+"/wjets",  wwSelection, noVeto, mass, njets, region+"emfs", lumi, useJson, applyTnPSF, false, doPUw);
-    //pair<float, float> wjMC_me   = getYield(main_dir+topww_dir+"/wjets",  wwSelection, noVeto, mass, njets, region+"mefs", lumi, useJson, applyTnPSF, false, doPUw);
-    //pair<float, float> wjMC_ee   = getYield(main_dir+topww_dir+"/wjets",  wwSelection, noVeto, mass, njets, region+"eefs", lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> wjMC   = getYield(main_dir+topww_dir+"/wjets",  wwSelNoMet, noVeto, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    //pair<float, float> wjMC_mm   = getYield(main_dir+wj_dir+"/wjets",  wwSelNoMet, noVeto, mass, njets, region+"mmfs", lumi, useJson, applyTnPSF, false, doPUw);
+    //pair<float, float> wjMC_em   = getYield(main_dir+wj_dir+"/wjets",  wwSelNoMet, noVeto, mass, njets, region+"emfs", lumi, useJson, applyTnPSF, false, doPUw);
+    //pair<float, float> wjMC_me   = getYield(main_dir+wj_dir+"/wjets",  wwSelNoMet, noVeto, mass, njets, region+"mefs", lumi, useJson, applyTnPSF, false, doPUw);
+    //pair<float, float> wjMC_ee   = getYield(main_dir+wj_dir+"/wjets",  wwSelNoMet, noVeto, mass, njets, region+"eefs", lumi, useJson, applyTnPSF, false, doPUw);
 
     bool doLatex = false;
 
-    pair<float, float> wjdatamm = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"=mmfs=", lumi, useJson, applyTnPSF,doPUw);
-    pair<float, float> wjdatame = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"=mefs=", lumi, useJson, applyTnPSF,doPUw);
-    pair<float, float> wjdataem = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"=emfs=", lumi, useJson, applyTnPSF,doPUw);
-    pair<float, float> wjdataee = fakeBgEstimation(main_dir+topww_dir,wwSelection, noVeto, mass, njets, region+"=eefs=", lumi, useJson, applyTnPSF,doPUw);
+    pair<float, float> wjdatamm = fakeBgEstimation(main_dir+wj_dir,wwSelNoMet, noVeto, mass, njets, region+"=mmfs=", lumi, useJson, applyTnPSF,doPUw);
+    pair<float, float> wjdatame = fakeBgEstimation(main_dir+wj_dir,wwSelNoMet, noVeto, mass, njets, region+"=mefs=", lumi, useJson, applyTnPSF,doPUw);
+    pair<float, float> wjdataem = fakeBgEstimation(main_dir+wj_dir,wwSelNoMet, noVeto, mass, njets, region+"=emfs=", lumi, useJson, applyTnPSF,doPUw);
+    pair<float, float> wjdataee = fakeBgEstimation(main_dir+wj_dir,wwSelNoMet, noVeto, mass, njets, region+"=eefs=", lumi, useJson, applyTnPSF,doPUw);
     if (!doLatex) {
       cout << njets << "-jet bin" << endl;
       cout << Form("mm: %5.1f +/- %5.1f - me: %5.1f +/- %5.1f - em: %5.1f +/- %5.1f - ee: %5.1f +/- %5.1f",
@@ -160,7 +160,7 @@ void makeSSTable(float lumi) {
     ssWw = make_pair<float, float>(WWBkgScaleFactorCutBased(115,njets)*ssWw.first,WWBkgScaleFactorCutBased(115,njets)*ssWw.second);
     cout << "SS ww: " << ssWw.first << " +/- " << ssWw.second << endl;
 
-    pair<float, float> ssTtbar = getYield(main_dir+wj_dir+"ttbar",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
+    pair<float, float> ssTtbar = getYield(main_dir+wj_dir+"ttbar_powheg",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
     ssTtbar = make_pair<float, float>(TopBkgScaleFactor(njets)*ssTtbar.first,TopBkgScaleFactor(njets)*ssTtbar.second);
     cout << "SS ttbar: " << ssTtbar.first << " +/- " << ssTtbar.second << endl;
 
