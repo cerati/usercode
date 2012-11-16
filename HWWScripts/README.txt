@@ -11,10 +11,13 @@ cvs co -d LandS UserCode/mschen/LandS
 ln -s /smurf/ceballos/tmva/weights/ntuples_160train_0jets_BDTG.class.C BDTG.class.C
 chmod u+x shapeMaker.py
 cd LandS
-cmsrel CMSSW_4_2_3
-cd CMSSW_4_2_3
+export SCRAM_ARCH=slc5_amd64_gcc462 
+cmsrel CMSSW_5_2_5
+cd CMSSW_5_2_5/src 
 eval `scramv1 runtime -sh`
-cd ..
+addpkg HiggsAnalysis/CombinedLimit V02-02-03 
+scramv1 b -j 4
+cd ../..
 make
 cd ../Smurf/LimitCalc/
 ln -s ../../LandS/lands.so
