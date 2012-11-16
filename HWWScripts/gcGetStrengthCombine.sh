@@ -4,7 +4,8 @@
 CARD=$1
 
 IT=1
-for MASS in {110,125,160,250,600}
+#for MASS in {110,125,160,250,300,600}
+for MASS in {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350,400,450,500,550,600}
   do
   echo 'processing mass='${MASS}
   echo combine -M MaxLikelihoodFit cards/${MASS}/${CARD}.txt -m ${MASS}
@@ -13,7 +14,7 @@ for MASS in {110,125,160,250,600}
   sed -i 's/\// /g' logStr
   MU=`tail -15 logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $3)}'`
   EM=`tail -15 logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $4)}'`
-  EP=`tail -15 logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $4)}'`
+  EP=`tail -15 logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $5)}'`
   if [ ${IT} == 1 ] ; then  
       rm logStrength_${CARD}.txt       
   fi

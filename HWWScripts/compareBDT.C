@@ -27,26 +27,27 @@
     }
 
 
+    //check diff
     TH1F* diff = h_ref->Clone("diff");
     diff->Add(h_new,-1.);
-    //check diff
-    float maxdiff = TMath::Max(diff->GetBinContent(diff->GetMaximumBin()),fabs(diff->GetBinContent(diff->GetMinimumBin())));    
-    if (maxdiff>2) {
-      cout << "Maximum difference for " << h_ref->GetName() << " = " << maxdiff << " " << 
-	diff->GetBinContent(diff->GetMaximumBin()) << " " << diff->GetMaximumBin() << endl;
-    } else {
-      continue;
-    }
-    //check ratio
     for (int bin=1;bin<=diff->GetNbinsX();++bin) {
-      if (fabs(h_ref->GetBinContent(bin)>0) ) {
-	diff->SetBinContent(bin,diff->GetBinContent(bin)/h_ref->GetBinContent(bin));
-      } else diff->SetBinContent(bin,0);
+      diff->SetBinContent(bin,fabs(diff->GetBinContent(bin)));
     }
-    TMath::Max(diff->GetBinContent(diff->GetMaximumBin()),fabs(diff->GetBinContent(diff->GetMinimumBin())));
-    if (maxdiff>0.1) {
-      cout << "Maximum difference for " << h_ref->GetName() << " = " << maxdiff << " " << 
-	diff->GetBinContent(diff->GetMaximumBin()) << " " << diff->GetMaximumBin() << endl;
+    float maxdiff = TMath::Max(diff->GetBinContent(diff->GetMaximumBin()),diff->GetBinContent(diff->GetMinimumBin()));    
+    //check ratio
+    TH1F* ratio = diff->Clone("ratio");
+    for (int bin=1;bin<=ratio->GetNbinsX();++bin) {
+      if (fabs(h_ref->GetBinContent(bin)>0) ) {
+	ratio->SetBinContent(bin,ratio->GetBinContent(bin)/h_ref->GetBinContent(bin));
+      } else ratio->SetBinContent(bin,0);
+    }
+    float maxratio = TMath::Max(ratio->GetBinContent(ratio->GetMaximumBin()),ratio->GetBinContent(ratio->GetMinimumBin()));
+
+    if (maxdiff>1 && maxratio>0.1) {
+      cout << "Maximum difference for " << h_ref->GetName() << " : " 
+	   << " diff=" << maxdiff << " bin=" << diff->GetMaximumBin()  << " content=" << h_ref->GetBinContent(diff->GetMaximumBin())
+	   << " ratio=" << maxratio << " bin=" << ratio->GetMaximumBin()  << " content=" << h_ref->GetBinContent(ratio->GetMaximumBin())
+	   << endl;
     } else {
       continue;
     }

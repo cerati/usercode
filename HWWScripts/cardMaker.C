@@ -205,140 +205,142 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
       out << Form("shapes *   *   hww%s_%ij.input.root  histo_$PROCESS histo_$PROCESS_$SYSTEMATIC \n",fs.Data(),njets);
       out << Form("shapes data_obs * hww%s_%ij.input.root  histo_Data \n",fs.Data(),njets);
     }
-    out << Form("%-35s %5s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s \n","bin","",bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data());
-    out << Form("%-35s %5s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s \n","process","","ZH","WH","qqH","ggH","qqWW","ggWW","VV","Top","Zjets","Wjets","Wgamma","Ztt");
-    out << Form("%-35s %5s %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i \n","process","",-3,-2,-1,0,1,2,3,4,5,6,7,8);
-    out << Form("%-35s %5s %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f \n","rate","",
+    out << Form("%-40s %5s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s \n","bin","",bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data());
+    out << Form("%-40s %5s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s \n","process","","ZH","WH","qqH","ggH","qqWW","ggWW","VV","Top","Zjets","Wjets","Wgamma","Ztt");
+    out << Form("%-40s %5s %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i %7i \n","process","",-3,-2,-1,0,1,2,3,4,5,6,7,8);
+    out << Form("%-40s %5s %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f \n","rate","",
 	   zhww.first, whww.first, qqhww.first, gghww.first, wwSF.first*qqww.first, wwSF.first*ggww.first, zz.first+wz.first+www.first, topSF.first*(ttbar.first+tw.first), 
 		dyY+pzz.first+pwz.first, wjets.first, wgamma.first+zgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
     if (mass>=200) {
-      out << Form("%-35s %5s   1.044   1.044   1.044   1.044   1.044   1.044   1.044     -       -       -     1.044   1.044\n","lumi_8TeV","lnN");
+      out << Form("%-40s %5s   1.044   1.044   1.044   1.044   1.044   1.044   1.044     -       -       -     1.044   1.044\n","lumi_8TeV","lnN");
     } else {
-      out << Form("%-35s %5s   1.044   1.044   1.044   1.044     -       -     1.044     -       -       -     1.044   1.044\n","lumi_8TeV","lnN");
+      out << Form("%-40s %5s   1.044   1.044   1.044   1.044     -       -     1.044     -       -       -     1.044   1.044\n","lumi_8TeV","lnN");
     }
     if (mode=="shape" && doResEffSyst) {
       //do not consider wgamma here, too few MC events just random results (30% syst covers)
-      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000     -       -       -     %5s   %5s \n","CMS_hww_MVALepEffBounding","shape",
+      out << Form("%-40s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000     -       -       -     %5s   %5s \n","CMS_hww_MVALepEffBounding","shape",
 		  zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",0*(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");//why no top???
-      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVALepResBounding","shape",
+      out << Form("%-40s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVALepResBounding","shape",
 		  zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",0*(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
-      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVAMETResBounding","shape",
+      out << Form("%-40s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVAMETResBounding","shape",
 		  zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",0*(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
-      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVAJESBounding","shape",
+      out << Form("%-40s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVAJESBounding","shape",
 		  zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",0*(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
     } else {
       if (mass>=200) {
-	out << Form("%-35s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
-	out << Form("%-35s %5s   1.040   1.040   1.040   1.040   1.040   1.040   1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
-	out << Form("%-35s %5s   1.015   1.015   1.015   1.015   1.015   1.015   1.015     -       -       -     1.015   1.015\n","CMS_scale_m","lnN");
-	out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_e","lnN");
-	out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_hww_met_resolution","lnN");
+	out << Form("%-40s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
+	out << Form("%-40s %5s   1.040   1.040   1.040   1.040   1.040   1.040   1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
+	out << Form("%-40s %5s   1.015   1.015   1.015   1.015   1.015   1.015   1.015     -       -       -     1.015   1.015\n","CMS_scale_m","lnN");
+	out << Form("%-40s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_e","lnN");
+	out << Form("%-40s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_hww_met_resolution","lnN");
       } else {
-	out << Form("%-35s %5s   1.030   1.030   1.030   1.030     -       -     1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
-	out << Form("%-35s %5s   1.040   1.040   1.040   1.040     -       -     1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
-	out << Form("%-35s %5s   1.015   1.015   1.015   1.015     -       -     1.015     -       -       -     1.015   1.015\n","CMS_scale_m","lnN");
-	out << Form("%-35s %5s   1.020   1.020   1.020   1.020     -       -     1.020     -       -       -     1.020   1.020\n","CMS_scale_e","lnN");
-	out << Form("%-35s %5s   1.020   1.020   1.020   1.020     -       -     1.020     -       -       -     1.020   1.020\n","CMS_hww_met_resolution","lnN");
+	out << Form("%-40s %5s   1.030   1.030   1.030   1.030     -       -     1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
+	out << Form("%-40s %5s   1.040   1.040   1.040   1.040     -       -     1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
+	out << Form("%-40s %5s   1.015   1.015   1.015   1.015     -       -     1.015     -       -       -     1.015   1.015\n","CMS_scale_m","lnN");
+	out << Form("%-40s %5s   1.020   1.020   1.020   1.020     -       -     1.020     -       -       -     1.020   1.020\n","CMS_scale_e","lnN");
+	out << Form("%-40s %5s   1.020   1.020   1.020   1.020     -       -     1.020     -       -       -     1.020   1.020\n","CMS_hww_met_resolution","lnN");
       }
-      if (njets==0) out << Form("%-35s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_j","lnN");
-      if (njets==1) out << Form("%-35s %5s   1.050   1.050   1.050   1.050   1.050   1.050   1.050     -       -       -     1.050   1.050\n","CMS_scale_j","lnN");
-      if (njets==2) out << Form("%-35s %5s   1.100   1.100   1.100   1.100   1.100   1.100   1.100     -       -       -     1.100   1.100\n","CMS_scale_j","lnN");
+      if (njets==0) out << Form("%-40s %5s   1.020   1.020   1.020   1.020   1.020   1.020   1.020     -       -       -     1.020   1.020\n","CMS_scale_j","lnN");
+      if (njets==1) out << Form("%-40s %5s   1.050   1.050   1.050   1.050   1.050   1.050   1.050     -       -       -     1.050   1.050\n","CMS_scale_j","lnN");
+      if (njets==2) out << Form("%-40s %5s   1.100   1.100   1.100   1.100   1.100   1.100   1.100     -       -       -     1.100   1.100\n","CMS_scale_j","lnN");
     }
-    out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.360     -       -  \n","FakeRate","lnN");
+    out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -     1.360     -       -  \n","FakeRate","lnN");
     if (mode=="shape") {
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_hww_MVAWBounding","shape");
-      //out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_hww_MVAWMCBounding","shape");
-      //out << Form("%-35s %5s     -       -       -     1.000     -       -       -       -       -       -       -       -  \n","CMS_hww_MVAggHBounding","shape");      
+      out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_hww_MVAWBounding","shape");
+      //out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_hww_MVAWMCBounding","shape");
+      //out << Form("%-40s %5s     -       -       -     1.000     -       -       -       -       -       -       -       -  \n","CMS_hww_MVAggHBounding","shape");      
     }
-    out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","UEPS","lnN", 
+    out << Form("%-40s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","UEPS","lnN", 
 		mass>0 ? HiggsSignalPSUESystematics(mH, njets) : 0.);
-    out << Form("%-35s %5s   %5.3f   %5.3f   %5.3f   %5.3f     -       -       -       -       -       -       -       -  \n","theoryUncXS_HighMH","lnN",theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH);
-    out << Form("%-35s %5s     -       -       -     %5.3f     -     1.040     -       -       -       -       -       -  \n","pdf_gg","lnN",PDFgHHSystematics(mH));
-    out << Form("%-35s %5s   1.050   1.050   1.050     -     1.040     -     1.040     -       -       -     1.040   1.040\n","pdf_qqbar","lnN");
-    out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH","lnN", 
+    out << Form("%-40s %5s   %5.3f   %5.3f   %5.3f   %5.3f     -       -       -       -       -       -       -       -  \n","theoryUncXS_HighMH","lnN",theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH);
+    out << Form("%-40s %5s     -       -       -     %5.3f     -     1.040     -       -       -       -       -       -  \n","pdf_gg","lnN",PDFgHHSystematics(mH));
+    out << Form("%-40s %5s   1.050   1.050   1.050     -     1.040     -     1.040     -       -       -     1.040   1.040\n","pdf_qqbar","lnN");
+    out << Form("%-40s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH","lnN", 
 		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH",mH, njets) : 0.);
-    out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH1in","lnN", 
+    out << Form("%-40s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH1in","lnN", 
 		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH1in",mH, njets) : 0.);
-    out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH2in","lnN", 
+    out << Form("%-40s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH2in","lnN", 
 		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH2in",mH, njets) : 0.);
-    out << Form("%-35s %5s     -       -     1.010     -       -       -       -       -       -       -       -       -  \n","QCDscale_qqH","lnN");
-    out << Form("%-35s %5s   1.020   1.020     -       -       -       -       -       -       -       -       -       -  \n","QCDscale_VH","lnN");
-    out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW","lnN", 
+    out << Form("%-40s %5s     -       -     1.010     -       -       -       -       -       -       -       -       -  \n","QCDscale_qqH","lnN");
+    out << Form("%-40s %5s   1.020   1.020     -       -       -       -       -       -       -       -       -       -  \n","QCDscale_VH","lnN");
+    out << Form("%-40s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW","lnN", 
 	        v_QCDscale_WW );
-    out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW1in","lnN", 
+    out << Form("%-40s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW1in","lnN", 
 		v_QCDscale_WW1in );
-    out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW2in","lnN", 
+    out << Form("%-40s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW2in","lnN", 
 		v_QCDscale_WW2in );
-    out << Form("%-35s %5s     -       -       -       -       -       -     1.040     -       -       -       -       -  \n","QCDscale_VV","lnN");
-    out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     1.300     -  \n","QCDscale_Vgamma","lnN");
-    out << Form("%-35s %5s     -       -       -       -       -     1.300     -       -       -       -       -       -  \n","QCDscale_ggVV","lnN");
-    out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW_EXTRAP","lnN",
+    out << Form("%-40s %5s     -       -       -       -       -       -     1.040     -       -       -       -       -  \n","QCDscale_VV","lnN");
+    out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -       -     1.300     -  \n","QCDscale_Vgamma","lnN");
+    out << Form("%-40s %5s     -       -       -       -       -     1.300     -       -       -       -       -       -  \n","QCDscale_ggVV","lnN");
+    out << Form("%-40s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW_EXTRAP","lnN",
 		1.060);//this is the unceratinty for extrapolation from sideband to signal region
-    out << Form("%-35s %5s     -       -       -     1.020     -       -       -       -       -       -       -       -  \n","QCDscale_ggH_ACCEPT","lnN");
-    out << Form("%-35s %5s     -       -     1.020     -       -       -       -       -       -       -       -       -  \n","QCDscale_qqH_ACCEPT","lnN");
-    out << Form("%-35s %5s   1.020   1.020     -       -       -       -       -       -       -       -       -       -  \n","QCDscale_VH_ACCEPT","lnN");
-    out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww_%ij_ttbar_8TeV",njets),"lnN",
+    out << Form("%-40s %5s     -       -       -     1.020     -       -       -       -       -       -       -       -  \n","QCDscale_ggH_ACCEPT","lnN");
+    out << Form("%-40s %5s     -       -     1.020     -       -       -       -       -       -       -       -       -  \n","QCDscale_qqH_ACCEPT","lnN");
+    out << Form("%-40s %5s   1.020   1.020     -       -       -       -       -       -       -       -       -       -  \n","QCDscale_VH_ACCEPT","lnN");
+    out << Form("%-40s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww_%ij_ttbar_8TeV",njets),"lnN",
 		1.+topSF.second/topSF.first);
-    out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_%ij_Z_8TeV",fs.Data(),njets),"lnN",dyDDK);
-    out << Form("%-35s %5s     -       -       -       -     %5.3f   %5.3f     -       -       -       -       -       -  \n",Form("CMS_hww_%ij_WW_8TeV",njets),"lnN",
+    out << Form("%-40s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_%ij_Z_8TeV",fs.Data(),njets),"lnN",dyDDK);
+    //for high mass WW is from MC so it correlated!
+    out << Form("%-40s %5s     -       -       -       -     %5.3f   %5.3f     -       -       -       -       -       -  \n", (mass<=200||mode=="shape") ? Form("CMS_hww_%ij_WW_8TeV",njets) : "CMS_hww_WW","lnN",
 		1.+wwSF.second/wwSF.first,1.+wwSF.second/wwSF.first);
-    out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     %5.3f\n","CMS_hww_Ztt","lnN",
+    out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -       -       -     %5.3f\n","CMS_hww_Ztt","lnN",
 		ZttScaleFactorKappa());
 
     if (mode=="cut") {
-      if (zhww.first>0.) out << Form("%-35s %5s   %5.3f     -       -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ZH_8TeV",fs.Data(),njets),"lnN",
+      if (zhww.first>0.) out << Form("%-40s %5s   %5.3f     -       -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ZH_8TeV",fs.Data(),njets),"lnN",
 				     zhww.first>0 ? 1.+zhww.second/zhww.first : 1.);
-      if (whww.first>0.) out << Form("%-35s %5s     -     %5.3f     -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_WH_8TeV",fs.Data(),njets),"lnN",
+      if (whww.first>0.) out << Form("%-40s %5s     -     %5.3f     -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_WH_8TeV",fs.Data(),njets),"lnN",
 				     whww.first>0 ? 1.+whww.second/whww.first : 1.);
-      out << Form("%-35s %5s     -       -     %5.3f     -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_qqH_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -     %5.3f     -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_qqH_8TeV",fs.Data(),njets),"lnN",
 		  qqhww.first>0 ? 1.+qqhww.second/qqhww.first : 1.);
-      out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ggH_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ggH_8TeV",fs.Data(),njets),"lnN",
 		  gghww.first>0 ? 1.+gghww.second/gghww.first : 1.);
-      out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_WW_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_WW_8TeV",fs.Data(),njets),"lnN",
 		  1.+qqww.second/qqww.first);
-      out << Form("%-35s %5s     -       -       -       -       -     %5.3f     -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ggWW_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -       -       -       -     %5.3f     -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ggWW_8TeV",fs.Data(),njets),"lnN",
 		  ggww.first>0 ? 1.+ggww.second/ggww.first : 1.);
-      out << Form("%-35s %5s     -       -       -       -       -       -     %5.3f     -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_VV_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -       -       -       -       -     %5.3f     -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_VV_8TeV",fs.Data(),njets),"lnN",
 		  1.+sqrt(pow(zz.second,2)+pow(wz.second,2)+pow(www.second,2))/(zz.first+wz.first+www.first));
-      out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ttbar_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ttbar_8TeV",fs.Data(),njets),"lnN",
 		  1.+sqrt(pow(ttbar.second,2)+pow(tw.second,2))/(ttbar.first+tw.first));
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_stat_%ij_Z_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_stat_%ij_Z_8TeV",fs.Data(),njets),"lnN",
 		  dyY+pzz.first+pwz.first>0 ? 1.+sqrt(pow(dyMCE,2)+pow(pzz.second,2)+pow(pwz.second,2))/(dyY+pzz.first+pwz.first) : 1.0);
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     %5.3f     -       -  \n",Form("CMS_hww%s_stat_%ij_Wjets_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -     %5.3f     -       -  \n",Form("CMS_hww%s_stat_%ij_Wjets_8TeV",fs.Data(),njets),"lnN",
 		  wjets.first>0 ? 1.+wjets.second/wjets.first : 1.);
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     %5.3f     -  \n",Form("CMS_hww%s_stat_%ij_Wgamma_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -       -     %5.3f     -  \n",Form("CMS_hww%s_stat_%ij_Wgamma_8TeV",fs.Data(),njets),"lnN",
 		  (wgamma.first+zgamma.first+wg3l.first*WGstarScaleFactor())>0 ? 1.+sqrt(pow(wgamma.second,2)+pow(zgamma.second,2)+pow(wg3l.second*WGstarScaleFactor(),2))/(wgamma.first+zgamma.first+wg3l.first*WGstarScaleFactor()) : 1.);
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     %5.3f\n",Form("CMS_hww%s_stat_%ij_Ztt_8TeV",fs.Data(),njets),"lnN",
+      out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -       -       -     %5.3f\n",Form("CMS_hww%s_stat_%ij_Ztt_8TeV",fs.Data(),njets),"lnN",
 		  dytt.first>0 ? 1.+dytt.second/dytt.first : 1.);
     } else if (mode=="shape") {
-      if (fs=="sf") out << Form("%-35s %5s     -       -       -       -       -       -       -       -     2.000     -       -       -  \n",Form("CMS_hww%s_%ij_MVAZBounding_8TeV",fs.Data(),njets),"shape");      
-      out << Form("%-35s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n","CMS_hww_MVATopBounding_8TeV","shape");      
-      out << Form("%-35s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n","CMS_hww_MVAWWBounding_8TeV","shape");      
-      out << Form("%-35s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n","CMS_hww_MVAWWNLOBounding_8TeV","shape");      
+      if (fs=="sf") out << Form("%-40s %5s     -       -       -       -       -       -       -       -     2.000     -       -       -  \n",Form("CMS_hww%s_%ij_MVAZBounding_8TeV",fs.Data(),njets),"shape");      
+      //these are from MC so are in common for 7TeV and 8TeV
+      out << Form("%-40s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n","CMS_hww_MVATopBounding","shape");      
+      out << Form("%-40s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n","CMS_hww_MVAWWBounding","shape");      
+      out << Form("%-40s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n","CMS_hww_MVAWWNLOBounding","shape");      
       if (zhww.first>0.)
-	out << Form("%-35s %5s   1.000     -       -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAZHStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s   1.000     -       -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAZHStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (whww.first>0.)
-	out << Form("%-35s %5s     -     1.000     -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAWHStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -     1.000     -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAWHStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (qqhww.first>0.)
-	out << Form("%-35s %5s     -       -     1.000     -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAqqHStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -       -     1.000     -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAqqHStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (gghww.first>0.)
-	out << Form("%-35s %5s     -       -       -     1.000     -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAggHStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -       -       -     1.000     -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAggHStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (qqww.first>0.)
-	out << Form("%-35s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAqqWWStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAqqWWStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (ggww.first>0.)
-	out << Form("%-35s %5s     -       -       -       -       -     1.000     -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAggWWStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -       -       -       -       -     1.000     -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAggWWStatBounding_8TeV",fs.Data(),njets),"shape");      
       if ((zz.first+wz.first+www.first)>0.)
-	out << Form("%-35s %5s     -       -       -       -       -       -     1.000     -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAVVStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -       -       -       -       -       -     1.000     -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAVVStatBounding_8TeV",fs.Data(),njets),"shape");      
       if ((ttbar.first+tw.first)>0.)
-	out << Form("%-35s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n",Form("CMS_hww%s_%ij_MVATopStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n",Form("CMS_hww%s_%ij_MVATopStatBounding_8TeV",fs.Data(),njets),"shape");      
       if ((dyY+pzz.first+pwz.first)>0.)
-	out << Form("%-35s %5s     -       -       -       -       -       -       -       -     1.000     -       -       -  \n",Form("CMS_hww%s_%ij_MVAZjetsStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -       -       -       -       -       -       -       -     1.000     -       -       -  \n",Form("CMS_hww%s_%ij_MVAZjetsStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (wjets.first>0.)
-	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n",Form("CMS_hww%s_%ij_MVAWjetsStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n",Form("CMS_hww%s_%ij_MVAWjetsStatBounding_8TeV",fs.Data(),njets),"shape");      
       if ((wgamma.first+zgamma.first+wg3l.first)>0) 
-	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     1.000     -  \n",Form("CMS_hww%s_%ij_MVAWgammaStatBounding_8TeV",fs.Data(),njets),"shape");      
+	out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -       -     1.000     -  \n",Form("CMS_hww%s_%ij_MVAWgammaStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (dytt.first>0) 
-	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     1.000\n",Form("CMS_hww%s_%ij_MVAZttStatBounding_8TeV",fs.Data(),njets),"shape");
+	out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -       -       -     1.000\n",Form("CMS_hww%s_%ij_MVAZttStatBounding_8TeV",fs.Data(),njets),"shape");
     }
   }
 
@@ -358,8 +360,8 @@ void cardMaker(float lumi, TString mode) {
 
   //int masses[] = {125};
   //int masses[] = {125,200,350};
-  int masses[] = {110,125,160,250,300,600};
-  //int masses[] = {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350,400,450,500,550,600};
+  //int masses[] = {110,125,160,250,300,600};
+  int masses[] = {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350,400,450,500,550,600};
   int nmasses = sizeof(masses)/sizeof(int);
   int njets = sizeof(jets)/sizeof(int);
   for (int j=0;j<nmasses;++j) {

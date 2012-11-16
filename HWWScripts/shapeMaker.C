@@ -85,30 +85,27 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   //shape variation: 1- mg vs mc@nlo (down mirror);
   TH1F* qqww_mcnlo_h = new TH1F("histo_qqww_mcnlo","histo_qqww_mcnlo",nbins,minx,maxx);
   fillPlot(plotvar,qqww_mcnlo_h, dir+"wwmcnlo"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  qqww_mcnlo_h->Scale(1.23);// fixme 7 TeV xsec
   avoidNegativeBins(qqww_mcnlo_h);
   scaleIntegral(qqww_h,qqww_mcnlo_h);
-  TH1F* qqww_h_up = new TH1F("histo_qqWW_CMS_hww_MVAWWBounding_8TeVUp","histo_qqWW_CMS_hww_MVAWWBounding_8TeVUp",nbins,minx,maxx);
+  TH1F* qqww_h_up = new TH1F("histo_qqWW_CMS_hww_MVAWWBoundingUp","histo_qqWW_CMS_hww_MVAWWBoundingUp",nbins,minx,maxx);
   qqww_h_up->Add(qqww_mcnlo_h);
-  TH1F* qqww_h_down = new TH1F("histo_qqWW_CMS_hww_MVAWWBounding_8TeVDown","histo_qqWW_CMS_hww_MVAWWBounding_8TeVDown",nbins,minx,maxx);
+  TH1F* qqww_h_down = new TH1F("histo_qqWW_CMS_hww_MVAWWBoundingDown","histo_qqWW_CMS_hww_MVAWWBoundingDown",nbins,minx,maxx);
   fillDownMirrorUp(qqww_h,qqww_h_up,qqww_h_down);  
   //shape variation: 2- ratio from mc@nlo w.r.t. QCD up and down
   TH1F* qqww_mcnlo_up_h = new TH1F("histo_qqww_mcnlo_up","histo_qqww_mcnlo_up",nbins,minx,maxx);
   fillPlot(plotvar,qqww_mcnlo_up_h, dir+"wwmcnloup"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  qqww_mcnlo_up_h->Scale(1.23);// fixme 7 TeV xsec
   avoidNegativeBins(qqww_mcnlo_up_h);
   scaleIntegral(qqww_h,qqww_mcnlo_up_h);
   divideHistoProtected(qqww_mcnlo_up_h,qqww_mcnlo_h);
   TH1F* qqww_mcnlo_down_h = new TH1F("histo_qqww_mcnlo_down","histo_qqww_mcnlo_down",nbins,minx,maxx);
   fillPlot(plotvar,qqww_mcnlo_down_h, dir+"wwmcnlodown"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  qqww_mcnlo_down_h->Scale(1.23);// fixme 7 TeV xsec
   avoidNegativeBins(qqww_mcnlo_down_h);
   scaleIntegral(qqww_h,qqww_mcnlo_down_h);
   divideHistoProtected(qqww_mcnlo_down_h,qqww_mcnlo_h);
-  TH1F* qqww_h_nlo_up = new TH1F("histo_qqWW_CMS_hww_MVAWWNLOBounding_8TeVUp","histo_qqWW_CMS_hww_MVAWWNLOBounding_8TeVUp",nbins,minx,maxx);
+  TH1F* qqww_h_nlo_up = new TH1F("histo_qqWW_CMS_hww_MVAWWNLOBoundingUp","histo_qqWW_CMS_hww_MVAWWNLOBoundingUp",nbins,minx,maxx);
   qqww_h_nlo_up->Add(qqww_h);
   multiplyHisto(qqww_h_nlo_up,qqww_mcnlo_up_h);
-  TH1F* qqww_h_nlo_down = new TH1F("histo_qqWW_CMS_hww_MVAWWNLOBounding_8TeVDown","histo_qqWW_CMS_hww_MVAWWNLOBounding_8TeVDown",nbins,minx,maxx);
+  TH1F* qqww_h_nlo_down = new TH1F("histo_qqWW_CMS_hww_MVAWWNLOBoundingDown","histo_qqWW_CMS_hww_MVAWWNLOBoundingDown",nbins,minx,maxx);
   qqww_h_nlo_down->Add(qqww_h);
   multiplyHisto(qqww_h_nlo_down,qqww_mcnlo_down_h);
 
@@ -147,11 +144,11 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   TH1F* tw_ds_h = new TH1F("histo_tw_ds","histo_tw_ds",nbins,minx,maxx);
   fillPlot(plotvar,tw_ds_h, dir+"tw"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);//fixme tw_ds
   //scaleIntegral(tw_h,tw_ds_h);
-  TH1F* top_h_up = new TH1F("histo_Top_CMS_hww_MVATopBounding_8TeVUp","histo_Top_CMS_hww_MVATopBounding_8TeVUp",nbins,minx,maxx);
+  TH1F* top_h_up = new TH1F("histo_Top_CMS_hww_MVATopBoundingUp","histo_Top_CMS_hww_MVATopBoundingUp",nbins,minx,maxx);
   top_h_up->Add(ttbar_var_h);
   top_h_up->Add(tw_ds_h);
   scaleIntegral(top_h,top_h_up);
-  TH1F* top_h_down = new TH1F("histo_Top_CMS_hww_MVATopBounding_8TeVDown","histo_Top_CMS_hww_MVATopBounding_8TeVDown",nbins,minx,maxx);
+  TH1F* top_h_down = new TH1F("histo_Top_CMS_hww_MVATopBoundingDown","histo_Top_CMS_hww_MVATopBoundingDown",nbins,minx,maxx);
   fillDownMirrorUp(top_h,top_h_up,top_h_down);  
 
   //Wgamma
