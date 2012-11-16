@@ -28,6 +28,7 @@
 #include "Smurf/Analysis/HWWlvlv/TopBkgScaleFactors_8TeV.h"	
 #include "Smurf/Analysis/HWWlvlv/TopVBFBkgScaleFactors_8TeV.h"	
 #include "Smurf/Analysis/HWWlvlv/WWBkgScaleFactors_8TeV.h"	
+#include "Smurf/Analysis/HWWlvlv/InterfgHHSystematics_8TeV.h"
 #include "BDTG.class.C"//add soft link to compute bdtg values
 #include "histTools.C"
 
@@ -36,22 +37,17 @@ TString main_dir    = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_53X/";
 TString topww_dir   = "./skim_topww/";
 TString wj_dir      = "./skim_wj/";
 TString dy_dir      = "./skim_dy/";
-TString fr_file_mit    = "/smurf/data/Winter11_4700ipb/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
-TString eff_file       = "/smurf/data/Winter11_4700ipb/auxiliar/efficiency_results_v7_42x_Full2011_4700ipb.root";
-TString puw_file       = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
-TString jsonFile       = "";//"hww.Full2011.json";
-TString ggHk_file = "/smurf/data/Winter11_4700ipb/auxiliar/ggHWW_KFactors_PowhegToHQT_WithAdditionalMassPoints.root"; 
-
-//+++ deprecated
-TString fr_file_el_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_el_fr.root";
-TString fr_file_mu_tas = "/smurf/data/Run2011_Spring11_SmurfV6_42X/tas-TightLooseFullMET-alljets/ww_mu_fr.root";
-//+++
+TString fr_file     = "/smurf/dlevans/FakeRates/V00-02-07_HCP_V0/summary.root";
+TString eff_file    = "/smurf/dlevans/Efficiencies/V00-02-07_trigNameFix_HCP_V1/summary.root";
+TString puw_file    = "/smurf/data/Winter11_4700ipb/auxiliar/PileupReweighting.Summer11DYmm_To_Full2011.root";
+TString jsonFile    = "";//"hww.Full2011.json";
+TString ggHk_file   = "/smurf/data/Winter11_4700ipb/auxiliar/ggHWW_KFactors_PowhegToHQT_WithAdditionalMassPoints.root"; 
 
 bool redoWeights  = 0;
 bool checkWeights = 0;
 bool doMVA = 0;
 bool doVBF = 0;
-bool doResEffSyst = 0;
+bool doResEffSyst = 1;
 ReadBDTG* rbdtg = 0;
 
 TH2F* mtmll2d_lom = 0;
@@ -360,7 +356,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
 
   if (doVBF&&mass>1) {
     mtL = 30.;
-    mtH = ((float) mass);
+    //mtH = ((float) mass); //same cut as cut based
   }
 
   if (doMVA) {
@@ -376,8 +372,8 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       mtH    = 280.;      
     } else {
       lep1pt = 50.;
-      mll    = 450.;
-      mtH    = 380.;            
+      mll    = 600.;
+      mtH    = 600.;            
     }
     //avoid overlap between WW sideband and signal region
     himass = 100;//max((float) 100.,mll);
@@ -516,6 +512,9 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
       return 0;
     }
 
+    //avoid warning
+    if (0) cout << mass << endl;
+
     if (!isMC && (dataEvent->cuts_ & Trigger) != Trigger ) return 0;
     //if (!isMC && dataEvent->run_>172802) return 0;//FIXME LP TEST
     if (!isMC && useJson && !goodrun(dataEvent->run_,dataEvent->lumi_)) return 0;    
@@ -604,6 +603,7 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     //spillage
     if ( region.Contains("=spill=") && dataEvent->dstype_!=SmurfTree::wgamma //&& dataEvent->dstype_!=SmurfTree::wgstar
 	 && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) return 0;
+
 
     //mll>20 cut
     if ( region.Contains("=mll20=") && dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.mass()<20.) {
@@ -705,18 +705,21 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( region.Contains("=ctrjetbin5=") && (etaCtr<2.0||etaCtr>=2.5) ) return 0;
 
     /*
-    if (dataEvent->dstype_==1) {
-      cout << dataEvent->run_ << " " << dataEvent->event_ << " "
-	   << dataEvent->pmet_ << " " << dataEvent->pTrackMet_ << " " 
-	   << dataEvent->lep1_.pt() << " " << dataEvent->lep2_.pt() << " " 
+    if (dataEvent->dstype_==49) {
+      cout << dataEvent->run_ << " " << dataEvent->event_ << " " 
+	   << dataEvent->njets_ << " " 
 	   << dataEvent->jet1_.pt() << " " << dataEvent->jet1_.eta() << " " 
-	   << dataEvent->dilep_.mass() << " " << dataEvent->dPhiDiLepJet1_*180./TMath::Pi() << " "
-	   << dataEvent->jet1Btag_ << " " 
-	   << dataEvent->jet1ProbBtag_ << " " 
-	   << dataEvent->jet1Dz_ << " " 
-	   << dataEvent->lq1_ << " " 
-	   << dataEvent->lq2_ << " " 
-	   << fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() << " " 
+	   << dataEvent->jet2_.pt() << " " << dataEvent->jet2_.eta() << " " 
+	   << dataEvent->jet3_.pt() << " " << dataEvent->jet3_.eta() << " " 
+ 	   << dataEvent->pmet_ << " " << dataEvent->pTrackMet_ << " " 
+ 	   << dataEvent->lep1_.pt() << " " << dataEvent->lep2_.pt() << " " 
+ 	   << dataEvent->dilep_.mass() << " " << dataEvent->dPhiDiLepJet1_*180./TMath::Pi() << " "
+ 	   << dataEvent->jet1Btag_ << " " 
+ 	   << dataEvent->jet1ProbBtag_ << " " 
+ 	   << dataEvent->jet1Dz_ << " " 
+ 	   << dataEvent->lq1_ << " " 
+ 	   << dataEvent->lq2_ << " " 
+ 	   << fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() << " " 
 	   << endl;
     }
     */
@@ -800,21 +803,13 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
   }
 
   //fake stuff
-  bool useMit = true;
   TFile *fE=0, *fM=0;
   TH2F *eFR=0,*mFR=0;
   if (doFake) {
-    if (useMit) {
-      fE = TFile::Open(fr_file_mit);
-      eFR = (TH2F*) fE->Get("ElectronFakeRate_V4_ptThreshold35_PtEta");
-      fM = TFile::Open(fr_file_mit);
-      mFR = (TH2F*) fM->Get("MuonFakeRate_M2_ptThreshold15_PtEta");
-    } else {
-      fE = TFile::Open(fr_file_el_tas);
-      eFR = (TH2F*) fE->Get("el_fr_v4_35");
-      fM = TFile::Open(fr_file_mu_tas);
-      mFR = (TH2F*) fM->Get("mu_fr_m2_15");
-    }
+    fE = TFile::Open(fr_file);
+    eFR = (TH2F*) fE->Get("ElectronFakeRate_V4_ptThreshold35_PtEta");
+    fM = TFile::Open(fr_file);
+    mFR = (TH2F*) fM->Get("MuonFakeRate_M2_ptThreshold15_PtEta");
   }
 
   if (!isMC && useJson && jsonFile!=""){
@@ -890,7 +885,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
 	     (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
 	     (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ) {
 	float frW = 1;
-	if (redoWeights || region.Contains("alternativeFR")) {
+	if (redoWeights || region.Contains("=alternativeFR=")) {
 	  float fr = getFR(dataEvent,eFR,mFR);
 	  frW = fr/(1.-fr);
 	  if (checkWeights) assert((fabs(fr/(1.-fr))-fabs(dataEvent->sfWeightFR_))/fabs(dataEvent->sfWeightFR_)<0.0001);
@@ -943,24 +938,16 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
   }
 
   //fake stuff
-  bool useMit = true;
   TFile *fE=0, *fM=0;
   TH2F *eFR=0,*mFR=0;
   TH2F *elPFY=0,*muPFY=0;
   if (doFake) {
-    if (useMit) {
-      fE = TFile::Open(fr_file_mit);
-      if (region.Contains("alternativeFR")==0) eFR = (TH2F*) fE->Get("ElectronFakeRate_V4_ptThreshold35_PtEta");//default
-      else eFR = (TH2F*) fE->Get("ElectronFakeRate_V4_ptThreshold50_PtEta");
-      fM = TFile::Open(fr_file_mit);
-      if (region.Contains("alternativeFR")==0) mFR = (TH2F*) fM->Get("MuonFakeRate_M2_ptThreshold15_PtEta");//default
-      else  mFR = (TH2F*) fM->Get("MuonFakeRate_M2_ptThreshold30_PtEta");
-    } else {
-      fE = TFile::Open(fr_file_el_tas);
-      eFR = (TH2F*) fE->Get("el_fr_v4_35");
-      fM = TFile::Open(fr_file_mu_tas);
-      mFR = (TH2F*) fM->Get("mu_fr_m2_15");
-    }
+    fE = TFile::Open(fr_file);
+    if (region.Contains("=alternativeFR=")==0) eFR = (TH2F*) fE->Get("ElectronFakeRate_V4_ptThreshold35_PtEta");//default
+    else eFR = (TH2F*) fE->Get("ElectronFakeRate_V4_ptThreshold50_PtEta");
+    fM = TFile::Open(fr_file);
+    if (region.Contains("=alternativeFR=")==0) mFR = (TH2F*) fM->Get("MuonFakeRate_M2_ptThreshold15_PtEta");//default
+    else  mFR = (TH2F*) fM->Get("MuonFakeRate_M2_ptThreshold30_PtEta");
     elPFY = new TH2F("elPFY","elPFY",eFR->GetXaxis()->GetNbins(),eFR->GetXaxis()->GetXmin(),eFR->GetXaxis()->GetXmax(),
 		                     eFR->GetYaxis()->GetNbins(),eFR->GetYaxis()->GetXmin(),eFR->GetYaxis()->GetXmax());
     muPFY = new TH2F("muPFY","muPFY",mFR->GetXaxis()->GetNbins(),mFR->GetXaxis()->GetXmin(),mFR->GetXaxis()->GetXmax(),
@@ -1018,9 +1005,9 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
       dataEvent->jet2_ = dataEvent->jet2_*jesK;
       dataEvent->jet3_ = dataEvent->jet3_*jesK;
       unsigned int newnjets = 0;
-      if (dataEvent->jet1_.pt()>30. && fabs(dataEvent->jet1_.eta())<5.0) newnjets++;
-      if (dataEvent->jet2_.pt()>30. && fabs(dataEvent->jet2_.eta())<5.0) newnjets++;
-      if (dataEvent->jet3_.pt()>30. && fabs(dataEvent->jet3_.eta())<5.0) newnjets++;
+      if (dataEvent->jet1_.pt()>30. && fabs(dataEvent->jet1_.eta())<4.7) newnjets++;
+      if (dataEvent->jet2_.pt()>30. && fabs(dataEvent->jet2_.eta())<4.7) newnjets++;
+      if (dataEvent->jet3_.pt()>30. && fabs(dataEvent->jet3_.eta())<4.7) newnjets++;
       dataEvent->njets_ = newnjets;
     }
 
@@ -1030,23 +1017,23 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
     //fixme should go before passEvent: it affects the cuts also, but this is to reproduce Guillelmo's result
     if (syst=="metSmear") {//met variation
       double metx=0.0;double mety=0.0;double trkmetx=0.0;double trkmety=0.0;
-      if	(dataEvent->njets_ == 0){
-	metx    = dataEvent->met_*cos(dataEvent->metPhi_)+gRandom->Gaus(0.0,3.2);
-	mety    = dataEvent->met_*sin(dataEvent->metPhi_)+gRandom->Gaus(0.0,3.2);
-	trkmetx = dataEvent->trackMet_*cos(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,2.1);
-	trkmety = dataEvent->trackMet_*sin(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,2.1);
+      if (dataEvent->njets_ == 0){
+	metx    = dataEvent->met_*cos(dataEvent->metPhi_)          -0.45189+gRandom->Gaus(0.0,3.2);
+	mety    = dataEvent->met_*sin(dataEvent->metPhi_)          -0.20148+gRandom->Gaus(0.0,3.2);
+	trkmetx = dataEvent->trackMet_*cos(dataEvent->trackMetPhi_)+0.12580+gRandom->Gaus(0.0,1.0);
+	trkmety = dataEvent->trackMet_*sin(dataEvent->trackMetPhi_)+0.02615+gRandom->Gaus(0.0,1.0);
       }
       else if(dataEvent->njets_ == 1){
-	metx    = dataEvent->met_*cos(dataEvent->metPhi_)+gRandom->Gaus(0.0,3.6);
-	mety    = dataEvent->met_*sin(dataEvent->metPhi_)+gRandom->Gaus(0.0,3.6);
-	trkmetx = dataEvent->trackMet_*cos(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,7.6);
-	trkmety = dataEvent->trackMet_*sin(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,7.6);
+	metx    = dataEvent->met_*cos(dataEvent->metPhi_)	   -0.39040+gRandom->Gaus(0.0,3.6);
+	mety    = dataEvent->met_*sin(dataEvent->metPhi_)          -0.20427+gRandom->Gaus(0.0,3.6);
+	trkmetx = dataEvent->trackMet_*cos(dataEvent->trackMetPhi_)+0.07639+gRandom->Gaus(0.0,4.5);
+	trkmety = dataEvent->trackMet_*sin(dataEvent->trackMetPhi_)+0.01167+gRandom->Gaus(0.0,4.5);
       }
       else if(dataEvent->njets_ >= 2){
-	metx    = dataEvent->met_*cos(dataEvent->metPhi_)+gRandom->Gaus(0.0,4.3);
-	mety    = dataEvent->met_*sin(dataEvent->metPhi_)+gRandom->Gaus(0.0,4.3);
-	trkmetx = dataEvent->trackMet_*cos(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,12.4);
-	trkmety = dataEvent->trackMet_*sin(dataEvent->trackMetPhi_)+gRandom->Gaus(0.0,12.4);
+	metx    = dataEvent->met_*cos(dataEvent->metPhi_)          -0.27127+gRandom->Gaus(0.0,4.3);
+	mety    = dataEvent->met_*sin(dataEvent->metPhi_)          -0.18935+gRandom->Gaus(0.0,4.3);
+	trkmetx = dataEvent->trackMet_*cos(dataEvent->trackMetPhi_)+0.13328+gRandom->Gaus(0.0,6.0);
+	trkmety = dataEvent->trackMet_*sin(dataEvent->trackMetPhi_)-0.01351+gRandom->Gaus(0.0,6.0);
       }
       double newMet      = sqrt(metx*metx+mety*mety);
       double newTrackMet = sqrt(trkmetx*trkmetx+trkmety*trkmety);
@@ -1080,34 +1067,42 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
     } else if (syst.Contains("momScale")) {//momentum scale and resolution up/down
       double corr[2] = {1.0, 1.0};
       if (syst.Contains("Up")) {
-	if (TMath::Abs(dataEvent->lid1_) == 13){
-	  corr[0] = 1.01 + gRandom->Gaus(0.00,0.01);
+	if (TMath::Abs(dataEvent->lid1_) == 13 && TMath::Abs(dataEvent->lep1_.eta()) <  1.479){
+	  corr[0] = 1./0.99920 + gRandom->Gaus(0.00,0.010);
+	} else if (TMath::Abs(dataEvent->lid1_) == 13 && TMath::Abs(dataEvent->lep1_.eta()) >= 1.479){
+	  corr[0] = 1./0.99934 + gRandom->Gaus(0.00,0.017);
 	} else if (TMath::Abs(dataEvent->lid1_) == 11 && TMath::Abs(dataEvent->lep1_.eta()) <  1.479){
-	  corr[0] = 1.01 + gRandom->Gaus(0.00,0.02);
+	  corr[0] = 1./0.99807 + gRandom->Gaus(0.00,0.015);
 	} else if (TMath::Abs(dataEvent->lid1_) == 11 && TMath::Abs(dataEvent->lep1_.eta()) >= 1.479){
-	  corr[0] = 1.06 + gRandom->Gaus(0.00,0.06);
+	  corr[0] = 1./0.99952 + gRandom->Gaus(0.00,0.030);
 	}
-	if (TMath::Abs(dataEvent->lid2_) == 13){
-	  corr[1] = 1.01 + gRandom->Gaus(0.00,0.01);
+	if (TMath::Abs(dataEvent->lid2_) == 13 && TMath::Abs(dataEvent->lep2_.eta()) <  1.479){
+	  corr[1] = 1./0.99920 + gRandom->Gaus(0.00,0.010);
+	} else if (TMath::Abs(dataEvent->lid2_) == 13 && TMath::Abs(dataEvent->lep2_.eta()) >= 1.479){
+	  corr[1] = 1./0.99934 + gRandom->Gaus(0.00,0.017);
 	} else if (TMath::Abs(dataEvent->lid2_) == 11 && TMath::Abs(dataEvent->lep2_.eta()) <  1.479){
-	  corr[1] = 1.01 + gRandom->Gaus(0.00,0.02);
+	  corr[1] = 1./0.99807 + gRandom->Gaus(0.00,0.015);
 	} else if (TMath::Abs(dataEvent->lid2_) == 11 && TMath::Abs(dataEvent->lep2_.eta()) >= 1.479){
-	  corr[1] = 1.06 + gRandom->Gaus(0.00,0.06);
+	  corr[1] = 1./0.99952 + gRandom->Gaus(0.00,0.030);
 	}
       } else if (syst.Contains("Down")) {
-	if (TMath::Abs(dataEvent->lid1_) == 13){
-	  corr[0] = 0.99 - gRandom->Gaus(0.00,0.01);
+	if (TMath::Abs(dataEvent->lid1_) == 13 && TMath::Abs(dataEvent->lep1_.eta()) <  1.479){
+	  corr[0] = 0.99920 - gRandom->Gaus(0.00,0.010);
+	} else if (TMath::Abs(dataEvent->lid1_) == 13 && TMath::Abs(dataEvent->lep1_.eta()) >= 1.479){
+	  corr[0] = 0.99934 - gRandom->Gaus(0.00,0.017);
 	} else if (TMath::Abs(dataEvent->lid1_) == 11 && TMath::Abs(dataEvent->lep1_.eta()) <  1.479){
-	  corr[0] = 0.99 - gRandom->Gaus(0.00,0.02);
+	  corr[0] = 0.99807 - gRandom->Gaus(0.00,0.015);
 	} else if (TMath::Abs(dataEvent->lid1_) == 11 && TMath::Abs(dataEvent->lep1_.eta()) >= 1.479){
-	  corr[0] = 0.94 - gRandom->Gaus(0.00,0.06);
+	  corr[0] = 0.99952 - gRandom->Gaus(0.00,0.030);
 	}
-	if(TMath::Abs(dataEvent->lid2_) == 13){
-	  corr[1] = 0.99 - gRandom->Gaus(0.00,0.01);
+	if (TMath::Abs(dataEvent->lid2_) == 13 && TMath::Abs(dataEvent->lep2_.eta()) <  1.479){
+	  corr[1] = 0.99920 - gRandom->Gaus(0.00,0.010);
+	} else if (TMath::Abs(dataEvent->lid2_) == 13 && TMath::Abs(dataEvent->lep2_.eta()) >= 1.479){
+	  corr[1] = 0.99934 - gRandom->Gaus(0.00,0.017);
 	} else if (TMath::Abs(dataEvent->lid2_) == 11 && TMath::Abs(dataEvent->lep2_.eta()) <  1.479){
-	  corr[1] = 0.99 - gRandom->Gaus(0.00,0.02);
+	  corr[1] = 0.99807 - gRandom->Gaus(0.00,0.015);
 	} else if (TMath::Abs(dataEvent->lid2_) == 11 && TMath::Abs(dataEvent->lep2_.eta()) >= 1.479){
-	  corr[1] = 0.94 - gRandom->Gaus(0.00,0.06);
+	  corr[1] = 0.99952 - gRandom->Gaus(0.00,0.030);
 	}
       } else {
 	cout << "Wrong name for momScale systematic! Should contain Up or Down" << endl;
@@ -1117,8 +1112,9 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 //       cout << dataEvent->lep1_.pt() << " " << dataEvent->lep2_.pt() << " " << dataEvent->dilep_.mass() << " " << dataEvent->dPhi_ << " "
 // 	   << dataEvent->mt_ << " " << dataEvent->mt1_ << " " << dataEvent->mt2_ << " " << dataEvent->dPhiDiLepMET_ << " " << dataEvent->dPhiDiLepJet1_
 // 	   << endl;
-      SmurfTree::LorentzVector lep1Old = dataEvent->lep1_;
-      SmurfTree::LorentzVector lep2Old = dataEvent->lep2_;
+
+      //SmurfTree::LorentzVector lep1Old = dataEvent->lep1_;
+      //SmurfTree::LorentzVector lep2Old = dataEvent->lep2_;
       SmurfTree::LorentzVector dilepOld = dataEvent->dilep_;
       SmurfTree::LorentzVector lep1New = dataEvent->lep1_*corr[0];
       SmurfTree::LorentzVector lep2New = dataEvent->lep2_*corr[1];
@@ -1221,6 +1217,9 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	TH2F* h2 = mass<300 ? mtmll2d_lom : mtmll2d_him;
 	int binx = h2->GetXaxis()->FindBin(dataEvent->mt_);
 	int biny = h2->GetYaxis()->FindBin(dataEvent->dilep_.mass());
+	//put overflow in last bin
+	if (binx > h2->GetXaxis()->GetNbins()) binx = h2->GetXaxis()->GetNbins();
+	if (biny > h2->GetYaxis()->GetNbins()) biny = h2->GetYaxis()->GetNbins();
 	int bin2d = (binx-1)*h2->GetNbinsY()+biny;
 	h->Fill( h->GetBinCenter(bin2d) ,weight*effSF*puw);
       } else if (var=="mll") {
@@ -1258,7 +1257,7 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	std::vector<double> theInputVals;
 	for (int i=0;i<7;++i) theInputVals.push_back(inputVals[i]);
 	float frW = 1;
-	if (redoWeights || region.Contains("alternativeFR")) {
+	if (redoWeights || region.Contains("=alternativeFR=")) {
 	  float fr = getFR(dataEvent,eFR,mFR);
 	  frW = fr/(1.-fr);
 	} else frW = fabs(dataEvent->sfWeightFR_);//warning, using fabs, does not work with mixed samples!!!!!

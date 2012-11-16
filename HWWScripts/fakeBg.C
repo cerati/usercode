@@ -136,8 +136,6 @@ void makeSSTable(float lumi) {
   bool applyTnPSF = true;
   bool doPUw = true;
 
-  bool doSpillage = 1;
-
   int mass = 0;
   TString region = "=dphireg=dphijet=dymvacut=ptll45=";
 

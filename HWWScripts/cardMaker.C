@@ -63,9 +63,15 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     if (mode=="cut") wwSF = make_pair<float, float>(WWBkgScaleFactorCutBased(massForWW,njets), WWBkgScaleFactorCutBased(massForWW,njets)*(WWBkgScaleFactorKappaCutBased(massForWW,njets)-1.));
     else if (mode=="shape") wwSF = make_pair<float, float>(WWBkgScaleFactorMVA(massForWW,njets), WWBkgScaleFactorMVA(massForWW,njets)*(WWBkgScaleFactorKappaMVA(massForWW,njets)-1.));
   }
+  if (mass>200 && doMVA==0) {
+    //try this to sync with guillelmo
+    if (njets==2) wwSF.second = 0.5*wwSF.first;
+    else wwSF.second = 0.0;
+  }
 
-
-  if (inj125) mass=125;
+  int mH = mass;
+  //different in case of new signal injection test
+  if (inj125) mH=125;
 
   //uncertainty on population of jet bins
   float v_QCDscale_WW    = 1.000;
@@ -89,27 +95,23 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
 
   //unceratinty on Higgs cross section at high mass
   float theoryUncXS_HighMH = 1.000;
-  if(mass>=200) {
-    theoryUncXS_HighMH = 1.0+1.5*(mass/1000.0)*(mass/1000.0)*(mass/1000.0);
-  }
+  //if (mH>=200) theoryUncXS_HighMH = 1.0+1.5*(mass/1000.0)*(mass/1000.0)*(mass/1000.0);//take it out, now we have a proper lineshape reweighting (?)
 
   pair<float, float> topSF = make_pair<float, float>(TopBkgScaleFactor(njets), TopBkgScaleFactor(njets)*(TopBkgScaleFactorKappa(njets)-1.));
   if (njets==2) {
     topSF = make_pair<float, float>(TopVBFBkgScaleFactor(0), TopVBFBkgScaleFactor(0)*(TopVBFBkgScaleFactorKappa(0)-1.));
   }
   //this uncertainty should work only for the dy component
-  pair<float, float> dySF = make_pair<float, float>(1., 0);
+  pair<float, float> dySF = make_pair<float, float>(1.0,0.0);//(DYBkgScaleFactor(0,njets), DYBkgScaleFactor(0,njets)*(DYBkgScaleFactorKappa(0,njets)-1));
   if (fs=="sffs") {
-    if (mode=="cut"&&njets<2) dySF = make_pair<float, float>(DYBkgScaleFactor(mass,njets),    DYBkgScaleFactor(mass,njets)*(DYBkgScaleFactorKappa(mass,njets)-1.      ));//DYBkgScaleFactor is the yield
-    else if (mode=="shape")   dySF = make_pair<float, float>(DYBkgScaleFactorBDT(mass,njets), DYBkgScaleFactorBDT(mass,njets)*(DYBkgScaleFactorBDTKappa(mass,njets)-1.));//DYBkgScaleFactorBDT is the yield
-    else if (njets==2)        dySF = make_pair<float, float>(DYBkgScaleFactor(0,2),    DYBkgScaleFactor(0,2)   *(DYBkgScaleFactorKappa(0,2)-1.)   );
-  } //else dySF = make_pair<float, float>(0., 0);
+    if (mode=="cut") dySF = make_pair<float, float>(DYBkgScaleFactor(max(115,mass),njets),    DYBkgScaleFactor(max(115,mass),njets)*(DYBkgScaleFactorKappa(max(115,mass),njets)-1.      ));//DYBkgScaleFactor is the yield
+    else if (mode=="shape")   dySF = make_pair<float, float>(DYBkgScaleFactorBDT(max(115,mass),njets), DYBkgScaleFactorBDT(max(115,mass),njets)*(DYBkgScaleFactorBDTKappa(max(115,mass),njets)-1.));//DYBkgScaleFactorBDT is the yield
+  } 
   fs=fs+"=";
 
   pair<float, float> data = getYield(dir+"data", wwSelNoMet, veto, mass, njets, sigreg+fs, 0.,   useJson, false, false, false);
 
   pair<float, float> qqww = getYield(dir+"qqww", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  //pair<float, float> qqww = getYield(dir+"ww_mcnlo", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> ggww = getYield(dir+"ggww", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
 
   pair<float, float> ttbar = getYield(dir+"ttbar_powheg", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
@@ -124,21 +126,25 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   pair<float, float> pwz = getYield(dir+"wz", wwSelNoMet, veto, mass, njets, sigreg+fs+"=fromZ=", lumi, useJson, applyEff, doFake, doPUw);
   float dyY = 0.0;
   float dyMCE = 0.0;
-  float dyDDK = 1.0;
-  pair<float, float> dyll = getYield(dir+"dyll", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  if (njets<2) {
-    if (fs.Contains("sffs")) {
+  float dyDDK = 0.0;//for of case
+  pair<float, float> dyll = getYield(dir+"dyll", wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);//+"=fromZ="
+  if (fs.Contains("sffs")) {
+    if (mass<=300) {
       //ok, in this case dySF means the data yield
       dyY = dySF.first;
       if (dySF.first>0.) dyDDK = 1.0+dySF.second/(dySF.first+pzz.first+pwz.first);
+    } else {
+      //ok, in this case dySF means the scale factor
+      dyY = dySF.first*dyll.first;
+      dyMCE = dySF.first*dyll.second;
+      if (dyll.first>0.) dyDDK = 1.+dySF.second/dySF.first;
     }
   } else {
-    //ok, in this case dySF means the scale factor
     dyY = dySF.first*dyll.first;
     dyMCE = dySF.first*dyll.second;
-    if (dyll.first>0.) dyDDK = 1.+dySF.second/dySF.first;
+    dyDDK = ZttScaleFactorKappa();
   }
-  //cout << mode << " " << njets  << " " << fs << " " << dyll.first << " " << dySF.first << " " << dyY << " " << dyDDK << endl;
+  //cout << mode << " " << njets  << " " << fs << " " << dyll.first << " " << dySF.first << " " << dyY << " " << dyDDK << " " << pzz.first+pwz.first << endl;
 
   pair<float, float> dytt_1 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau121", wwSelNoMet, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
   pair<float, float> dytt_2 = make_pair<float, float>(0,0);//getYield(dir+"data-emb-tau122", wwSelNoMet, veto, mass, njets, sigreg+"embed,"+fs, lumi, false, false, false, false);
@@ -156,10 +162,11 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   pair<float, float> zhww = make_pair<float, float>(0.,0.); 
   pair<float, float> whww = make_pair<float, float>(0.,0.); 
   if (mass>0) {
-    gghww = getYield(dir+Form("hww%i",mass), wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw);
-    qqhww = getYield(dir+Form("hww%i",mass), wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw);
-    zhww = getYield(dir+Form("hww%i",mass), wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw);
-    whww = getYield(dir+Form("hww%i",mass), wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+    gghww = getYield(dir+Form("hww%i",mH), wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+    qqhww = getYield(dir+Form("hww%i",mH), wwSelNoMet, veto, mass, njets, sigreg+"=qqH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+    zhww = getYield(dir+Form("hww%i",mH), wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+    whww = getYield(dir+Form("hww%i",mH), wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw);
+    //gghww = make_pair<float, float>(InterfgHHSystematics(mass)*gghww.first,InterfgHHSystematics(mass)*gghww.second);
   }
 
   bool makeTable = false;
@@ -204,13 +211,21 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%-35s %5s %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f \n","rate","",
 	   zhww.first, whww.first, qqhww.first, gghww.first, wwSF.first*qqww.first, wwSF.first*ggww.first, zz.first+wz.first+www.first, topSF.first*(ttbar.first+tw.first), 
 		dyY+pzz.first+pwz.first, wjets.first, wgamma.first+zgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
-    out << Form("%-35s %5s   1.044   1.044   1.044   1.044     -       -     1.044     -       -       -     1.044   1.044\n","lumi","lnN");
+    if (mass>=200) {
+      out << Form("%-35s %5s   1.044   1.044   1.044   1.044   1.044   1.044   1.044     -       -       -     1.044   1.044\n","lumi_8TeV","lnN");
+    } else {
+      out << Form("%-35s %5s   1.044   1.044   1.044   1.044     -       -     1.044     -       -       -     1.044   1.044\n","lumi_8TeV","lnN");
+    }
     if (mode=="shape" && doResEffSyst) {
-      //we do not have WH and ZH for mH=115
-      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000     -       -       -     %5s   %5s \n","CMS_MVALepEffBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");//why no top???
-      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_MVALepResBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
-      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_MVAMETResBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
-      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_MVAJESBounding","shape",zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
+      //do not consider wgamma here, too few MC events just random results (30% syst covers)
+      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000     -       -       -     %5s   %5s \n","CMS_hww_MVALepEffBounding","shape",
+		  zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",0*(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");//why no top???
+      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVALepResBounding","shape",
+		  zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",0*(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
+      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVAMETResBounding","shape",
+		  zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",0*(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
+      out << Form("%-35s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVAJESBounding","shape",
+		  zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",0*(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
     } else {
       if (mass>=200) {
 	out << Form("%-35s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
@@ -231,21 +246,21 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     }
     out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.360     -       -  \n","FakeRate","lnN");
     if (mode=="shape") {
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_MVAWBounding_hww","shape");
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_MVAWMCBounding_hww","shape");
-      out << Form("%-35s %5s     -       -       -     1.000     -       -       -       -       -       -       -       -  \n","CMS_MVAggHBounding","shape");      
+      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_hww_MVAWBounding","shape");
+      //out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n","CMS_hww_MVAWMCBounding","shape");
+      //out << Form("%-35s %5s     -       -       -     1.000     -       -       -       -       -       -       -       -  \n","CMS_hww_MVAggHBounding","shape");      
     }
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","UEPS","lnN", 
-		mass>0 ? HiggsSignalPSUESystematics(mass, njets) : 0.);
+		mass>0 ? HiggsSignalPSUESystematics(mH, njets) : 0.);
     out << Form("%-35s %5s   %5.3f   %5.3f   %5.3f   %5.3f     -       -       -       -       -       -       -       -  \n","theoryUncXS_HighMH","lnN",theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH,theoryUncXS_HighMH);
-    out << Form("%-35s %5s     -       -       -     %5.3f     -     1.040     -       -       -       -       -       -  \n","pdf_gg","lnN",PDFgHHSystematics(mass));
+    out << Form("%-35s %5s     -       -       -     %5.3f     -     1.040     -       -       -       -       -       -  \n","pdf_gg","lnN",PDFgHHSystematics(mH));
     out << Form("%-35s %5s   1.050   1.050   1.050     -     1.040     -     1.040     -       -       -     1.040   1.040\n","pdf_qqbar","lnN");
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH","lnN", 
-		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH",mass, njets) : 0.);
+		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH",mH, njets) : 0.);
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH1in","lnN", 
-		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH1in",mass, njets) : 0.);
+		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH1in",mH, njets) : 0.);
     out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n","QCDscale_ggH2in","lnN", 
-		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH2in",mass, njets) : 0.);
+		mass>0 ? HiggsSignalQCDScaleKappa("QCDscale_ggH2in",mH, njets) : 0.);
     out << Form("%-35s %5s     -       -     1.010     -       -       -       -       -       -       -       -       -  \n","QCDscale_qqH","lnN");
     out << Form("%-35s %5s   1.020   1.020     -       -       -       -       -       -       -       -       -       -  \n","QCDscale_VH","lnN");
     out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW","lnN", 
@@ -255,75 +270,75 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW2in","lnN", 
 		v_QCDscale_WW2in );
     out << Form("%-35s %5s     -       -       -       -       -       -     1.040     -       -       -       -       -  \n","QCDscale_VV","lnN");
-    out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     1.300     -  \n","QCDscale_V","lnN");
+    out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     1.300     -  \n","QCDscale_Vgamma","lnN");
     out << Form("%-35s %5s     -       -       -       -       -     1.300     -       -       -       -       -       -  \n","QCDscale_ggVV","lnN");
     out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n","QCDscale_WW_EXTRAP","lnN",
 		1.060);//this is the unceratinty for extrapolation from sideband to signal region
     out << Form("%-35s %5s     -       -       -     1.020     -       -       -       -       -       -       -       -  \n","QCDscale_ggH_ACCEPT","lnN");
     out << Form("%-35s %5s     -       -     1.020     -       -       -       -       -       -       -       -       -  \n","QCDscale_qqH_ACCEPT","lnN");
     out << Form("%-35s %5s   1.020   1.020     -       -       -       -       -       -       -       -       -       -  \n","QCDscale_VH_ACCEPT","lnN");
-    out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww_%ij_ttbar",njets),"lnN",
+    out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww_%ij_ttbar_8TeV",njets),"lnN",
 		1.+topSF.second/topSF.first);
-    out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_%ij_Z",fs.Data(),njets),"lnN",dyDDK);
-    out << Form("%-35s %5s     -       -       -       -     %5.3f   %5.3f     -       -       -       -       -       -  \n",Form("CMS_hww_%ij_WW",njets),"lnN",
+    out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_%ij_Z_8TeV",fs.Data(),njets),"lnN",dyDDK);
+    out << Form("%-35s %5s     -       -       -       -     %5.3f   %5.3f     -       -       -       -       -       -  \n",Form("CMS_hww_%ij_WW_8TeV",njets),"lnN",
 		1.+wwSF.second/wwSF.first,1.+wwSF.second/wwSF.first);
     out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     %5.3f\n","CMS_hww_Ztt","lnN",
 		ZttScaleFactorKappa());
 
     if (mode=="cut") {
-      if (zhww.first>0.) out << Form("%-35s %5s   %5.3f     -       -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ZH",fs.Data(),njets),"lnN",
+      if (zhww.first>0.) out << Form("%-35s %5s   %5.3f     -       -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ZH_8TeV",fs.Data(),njets),"lnN",
 				     zhww.first>0 ? 1.+zhww.second/zhww.first : 1.);
-      if (whww.first>0.) out << Form("%-35s %5s     -     %5.3f     -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_WH",fs.Data(),njets),"lnN",
+      if (whww.first>0.) out << Form("%-35s %5s     -     %5.3f     -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_WH_8TeV",fs.Data(),njets),"lnN",
 				     whww.first>0 ? 1.+whww.second/whww.first : 1.);
-      out << Form("%-35s %5s     -       -     %5.3f     -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_qqH",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -     %5.3f     -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_qqH_8TeV",fs.Data(),njets),"lnN",
 		  qqhww.first>0 ? 1.+qqhww.second/qqhww.first : 1.);
-      out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ggH",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -       -     %5.3f     -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ggH_8TeV",fs.Data(),njets),"lnN",
 		  gghww.first>0 ? 1.+gghww.second/gghww.first : 1.);
-      out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_WW",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -       -       -     %5.3f     -       -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_WW_8TeV",fs.Data(),njets),"lnN",
 		  1.+qqww.second/qqww.first);
-      out << Form("%-35s %5s     -       -       -       -       -     %5.3f     -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ggWW",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -       -       -       -     %5.3f     -       -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ggWW_8TeV",fs.Data(),njets),"lnN",
 		  ggww.first>0 ? 1.+ggww.second/ggww.first : 1.);
-      out << Form("%-35s %5s     -       -       -       -       -       -     %5.3f     -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_VV",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -       -       -       -       -     %5.3f     -       -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_VV_8TeV",fs.Data(),njets),"lnN",
 		  1.+sqrt(pow(zz.second,2)+pow(wz.second,2)+pow(www.second,2))/(zz.first+wz.first+www.first));
-      out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ttbar",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -       -       -       -       -       -     %5.3f     -       -       -       -  \n",Form("CMS_hww%s_stat_%ij_ttbar_8TeV",fs.Data(),njets),"lnN",
 		  1.+sqrt(pow(ttbar.second,2)+pow(tw.second,2))/(ttbar.first+tw.first));
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_stat_%ij_Z",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -       -       -       -       -       -       -     %5.3f     -       -       -  \n",Form("CMS_hww%s_stat_%ij_Z_8TeV",fs.Data(),njets),"lnN",
 		  dyY+pzz.first+pwz.first>0 ? 1.+sqrt(pow(dyMCE,2)+pow(pzz.second,2)+pow(pwz.second,2))/(dyY+pzz.first+pwz.first) : 1.0);
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     %5.3f     -       -  \n",Form("CMS_hww%s_stat_%ij_Wjets",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     %5.3f     -       -  \n",Form("CMS_hww%s_stat_%ij_Wjets_8TeV",fs.Data(),njets),"lnN",
 		  wjets.first>0 ? 1.+wjets.second/wjets.first : 1.);
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     %5.3f     -  \n",Form("CMS_hww%s_stat_%ij_Wgamma",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     %5.3f     -  \n",Form("CMS_hww%s_stat_%ij_Wgamma_8TeV",fs.Data(),njets),"lnN",
 		  (wgamma.first+zgamma.first+wg3l.first*WGstarScaleFactor())>0 ? 1.+sqrt(pow(wgamma.second,2)+pow(zgamma.second,2)+pow(wg3l.second*WGstarScaleFactor(),2))/(wgamma.first+zgamma.first+wg3l.first*WGstarScaleFactor()) : 1.);
-      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     %5.3f\n",Form("CMS_hww%s_stat_%ij_Ztt",fs.Data(),njets),"lnN",
+      out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     %5.3f\n",Form("CMS_hww%s_stat_%ij_Ztt_8TeV",fs.Data(),njets),"lnN",
 		  dytt.first>0 ? 1.+dytt.second/dytt.first : 1.);
     } else if (mode=="shape") {
-      if (fs=="sf") out << Form("%-35s %5s     -       -       -       -       -       -       -       -     2.000     -       -       -  \n",Form("CMS_MVAZBounding_hww%s_%ij",fs.Data(),njets),"shape");      
-      out << Form("%-35s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n","CMS_MVATopBounding_hww","shape");      
-      out << Form("%-35s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n","CMS_MVAWWBounding_hww","shape");      
-      out << Form("%-35s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n","CMS_MVAWWNLOBounding_hww","shape");      
+      if (fs=="sf") out << Form("%-35s %5s     -       -       -       -       -       -       -       -     2.000     -       -       -  \n",Form("CMS_hww%s_%ij_MVAZBounding_8TeV",fs.Data(),njets),"shape");      
+      out << Form("%-35s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n","CMS_hww_MVATopBounding_8TeV","shape");      
+      out << Form("%-35s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n","CMS_hww_MVAWWBounding_8TeV","shape");      
+      out << Form("%-35s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n","CMS_hww_MVAWWNLOBounding_8TeV","shape");      
       if (zhww.first>0.)
-	out << Form("%-35s %5s   1.000     -       -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_MVAZHStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s   1.000     -       -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAZHStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (whww.first>0.)
-	out << Form("%-35s %5s     -     1.000     -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_MVAWHStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -     1.000     -       -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAWHStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (qqhww.first>0.)
-	out << Form("%-35s %5s     -       -     1.000     -       -       -       -       -       -       -       -       -  \n",Form("CMS_MVAqqHStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -       -     1.000     -       -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAqqHStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (gghww.first>0.)
-	out << Form("%-35s %5s     -       -       -     1.000     -       -       -       -       -       -       -       -  \n",Form("CMS_MVAggHStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -       -       -     1.000     -       -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAggHStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (qqww.first>0.)
-	out << Form("%-35s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n",Form("CMS_MVAqqWWStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -       -       -       -     1.000     -       -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAqqWWStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (ggww.first>0.)
-	out << Form("%-35s %5s     -       -       -       -       -     1.000     -       -       -       -       -       -  \n",Form("CMS_MVAggWWStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -       -       -       -       -     1.000     -       -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAggWWStatBounding_8TeV",fs.Data(),njets),"shape");      
       if ((zz.first+wz.first+www.first)>0.)
-	out << Form("%-35s %5s     -       -       -       -       -       -     1.000     -       -       -       -       -  \n",Form("CMS_MVAVVStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -       -       -       -       -       -     1.000     -       -       -       -       -  \n",Form("CMS_hww%s_%ij_MVAVVStatBounding_8TeV",fs.Data(),njets),"shape");      
       if ((ttbar.first+tw.first)>0.)
-	out << Form("%-35s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n",Form("CMS_MVATopStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -       -       -       -       -       -       -     1.000     -       -       -       -  \n",Form("CMS_hww%s_%ij_MVATopStatBounding_8TeV",fs.Data(),njets),"shape");      
       if ((dyY+pzz.first+pwz.first)>0.)
-	out << Form("%-35s %5s     -       -       -       -       -       -       -       -     1.000     -       -       -  \n",Form("CMS_MVAZjetsStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -       -       -       -       -       -       -       -     1.000     -       -       -  \n",Form("CMS_hww%s_%ij_MVAZjetsStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (wjets.first>0.)
-	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n",Form("CMS_MVAWjetsStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -     1.000     -       -  \n",Form("CMS_hww%s_%ij_MVAWjetsStatBounding_8TeV",fs.Data(),njets),"shape");      
       if ((wgamma.first+zgamma.first+wg3l.first)>0) 
-	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     1.000     -  \n",Form("CMS_MVAWgammaStatBounding_hww%s_%ij",fs.Data(),njets),"shape");      
+	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -     1.000     -  \n",Form("CMS_hww%s_%ij_MVAWgammaStatBounding_8TeV",fs.Data(),njets),"shape");      
       if (dytt.first>0) 
-	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     1.000\n",Form("CMS_MVAZttStatBounding_hww%s_%ij",fs.Data(),njets),"shape");
+	out << Form("%-35s %5s     -       -       -       -       -       -       -       -       -       -       -     1.000\n",Form("CMS_hww%s_%ij_MVAZttStatBounding_8TeV",fs.Data(),njets),"shape");
     }
   }
 
@@ -341,9 +356,9 @@ void cardMaker(float lumi, TString mode) {
   //int jets[] = {0};
   int jets[] = {0,1,2};
 
-  //int masses[] = {250};
+  //int masses[] = {125};
   //int masses[] = {125,200,350};
-  int masses[] = {110,125,160,250,600};
+  int masses[] = {110,125,160,250,300,600};
   //int masses[] = {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350,400,450,500,550,600};
   int nmasses = sizeof(masses)/sizeof(int);
   int njets = sizeof(jets)/sizeof(int);

@@ -41,6 +41,21 @@ void divideHisto(TH1F* num,TH1F* den){
   }
 }
 
+void divideHistoProtected(TH1F* num,TH1F* den, float maxr=50.){
+  for (int bin=1;bin<=num->GetNbinsX();++bin) {
+    if (fabs(den->GetBinContent(bin)>0) ) {
+      //fixme: avoid large flututaions
+      if (num->GetBinContent(bin)/den->GetBinContent(bin)<maxr)
+	num->SetBinContent(bin,num->GetBinContent(bin)/den->GetBinContent(bin));
+      else {
+	cout << "divideHisto - WARNING: setting bin to zero because dividing by a very small number - bin: " << bin <<  " - num " << num->GetName() << " " << num->GetBinContent(bin) 
+	     << " den " << den->GetName() << " " << den->GetBinContent(bin) << endl;
+	num->SetBinContent(bin,0);
+      }
+    } else num->SetBinContent(bin,0);
+  }
+}
+
 void multiplyHisto(TH1F* num,TH1F* den){
   for (int bin=1;bin<=num->GetNbinsX();++bin) {
     num->SetBinContent(bin,num->GetBinContent(bin)*den->GetBinContent(bin));
