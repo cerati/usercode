@@ -978,7 +978,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
 //   printBins(wjets_mc_down_h);
 
  //Write histos to file
-  TString outfname = Form("hww%s_%ij.input.root",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets);
+  TString outfname = Form("hww%s_%ij.input_8TeV.root",TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets);
   TFile* outfile = TFile::Open(outfname,"RECREATE");
 
   //Nominal Histos

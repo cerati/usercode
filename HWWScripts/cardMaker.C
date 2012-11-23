@@ -32,7 +32,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     if (fs=="sffs") fname=fname+"sf_";
     else if (fs=="offs") fname=fname+"of_";
     else fname=fname+"_";
-    fname = Form("%s%ij_%s.txt",fname.Data(),njets,mode.Data());
+    fname = Form("%s%ij_%s_8TeV.txt",fname.Data(),njets,mode.Data());
     TString dname = Form("cards/%i/",mass);
     gSystem->Exec("mkdir -p "+dname);
     myfile.open(dname+fname);
@@ -63,10 +63,10 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     if (mode=="cut") wwSF = make_pair<float, float>(WWBkgScaleFactorCutBased(massForWW,njets), WWBkgScaleFactorCutBased(massForWW,njets)*(WWBkgScaleFactorKappaCutBased(massForWW,njets)-1.));
     else if (mode=="shape") wwSF = make_pair<float, float>(WWBkgScaleFactorMVA(massForWW,njets), WWBkgScaleFactorMVA(massForWW,njets)*(WWBkgScaleFactorKappaMVA(massForWW,njets)-1.));
   }
-  if (mass>200 && doMVA==0) {
     //try this to sync with guillelmo
-    if (njets==2) wwSF.second = 0.5*wwSF.first;
-    else wwSF.second = 0.0;
+  if (njets==2) wwSF.second = 0.5*wwSF.first;
+  else if (mass>200 && doMVA==0) {
+    wwSF.second = 0.0;
   }
 
   int mH = mass;
@@ -77,7 +77,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   float v_QCDscale_WW    = 1.000;
   float v_QCDscale_WW1in = 1.000;
   float v_QCDscale_WW2in = 1.000;
-  if (mass>=200) {
+  if (mass>200) {
     if (njets==0) {
       v_QCDscale_WW    = 1.042;
       v_QCDscale_WW1in = 0.978;
@@ -105,7 +105,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   pair<float, float> dySF = make_pair<float, float>(1.0,0.0);//(DYBkgScaleFactor(0,njets), DYBkgScaleFactor(0,njets)*(DYBkgScaleFactorKappa(0,njets)-1));
   if (fs=="sffs") {
     if (mode=="cut") dySF = make_pair<float, float>(DYBkgScaleFactor(max(115,mass),njets),    DYBkgScaleFactor(max(115,mass),njets)*(DYBkgScaleFactorKappa(max(115,mass),njets)-1.      ));//DYBkgScaleFactor is the yield
-    else if (mode=="shape")   dySF = make_pair<float, float>(DYBkgScaleFactorBDT(max(115,mass),njets), DYBkgScaleFactorBDT(max(115,mass),njets)*(DYBkgScaleFactorBDTKappa(max(115,mass),njets)-1.));//DYBkgScaleFactorBDT is the yield
+    else if (mode=="shape") dySF = make_pair<float, float>(DYBkgScaleFactorBDT(max(115,mass),njets), DYBkgScaleFactorBDT(max(115,mass),njets)*(DYBkgScaleFactorBDTKappa(max(115,mass),njets)-1.));//DYBkgScaleFactorBDT is the yield
   } 
   fs=fs+"=";
 
@@ -124,6 +124,8 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
   //add peaking component of VV to DY
   pair<float, float> pzz = getYield(dir+"zz", wwSelNoMet, veto, mass, njets, sigreg+fs+"=fromZ=", lumi, useJson, applyEff, doFake, doPUw);
   pair<float, float> pwz = getYield(dir+"wz", wwSelNoMet, veto, mass, njets, sigreg+fs+"=fromZ=", lumi, useJson, applyEff, doFake, doPUw);
+
+  //now compute DY yield and K combining with peaking VZ
   float dyY = 0.0;
   float dyMCE = 0.0;
   float dyDDK = 0.0;//for of case
@@ -132,13 +134,16 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     if (mass<=300) {
       //ok, in this case dySF means the data yield
       dyY = dySF.first;
-      if (dySF.first>0.) dyDDK = 1.0+dySF.second/(dySF.first+pzz.first+pwz.first);
+      if (dySF.first>0.) dyDDK = 1.0+dySF.second/dySF.first;
     } else {
       //ok, in this case dySF means the scale factor
       dyY = dySF.first*dyll.first;
       dyMCE = dySF.first*dyll.second;
       if (dyll.first>0.) dyDDK = 1.+dySF.second/dySF.first;
+      else dyDDK = 1.0;
     }
+    //assume 10% uncertainty on peaking VZ and add to dyDDK
+    dyDDK = 1.0 + sqrt(pow(dyY*(1.-dyDDK),2)+pow(0.1*(pzz.first+pwz.first),2))/(dyY+pzz.first+pwz.first);
   } else {
     dyY = dySF.first*dyll.first;
     dyMCE = dySF.first*dyll.second;
@@ -211,7 +216,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%-40s %5s %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f \n","rate","",
 	   zhww.first, whww.first, qqhww.first, gghww.first, wwSF.first*qqww.first, wwSF.first*ggww.first, zz.first+wz.first+www.first, topSF.first*(ttbar.first+tw.first), 
 		dyY+pzz.first+pwz.first, wjets.first, wgamma.first+zgamma.first+wg3l.first*WGstarScaleFactor(), dytt.first);
-    if (mass>=200) {
+    if (mass>200) {
       out << Form("%-40s %5s   1.044   1.044   1.044   1.044   1.044   1.044   1.044     -       -       -     1.044   1.044\n","lumi_8TeV","lnN");
     } else {
       out << Form("%-40s %5s   1.044   1.044   1.044   1.044     -       -     1.044     -       -       -     1.044   1.044\n","lumi_8TeV","lnN");
@@ -227,7 +232,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
       out << Form("%-40s %5s   %5s   %5s   1.000   1.000   1.000   1.000   1.000   1.000     -       -     %5s   %5s \n","CMS_hww_MVAJESBounding","shape",
 		  zhww.first>0?"1.000":"  -  ",whww.first>0?"1.000":"  -  ",0*(wgamma.first+zgamma.first+wg3l.first)>0?"1.000":"  -  ",dytt.first>0?"1.000":"  -  ");
     } else {
-      if (mass>=200) {
+      if (mass>200) {
 	out << Form("%-40s %5s   1.030   1.030   1.030   1.030   1.030   1.030   1.030     -       -       -     1.030   1.030\n","CMS_eff_m","lnN");
 	out << Form("%-40s %5s   1.040   1.040   1.040   1.040   1.040   1.040   1.040     -       -       -     1.040   1.040\n","CMS_eff_e","lnN");
 	out << Form("%-40s %5s   1.015   1.015   1.015   1.015   1.015   1.015   1.015     -       -       -     1.015   1.015\n","CMS_scale_m","lnN");

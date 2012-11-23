@@ -379,43 +379,49 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     himass = 100;//max((float) 100.,mll);
 
     //old approach
-    /*
+    if (0) {
       if (mass==0 || mass==1) {
-      mll    = 9999.;
-      mtH    = 9999.;
+	mll    = 9999.;
+	mtH    = 9999.;
       } else if (mass==110||mass==115||mass==118||mass==120||mass==122||mass==124 ) {
-      mll    = 70.;
-      mtH    = ((float) mass);
+	mll    = 70.;
+	mtH    = ((float) mass);
       } else if (mass==125||mass==126||mass==128||mass==130) {
-      mll    = 80.;
-      mtH    = ((float) mass);
+	mll    = 80.;
+	mtH    = ((float) mass);
       } else if (mass==135||mass==140) {
-      mll    = 90.;
-      mtH    = ((float) mass);
+	mll    = 90.;
+	mtH    = ((float) mass);
       } else if (mass==145||mass==150) {
-      mll    = 100.;
-      mtH    = ((float) mass);
+	mll    = 100.;
+	mtH    = ((float) mass);
       } else if (mass==160) {
-      mll    = 100.;
-      mtH    = ((float) mass);
+	mll    = 100.;
+	mtH    = ((float) mass);
       } else if (mass==170) {
-      mll    = 100.;
-      mtH    = ((float) mass);
+	mll    = 100.;
+	mtH    = ((float) mass);
       } else if (mass==180) {
-      mll    = 110.;
-      mtH    = ((float) mass);
+	mll    = 110.;
+	mtH    = ((float) mass);
       } else if (mass==190) {
-      mll    = 120.;
-      mtH    = ((float) mass);
+	mll    = 120.;
+	mtH    = ((float) mass);
       } else if (mass==200) {
-      mll    = 130.;
-      mtH    = ((float) mass);
+	mll    = 130.;
+	mtH    = ((float) mass);
       } else if (mass==250||mass==300||mass==350||mass==400||mass==450||mass==500||mass==550||mass==600) {
-      mll    = ((float) mass);
-      mtH    = ((float) mass);
+	mll    = ((float) mass);
+	mtH    = ((float) mass);
       } else {
-      cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
-      }*/
+	cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
+      }
+      if (doVBF) {
+        mtL    = 0.;
+        mtH    = 9999.;
+      }
+    }
+
   }
   
 }
@@ -556,10 +562,19 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( (region.Contains("=zreg15=")) && fabs(dataEvent->dilep_.mass()-91.1876)>15. ) return 0;
     if ( (region.Contains("=zvetoall=")) && fabs(dataEvent->dilep_.mass()-91.1876)<15. ) return 0;
     //additional higgs cuts
-    if ( region.Contains("=dphijet=") && (doVBF) && ( dataEvent->type_!=1 && dataEvent->type_!=2 &&
-						      ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.) || 
-							(dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) )
-						      ) ) return 0;
+    if (0) {
+      //7TeV
+      if ( region.Contains("=dphijet=") && ( dataEvent->type_!=1 && dataEvent->type_!=2 &&
+                                             ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.) || 
+                                               (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) )
+                                             ) ) return 0;
+    } else {
+      //8TeV
+      if ( region.Contains("=dphijet=") && (doVBF) && ( dataEvent->type_!=1 && dataEvent->type_!=2 &&
+							( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15&&dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180.) || 
+							  (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) )
+							) ) return 0;
+    }
     if ( region.Contains("=minmet40=")  && ( dataEvent->type_!=1 && dataEvent->type_!=2 && min(dataEvent->pmet_,dataEvent->pTrackMet_)<40.0)) return 0;
     if ( region.Contains("=dpjallfs=")  && (doVBF)  && ( (dataEvent->njets_<2 && dataEvent->jet1_.pt()>15 && dataEvent->dPhiDiLepJet1_>165.*TMath::Pi()/180. ) ||
 							 (dataEvent->njets_>=2 && fabs(ROOT::Math::VectorUtil::DeltaPhi((dataEvent->jet1_+dataEvent->jet2_),dataEvent->dilep_))*180.0/TMath::Pi() > 165.) ) ) return 0;
@@ -568,11 +583,11 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( region.Contains("=mmvtxallfs=") && ( min(dataEvent->pmet_,dataEvent->pTrackMet_)<(37.+dataEvent->nvtx_/2.)) ) return 0;
     if ( region.Contains("=met2040=") && dataEvent->type_!=1 && dataEvent->type_!=2 && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>40.0) ) return 0;
     if ( region.Contains("=lep2pt15=") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->lep2_.pt()<15.) ) {
-      cout << "warning: =lep2pt15= cut should be used!!!" << endl;
+      if (1) cout << "warning: =lep2pt15= cut should be used!!!" << endl;
       return 0;
     }
     if ( region.Contains("=lep2pt15allfs=") && (dataEvent->lep2_.pt()<15.) ) {
-       cout << "warning: =lep2pt15allfs= cut should be used!!!" << endl;
+       cout << "warning: =lep2pt15allfs= cut should NOT be used!!!" << endl;
        return 0;
     }
     if ( region.Contains("=lep2pt20allfs=") && (dataEvent->lep2_.pt()<20.) ) {
@@ -607,7 +622,7 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
 
     //mll>20 cut
     if ( region.Contains("=mll20=") && dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.mass()<20.) {
-      cout << "warning: =mll20= cut should be used!!!" << endl;
+      if (1) cout << "warning: =mll20= cut should NOT be used!!!" << endl;
       return 0;
     }
     //higgs processId
@@ -824,7 +839,7 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
     dataEvent->tree_->GetEntry(n);
     if (isMC) weight = lumi*dataEvent->scale1fb_;
     TString dataSetName(dataEvent->name(dataEvent->dstype_).c_str());
-//     if (dataSetName.Contains("hww")) weight*=dataEvent->sfWeightHPt_;
+    //if (0 && dataSetName.Contains("hww") && dataEvent->processId_!=10010) weight*=dataEvent->sfWeightHPt_;
     if (region.Contains("embed")) {
       weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2,dataEvent->scale1fb_);//fixme period
     }
