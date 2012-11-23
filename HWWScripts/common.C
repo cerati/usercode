@@ -1205,7 +1205,7 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	  if (redoWeights) {
 	    oldeffsel = lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)*lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_);
 	  }
-	  effSF=effSF*neweffsel/oldeffsel;
+	  effSF= (oldeffsel>0) ? effSF*neweffsel/oldeffsel : effSF*neweffsel;
 	}
 
       }
