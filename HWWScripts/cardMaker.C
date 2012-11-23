@@ -207,8 +207,8 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     out << Form("%s \n","kmax * number of nuisance parameters");
     out << Form("%s %i\n","Observation",((int)data.first));
     if (mode=="shape") {
-      out << Form("shapes *   *   hww%s_%ij.input.root  histo_$PROCESS histo_$PROCESS_$SYSTEMATIC \n",fs.Data(),njets);
-      out << Form("shapes data_obs * hww%s_%ij.input.root  histo_Data \n",fs.Data(),njets);
+      out << Form("shapes *   *   hww%s_%ij.input_8TeV.root  histo_$PROCESS histo_$PROCESS_$SYSTEMATIC \n",fs.Data(),njets);
+      out << Form("shapes data_obs * hww%s_%ij.input_8TeV.root  histo_Data \n",fs.Data(),njets);
     }
     out << Form("%-40s %5s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s \n","bin","",bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data(),bn.Data());
     out << Form("%-40s %5s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s \n","process","","ZH","WH","qqH","ggH","qqWW","ggWW","VV","Top","Zjets","Wjets","Wgamma","Ztt");
