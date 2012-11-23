@@ -22,5 +22,5 @@ for mass in masses:
             os.system('rm ../BDTG.class.C')
             os.system('ln -s /smurf/ceballos/tmva/weights/ntuples_'+str(bdtmass)+'train_'+str(njets)+'jets_BDTG.class.C ../BDTG.class.C')
             os.system('root -b -l -q shapeMaker.C++\('+sys.argv[1]+','+str(njets)+','+str(mass)+',\\"'+fs+'\\",\\"'+shape+'\\"\)')
-            os.system('mkdir -p cards/'+str(mass))
-            os.system('mv hww*j.input*.root cards/'+str(mass))
+            os.system('mkdir -p ../cards/'+str(mass)) 
+            os.system('mv hww*j.input*.root ../cards/'+str(mass)) 

@@ -33,7 +33,7 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
     else if (fs=="offs") fname=fname+"of_";
     else fname=fname+"_";
     fname = Form("%s%ij_%s_7TeV.txt",fname.Data(),njets,mode.Data());
-    TString dname = Form("cards/%i/",mass);
+    TString dname = Form("../cards/%i/",mass);
     gSystem->Exec("mkdir -p "+dname);
     myfile.open(dname+fname);
   }
