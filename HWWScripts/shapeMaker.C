@@ -318,7 +318,9 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   wjets_h->Add(zzfake_h,-1.);
   wjets_h->Add(wgfake_h,-1.);
   wjets_h->Add(dyllfake_h,-1.);
+  float intgr_wj = wjets_h->Integral();
   avoidNegativeBins(wjets_h);
+  wjets_h->Scale(intgr_wj/wjets_h->Integral());
   //syst 1: MC closure test
   /*
   TH1F* wjets_mc_up_h = new TH1F("histo_Wjets_CMS_hww_MVAWMCBoundingUp","histo_Wjets_CMS_hww_MVAWMCBoundingUp",nbins,minx,maxx);

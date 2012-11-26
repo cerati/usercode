@@ -5,8 +5,8 @@ void writeStatUpDown(TH1F* central,bool down, int njets, TString fs) {
   proc.ReplaceAll("histo_","");
   TString updown = "Up";
   if (down) updown = "Down";
-  TH1F* statUpDown = new TH1F(Form("%s_CMS_hww%s_%ij_MVA%sStatBounding_8TeV%s",central->GetName(),TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets,proc.Data(),updown.Data()),
-			      Form("%s_CMS_hww%s_%ij_MVA%sStatBounding_8TeV%s",central->GetName(),TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets,proc.Data(),updown.Data()),
+  TH1F* statUpDown = new TH1F(Form("%s_CMS_hww%s_%ij_MVA%sStatBounding_7TeV%s",central->GetName(),TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets,proc.Data(),updown.Data()),
+			      Form("%s_CMS_hww%s_%ij_MVA%sStatBounding_7TeV%s",central->GetName(),TString(fs).ReplaceAll("fs","").ReplaceAll("=","").Data(),njets,proc.Data(),updown.Data()),
 			      central->GetNbinsX(),central->GetXaxis()->GetXmin(),central->GetXaxis()->GetXmax());
   for (int bin=1;bin<=statUpDown->GetNbinsX();++bin) {
     float val = down ? (central->GetBinContent(bin)-central->GetBinError(bin)) : (central->GetBinContent(bin)+central->GetBinError(bin));
@@ -288,7 +288,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   TH1F* dytt_2_h = new TH1F("histo_dytt_2","histo_dytt_2",nbins,minx,maxx);
   //fillPlot(plotvar,dytt_2_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
   TH1F* dytt_3_h = new TH1F("histo_dytt_3","histo_dytt_3",nbins,minx,maxx);
-  //fillPlot(plotvar,dytt_3_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
+  fillPlot(plotvar,dytt_3_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false);
   TH1F* ztt_h = new TH1F("histo_Ztt","histo_Ztt",nbins,minx,maxx);
   ztt_h->Add(dytt_1_h);
   ztt_h->Add(dytt_2_h);
@@ -324,15 +324,15 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   wjets_h->Add(zzfake_h,-1.);
   wjets_h->Add(wgfake_h,-1.);
   wjets_h->Add(dyllfake_h,-1.);
+  float intgr_wj = wjets_h->Integral();
   avoidNegativeBins(wjets_h);
+  wjets_h->Scale(intgr_wj/wjets_h->Integral());
   //syst 1: MC closure test
-  /*
   TH1F* wjets_mc_up_h = new TH1F("histo_Wjets_CMS_hww_MVAWMCBoundingUp","histo_Wjets_CMS_hww_MVAWMCBoundingUp",nbins,minx,maxx);
   fillPlot(plotvar,wjets_mc_up_h,dirwj+"wjets"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, true, doPUw);//fixme is this correct??? shouldn't be doFake=0?
   scaleIntegral(wjets_h,wjets_mc_up_h);
   TH1F* wjets_mc_down_h = new TH1F("histo_Wjets_CMS_hww_MVAWMCBoundingDown","histo_Wjets_CMS_hww_MVAWMCBoundingDown",nbins,minx,maxx);
   fillDownMirrorUp(wjets_h,wjets_mc_up_h,wjets_mc_down_h);
-  */
   //syst 2: alternative fakebale object definition
   TH1F* datafake_fr_up_h = new TH1F("datafake_fr_up","datafake_fr_up",nbins,minx,maxx);
   fillPlot(plotvar,datafake_fr_up_h,dirwj+"data"+suffix, wwSelNoMetNoLep, veto, mass, njets, sigreg+"=alternativeFR="+fs, 0, useJson, false, true, false);
@@ -480,7 +480,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
     TH1F* dytt_2_metres_up_h = new TH1F("histo_dytt_metres_up_2","histo_dytt_metres_up_2",nbins,minx,maxx);
     //fillPlot(plotvar,dytt_2_metres_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "metSmear");
     TH1F* dytt_3_metres_up_h = new TH1F("histo_dytt_metres_up_3","histo_dytt_metres_up_3",nbins,minx,maxx);
-    //fillPlot(plotvar,dytt_3_metres_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "metSmear");
+    fillPlot(plotvar,dytt_3_metres_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "metSmear");
     ztt_metres_up_h = new TH1F("histo_Ztt_CMS_hww_MVAMETResBoundingUp","histo_Ztt_CMS_hww_MVAMETResBoundingUp",nbins,minx,maxx);
     ztt_metres_up_h->Add(dytt_1_metres_up_h);
     ztt_metres_up_h->Add(dytt_2_metres_up_h);
@@ -598,7 +598,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
     TH1F* dytt_2_lepres_up_h = new TH1F("histo_dytt_lepres_up_2","histo_dytt_lepres_up_2",nbins,minx,maxx);
     //fillPlot(plotvar,dytt_2_lepres_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleUp");
     TH1F* dytt_3_lepres_up_h = new TH1F("histo_dytt_lepres_up_3","histo_dytt_lepres_up_3",nbins,minx,maxx);
-    //fillPlot(plotvar,dytt_3_lepres_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleUp");
+    fillPlot(plotvar,dytt_3_lepres_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleUp");
     ztt_lepres_up_h = new TH1F("histo_Ztt_CMS_hww_MVALepResBoundingUp","histo_Ztt_CMS_hww_MVALepResBoundingUp",nbins,minx,maxx);
     ztt_lepres_up_h->Add(dytt_1_lepres_up_h);
     ztt_lepres_up_h->Add(dytt_2_lepres_up_h);
@@ -608,7 +608,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
     TH1F* dytt_2_lepres_down_h = new TH1F("histo_dytt_lepres_down_2","histo_dytt_lepres_down_2",nbins,minx,maxx);
     //fillPlot(plotvar,dytt_2_lepres_down_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleDown");
     TH1F* dytt_3_lepres_down_h = new TH1F("histo_dytt_lepres_down_3","histo_dytt_lepres_down_3",nbins,minx,maxx);
-    //fillPlot(plotvar,dytt_3_lepres_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleDown");
+    fillPlot(plotvar,dytt_3_lepres_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "momScaleDown");
     ztt_lepres_down_h = new TH1F("histo_Ztt_CMS_hww_MVALepResBoundingDown","histo_Ztt_CMS_hww_MVALepResBoundingDown",nbins,minx,maxx);
     ztt_lepres_down_h->Add(dytt_1_lepres_down_h);
     ztt_lepres_down_h->Add(dytt_2_lepres_down_h);
@@ -724,7 +724,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
     TH1F* dytt_2_jes_up_h = new TH1F("histo_dytt_jes_up_2","histo_dytt_jes_up_2",nbins,minx,maxx);
     //fillPlot(plotvar,dytt_2_jes_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesUp");
     TH1F* dytt_3_jes_up_h = new TH1F("histo_dytt_jes_up_3","histo_dytt_jes_up_3",nbins,minx,maxx);
-    //fillPlot(plotvar,dytt_3_jes_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesUp");
+    fillPlot(plotvar,dytt_3_jes_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesUp");
     ztt_jes_up_h = new TH1F("histo_Ztt_CMS_hww_MVAJESBoundingUp","histo_Ztt_CMS_hww_MVAJESBoundingUp",nbins,minx,maxx);
     ztt_jes_up_h->Add(dytt_1_jes_up_h);
     ztt_jes_up_h->Add(dytt_2_jes_up_h);
@@ -734,7 +734,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
     TH1F* dytt_2_jes_down_h = new TH1F("histo_dytt_jes_down_2","histo_dytt_jes_down_2",nbins,minx,maxx);
     //fillPlot(plotvar,dytt_2_jes_down_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesDown");
     TH1F* dytt_3_jes_down_h = new TH1F("histo_dytt_jes_down_3","histo_dytt_jes_down_3",nbins,minx,maxx);
-    //fillPlot(plotvar,dytt_3_jes_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesDown");
+    fillPlot(plotvar,dytt_3_jes_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "jesDown");
     ztt_jes_down_h = new TH1F("histo_Ztt_CMS_hww_MVAJESBoundingDown","histo_Ztt_CMS_hww_MVAJESBoundingDown",nbins,minx,maxx);
     ztt_jes_down_h->Add(dytt_1_jes_down_h);
     ztt_jes_down_h->Add(dytt_2_jes_down_h);
@@ -850,7 +850,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
     TH1F* dytt_2_lepeff_up_h = new TH1F("histo_dytt_lepeff_up_2","histo_dytt_lepeff_up_2",nbins,minx,maxx);
     //fillPlot(plotvar,dytt_2_lepeff_up_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffUp");
     TH1F* dytt_3_lepeff_up_h = new TH1F("histo_dytt_lepeff_up_3","histo_dytt_lepeff_up_3",nbins,minx,maxx);
-    //fillPlot(plotvar,dytt_3_lepeff_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffUp");
+    fillPlot(plotvar,dytt_3_lepeff_up_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffUp");
     ztt_lepeff_up_h = new TH1F("histo_Ztt_CMS_hww_MVALepEffBoundingUp","histo_Ztt_CMS_hww_MVALepEffBoundingUp",nbins,minx,maxx);
     ztt_lepeff_up_h->Add(dytt_1_lepeff_up_h);
     ztt_lepeff_up_h->Add(dytt_2_lepeff_up_h);
@@ -860,7 +860,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
     TH1F* dytt_2_lepeff_down_h = new TH1F("histo_dytt_lepeff_down_2","histo_dytt_lepeff_down_2",nbins,minx,maxx);
     //fillPlot(plotvar,dytt_2_lepeff_down_h, dir+"data-emb-tau122"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffDown");
     TH1F* dytt_3_lepeff_down_h = new TH1F("histo_dytt_lepeff_down_3","histo_dytt_lepeff_down_3",nbins,minx,maxx);
-    //fillPlot(plotvar,dytt_3_lepeff_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffDown");
+    fillPlot(plotvar,dytt_3_lepeff_down_h, dir+"data-emb-tau123"+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=embed="+fs, lumi, false, false, false, false, "lepeffDown");
     ztt_lepeff_down_h = new TH1F("histo_Ztt_CMS_hww_MVALepEffBoundingDown","histo_Ztt_CMS_hww_MVALepEffBoundingDown",nbins,minx,maxx);
     ztt_lepeff_down_h->Add(dytt_1_lepeff_down_h);
     ztt_lepeff_down_h->Add(dytt_2_lepeff_down_h);
@@ -1009,10 +1009,8 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   ZH_h->Write();
 
   //ggH k-factor syst  
-  /*
   ggH_up_h->Write();
   ggH_down_h->Write();
-  */
 
   //Stat uncertainty
   writeStatUpDown(ggww_h,njets,fs);
@@ -1139,10 +1137,8 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
 
   wjets_fr_up_h->Write();
   wjets_fr_down_h->Write();
-  /*
   wjets_mc_up_h->Write();
   wjets_mc_down_h->Write();
-  */
   
   outfile->Close();
   delete rbdtg;
