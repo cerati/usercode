@@ -929,7 +929,7 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	      bool useJson=0, bool applyEff=true, bool doFake=false, bool doPUw=false, TString syst="") {
 
 //   cout << sample << " " << cut << " " << veto << " " << mass << " " << njets << " " << region << " " << lumi << " " 
-//        << useJson << " " << applyEff << " " << doFake << " " << doPUw << endl;
+//        << useJson << " " << applyEff << " " << doFake << " " << doPUw << " " << syst << endl;
 
   h->Sumw2();
 
@@ -1031,6 +1031,9 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
     //change dataEvent for syst studies
     //fixme should go before passEvent: it affects the cuts also, but this is to reproduce Guillelmo's result
     if (syst=="metSmear") {//met variation
+      // Fixing the random seed for a given event
+      gRandom->SetSeed(dataEvent->event_+dataEvent->lumi_);
+      for (int rand=0;rand<12;rand++) gRandom->Gaus(0.0,1.0);
       double metx=0.0;double mety=0.0;double trkmetx=0.0;double trkmety=0.0;
       if (dataEvent->njets_ == 0){
 	metx    = dataEvent->met_*cos(dataEvent->metPhi_)          -0.45189+gRandom->Gaus(0.0,3.2);
@@ -1233,8 +1236,10 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	int binx = h2->GetXaxis()->FindBin(dataEvent->mt_);
 	int biny = h2->GetYaxis()->FindBin(dataEvent->dilep_.mass());
 	//put overflow in last bin
-	if (binx > h2->GetXaxis()->GetNbins()) binx = h2->GetXaxis()->GetNbins();
-	if (biny > h2->GetYaxis()->GetNbins()) biny = h2->GetYaxis()->GetNbins();
+	if (syst!="metSmear"&&syst!="momScaleUp"&&syst!="momScaleDown") {//fixme this crazy thing to sync with G for HCP... should be removed!
+	  if (binx > h2->GetXaxis()->GetNbins()) binx = h2->GetXaxis()->GetNbins();
+	  if (biny > h2->GetYaxis()->GetNbins()) biny = h2->GetYaxis()->GetNbins();
+	}
 	int bin2d = (binx-1)*h2->GetNbinsY()+biny;
 	h->Fill( h->GetBinCenter(bin2d) ,weight*effSF*puw);
       } else if (var=="mll") {
@@ -1283,6 +1288,9 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	  TH2F* h2 = mass<300 ? mtmll2d_lom : mtmll2d_him;
 	  int binx = h2->GetXaxis()->FindBin(dataEvent->mt_);
 	  int biny = h2->GetYaxis()->FindBin(dataEvent->dilep_.mass());
+	  //put overflow in last bin
+	  if (binx > h2->GetXaxis()->GetNbins()) binx = h2->GetXaxis()->GetNbins();
+	  if (biny > h2->GetYaxis()->GetNbins()) biny = h2->GetYaxis()->GetNbins();
 	  int bin2d = (binx-1)*h2->GetNbinsY()+biny;
 	  h->Fill( h->GetBinCenter(bin2d) ,weight*puw*frW);
 	} else if (var=="mll") {

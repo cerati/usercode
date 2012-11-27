@@ -23,9 +23,9 @@ for MASS in {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350
   sed -i 's/r\:/ /g' logStr
   sed -i 's/\// /g' logStr
   sed -i 's/\+/ /g' logStr
-  MU=`tail -15 logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $3)}'`
-  EM=`tail -15 logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $4)}'`
-  EP=`tail -15 logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $5)}'`
+  MU=`cat logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $3)}'`
+  EM=`cat logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $4)}'`
+  EP=`cat logStr | grep "Best fit" | awk '{printf ("%5.3f\n", $5)}'`
   #get significance
   echo combine cards/${MASS}/${CARD}.txt -M ProfileLikelihood -v 1 --significance -m ${MASS}
   combine cards/${MASS}/${CARD}.txt -M ProfileLikelihood -v 1 --significance -m ${MASS} >& logSig
@@ -34,7 +34,10 @@ for MASS in {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350
   combine cards/${MASS}/${CARD}.txt -M ProfileLikelihood -v 1 --significance -m ${MASS} --expectSignal=1 -t -1 -n Expected >& logSig
   EXS=`tail logSig | grep "Significance" | awk '{printf ("%5.3f\n", $2)}'`
   if [ ${IT} == 1 ] ; then  
-      rm logAll_${CARD}.txt       
+      if [ -f logAll_${CARD}.txt ]; then
+	  rm logAll_${CARD}.txt       
+      fi
+      IT=0
   fi
   echo 'limit: '$MASS $NEXP $OBS $EXP '['$S1D','$S1U']' '['$S2D','$S2U'] --- strength: '$MU $EM $EP' --- significance: '$SIG $EXS >> logAll_${CARD}.txt       
   rm logLim
@@ -45,11 +48,13 @@ for MASS in {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350
   rm logSig
   rm higgsCombineTest.ProfileLikelihood.mH${MASS}.root
   rm higgsCombineExpected.ProfileLikelihood.mH${MASS}.root
-  rm roostats-*.root
-  IT=0
+  nrootstats=$(ls roostats-*.root 2> /dev/null | wc -l)
+  if [ "$nrootstats" != "0" ]; then
+      rm roostats-*.root
+  fi
 done
 
-#./gcAllCombine.sh hww_012j_combine
+#./gcAllCombine.sh hww_012j_combine_8TeV
 
 
 
