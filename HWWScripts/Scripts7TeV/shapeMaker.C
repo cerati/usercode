@@ -76,6 +76,9 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   unsigned int baseline_toptag=0, control_top=0, control_toptag=0, veto=0, nj_top=0;
   getCutMasks(njets, baseline_toptag, control_top, control_toptag, veto, nj_top);
 
+  int massForWW = TMath::Min(TMath::Max((int)mass,115),190);
+  if (massForWW==125) massForWW=126; 
+
   int mH = mass;
   if (mH==125) mH=126;
   //different in case of new signal injection test
@@ -88,7 +91,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   //qqWW
   TH1F* qqww_h = new TH1F("histo_qqWW","histo_qqWW",nbins,minx,maxx);
   fillPlot(plotvar,qqww_h, dir+"qqww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  qqww_h->Scale(WWBkgScaleFactorMVA(TMath::Min(TMath::Max((int)mass,115),200),njets));
+  qqww_h->Scale(WWBkgScaleFactorMVA(massForWW,njets));
   //shape variation: 1- mg vs mc@nlo (down mirror);
   TH1F* qqww_mcnlo_h = new TH1F("histo_qqww_mcnlo","histo_qqww_mcnlo",nbins,minx,maxx);
   fillPlot(plotvar,qqww_mcnlo_h, dir+"ww_mcnlo"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
@@ -119,7 +122,7 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   //ggWW
   TH1F* ggww_h = new TH1F("histo_ggWW","histo_ggWW",nbins,minx,maxx);
   fillPlot(plotvar,ggww_h, dir+"ggww"+suffix, wwSelNoMet, veto, mass, njets, sigreg+fs, lumi, useJson, applyEff, doFake, doPUw);
-  ggww_h->Scale(WWBkgScaleFactorMVA(TMath::Min(TMath::Max((int)mass,115),200),njets));
+  ggww_h->Scale(WWBkgScaleFactorMVA(massForWW,njets));
 
   //VV
   TH1F* wz_h = new TH1F("histo_wz","histo_wz",nbins,minx,maxx);
@@ -376,21 +379,20 @@ void shapeMaker(float lumi=4.7, int njets=0, int mass=130, TString fs="sffs", TS
   fillPlot(plotvar,WH_h, dir+Form("hww%i",mH)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=WH="+fs, lumi, useJson, applyEff, doFake, doPUw);
   TH1F* ZH_h = new TH1F("histo_ZH","histo_ZH",nbins,minx,maxx);
   fillPlot(plotvar,ZH_h, dir+Form("hww%i",mH)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ZH="+fs, lumi, useJson, applyEff, doFake, doPUw);
-
-  //ggH k-factor syst  
-  TH1F* ggH_up_h = new TH1F("histo_ggH_CMS_hww_MVAggHBoundingUp","histo_ggH_CMS_hww_MVAggHBoundingUp",nbins,minx,maxx);
-  fillPlot(plotvar,ggH_up_h, dir+Form("hww%i",mH)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_up");
-  //ggH_up_h->Scale(InterfgHHSystematics(mass));
-  TH1F* ggH_down_h = new TH1F("histo_ggH_CMS_hww_MVAggHBoundingDown","histo_ggH_CMS_hww_MVAggHBoundingDown",nbins,minx,maxx);
-  fillPlot(plotvar,ggH_down_h, dir+Form("hww%i",mH)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_down");
-  //ggH_down_h->Scale(InterfgHHSystematics(mass));
-
   if (mass==125 || inj125) {
     qqH_h->Scale( (1.211*2.16)/(1.199*2.33) );
     ggH_h->Scale( (15.31*2.16)/(15.06*2.33) );
     WH_h->Scale ( (0.5729*2.16)/(0.5576*2.33) );
     ZH_h->Scale ( (0.3158*2.16)/(0.3077*2.33) );  
   }
+
+  //ggH k-factor syst  
+  TH1F* ggH_up_h = new TH1F("histo_ggH_CMS_hww_MVAggHBoundingUp","histo_ggH_CMS_hww_MVAggHBoundingUp",nbins,minx,maxx);
+  fillPlot(plotvar,ggH_up_h, dir+Form("hww%i",mH)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_up");
+  scaleIntegral(ggH_h,ggH_up_h);
+  TH1F* ggH_down_h = new TH1F("histo_ggH_CMS_hww_MVAggHBoundingDown","histo_ggH_CMS_hww_MVAggHBoundingDown",nbins,minx,maxx);
+  fillPlot(plotvar,ggH_down_h, dir+Form("hww%i",mH)+suffix, wwSelNoMet, veto, mass, njets, sigreg+"=ggH="+fs, lumi, useJson, applyEff, doFake, doPUw, "ggH_k_syst_down");
+  scaleIntegral(ggH_h,ggH_down_h);
 
   //MET RESOLUTION SYSTEMATICS: Affecting ZH, WH, qqH, ggH, qqWW, ggWW, VV, Top, Wgamma and Ztt components
   TH1F *ggH_metres_up_h=0, *ggH_metres_down_h=0, *qqH_metres_up_h=0, *qqH_metres_down_h=0, *WH_metres_up_h=0, *WH_metres_down_h=0, *ZH_metres_up_h=0, *ZH_metres_down_h=0, *qqww_metres_up_h=0, *qqww_metres_down_h=0, 

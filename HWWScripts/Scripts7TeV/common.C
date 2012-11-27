@@ -596,11 +596,11 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( region.Contains("=met2040=") && dataEvent->type_!=1 && dataEvent->type_!=2 && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>40.0) ) return 0;
 
     if ( region.Contains("=lep2pt15=") && ( dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->lep2_.pt()<15.) ) {
-      if (do7TeV==0) cout << "warning: =lep2pt15= cut should be used!!!" << endl;
+      if (do7TeV==0) cout << "warning: =lep2pt15= cut should NOT be used!!!" << endl;
       return 0;
     }
     if ( region.Contains("=lep2pt15allfs=") && (dataEvent->lep2_.pt()<15.) ) {
-       cout << "warning: =lep2pt15allfs= cut should be used!!!" << endl;
+       cout << "warning: =lep2pt15allfs= cut should NOT be used!!!" << endl;
        return 0;
     }
     if ( region.Contains("=lep2pt20allfs=") && (dataEvent->lep2_.pt()<20.) ) {
@@ -635,7 +635,7 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
 
     //mll>20 cut
     if ( region.Contains("=mll20=") && dataEvent->type_!=1 && dataEvent->type_!=2 && dataEvent->dilep_.mass()<20.) {
-      if (do7TeV==0) cout << "warning: =mll20= cut should be used!!!" << endl;
+      if (do7TeV==0) cout << "warning: =mll20= cut should NOT be used!!!" << endl;
       return 0;
     }
     //higgs processId
@@ -1033,7 +1033,7 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
     if (isMC) weight = lumi*dataEvent->scale1fb_;
     TString dataSetName(dataEvent->name(dataEvent->dstype_).c_str());
     if (do7TeV) {
-      if (dataSetName.Contains("hww") && dataEvent->processId_==10010) {
+      if (region.Contains("=ggH=") && dataEvent->processId_==10010) {
 	weight*=dataEvent->sfWeightHPt_;
 	if (syst.Contains("ggH_k_syst")){
 	  float newweight = HiggsPtKFactorSyst->GetBinContent( HiggsPtKFactorSyst->GetXaxis()->FindFixBin(max(dataEvent->higgsPt_, float(0.) )));
