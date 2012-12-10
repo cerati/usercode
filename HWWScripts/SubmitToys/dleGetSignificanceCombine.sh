@@ -79,9 +79,10 @@ echo 'injection: '$INJ' - processing toys:'$MIN'-'$MAX
 for MASS in {110,115,120,125,130,135,140,150,160,170,180,190,200,250,300,350,400,450,500,550,600}
   do
   chmod u+x ${WRAPPER}
-  bsub -q ${QUEUE} -o joblog_${INJ}_${MASS}_${MIN}_${MAX} "${WRAPPER} ${INJ} ${MIN} ${MAX} ${MASS}"
+  bsub -q ${QUEUE} -o joblog_${INJ}_${MASS}_${MIN}_${MAX}.log "${WRAPPER} ${INJ} ${MIN} ${MAX} ${MASS}"
 done
 
-#./dleGetSignificanceCombine.sh 125 0 50; ./dleGetSignificanceCombine.sh 125 51 100; ./dleGetSignificanceCombine.sh 125 101 150; ./dleGetSignificanceCombine.sh 125 151 200
+# ./dleGetSignificanceCombine.sh 125 0 0
+# for j in {0,50,100,150}; do ./dleGetSignificanceCombine.sh 125 $(($j+1)) $(($j+50)); done
 
 

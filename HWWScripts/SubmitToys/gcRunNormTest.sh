@@ -56,10 +56,10 @@ for MASS in 125
 #for MASS in {110,115,120,125,130,135,140,150,160,170,180,190,200,250,300,350,400,450,500,550,600}
   do
   chmod u+x ${WRAPPER}
-  bsub -q ${QUEUE} -o joblog_${INJ}_${MASS}_${MIN}_${MAX} "${WRAPPER} ${INJ} ${MIN} ${MAX} ${MASS}"
+  bsub -q ${QUEUE} -o joblog_${INJ}_${MASS}_${MIN}_${MAX}.log "${WRAPPER} ${INJ} ${MIN} ${MAX} ${MASS}"
 done
 
-#./gcRunNormTest.sh 125 0 0
+# ./gcRunNormTest.sh 125 0 0
 # for j in {0,100,200,300,400,500,600,700,800,900}; do ./gcRunNormTest.sh 125 $(($j+1)) $(($j+100)); done
 
 

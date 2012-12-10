@@ -9,6 +9,9 @@
 
 using namespace std;
 
+TString dir_cards = "/afs/cern.ch/user/c/cerati/scratch0/HCP_Injection/cards_def";
+TString dir_toys  = "/afs/cern.ch/user/c/cerati/scratch0/HCP_Injection/cards_inj_stat_wj_altsc2";
+
 void getPseudoData(int mass, TString cms, TString mode, int njets, TString fs, int min=0, int max=1) {
 
   bool noinjection = false;
@@ -26,7 +29,7 @@ void getPseudoData(int mass, TString cms, TString mode, int njets, TString fs, i
     if (mode=="shape") {
       //first copy the input histo except histo_Data
       outf = TFile::Open(Form("%s_N%i/%i/hww%s_%ij.input_%s.root",path.Data(),i,mass,fs.Data(),njets,cms.Data()),"RECREATE");
-      inf = TFile::Open(Form("/afs/cern.ch/user/c/cerati/scratch0/HCP_Injection/cards_def/%i/hww%s_%ij.input_%s.root",mass,fs.Data(),njets,cms.Data()));
+      inf = TFile::Open(Form("%s/%i/hww%s_%ij.input_%s.root",dir_cards.Data(),mass,fs.Data(),njets,cms.Data()));
       TIter next(inf->GetListOfKeys());
       TKey *key;
       while ((key = (TKey*)next())) {
@@ -43,7 +46,7 @@ void getPseudoData(int mass, TString cms, TString mode, int njets, TString fs, i
     }
 
     //now get the data from mingshui's toys    
-    TFile* msf = TFile::Open(Form("/afs/cern.ch/user/c/cerati/scratch0/HCP_Injection/cards_inj_stat_wj_altsc2/%i/hww%s_%ij_%s_%s_PseudoData_sb.root",mass,fs.Data(),njets,mode.Data(),cms.Data()));
+    TFile* msf = TFile::Open(Form("%s/%i/hww%s_%ij_%s_%s_PseudoData_sb.root",dir_toys.Data(),mass,fs.Data(),njets,mode.Data(),cms.Data()));
     TH1F* msh = (TH1F*) msf->Get(Form("j%i%s_%i",njets,fs=="" ? "ll" : fs.Data(),i));
 
     if (mode=="shape") {
@@ -53,7 +56,7 @@ void getPseudoData(int mass, TString cms, TString mode, int njets, TString fs, i
 
     ofstream outcard;
     outcard.open(Form("%s_N%i/%i/hww%s_%ij_%s_%s.txt",path.Data(),i,mass,fs.Data(),njets,mode.Data(),cms.Data()));
-    ifstream incard (Form("/afs/cern.ch/user/c/cerati/scratch0/HCP_Injection/cards_def/%i/hww%s_%ij_%s_%s.txt",mass,fs.Data(),njets,mode.Data(),cms.Data()));
+    ifstream incard (Form("%s/%i/hww%s_%ij_%s_%s.txt",dir_cards.Data(),mass,fs.Data(),njets,mode.Data(),cms.Data()));
     string line;
     if (incard.is_open()) {
       while ( incard.good() ) {
