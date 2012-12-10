@@ -4,8 +4,8 @@
 
   TCanvas c1;
 
-  TFile *_file_ref = TFile::Open("/smurf/data/cards/HWW2l/ana_HCP2012_2D/600/hwwof_0j.input_8TeV.root");
-  TFile *_file_new = TFile::Open("cards/600/hwwof_0j.input.root");
+  TFile *_file_ref = TFile::Open("/smurf/data/cards/HWW2l/ana_HCP2012_2D/400/hwwof_1j.input_8TeV.root");
+  TFile *_file_new = TFile::Open("cards/400/hwwof_1j.input_8TeV.root");
 
   TIter next(_file_ref->GetListOfKeys());
   TKey *key;
@@ -83,7 +83,8 @@
     //   labelcms->SetLineWidth(2);
     //   labelcms->Draw();
     
-    c1.SaveAs("comp_"+TString(h_ref->GetName())+".png");
+    gSystem->Exec("mkdir -p plots2D");
+    c1.SaveAs("plots2D/"+TString(h_ref->GetName())+".png");
   }
-
+  
 }
