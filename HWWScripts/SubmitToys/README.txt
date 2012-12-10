@@ -15,3 +15,6 @@ Two scripts to submit jobs are available:
 Results are then analyzed with other scripts:
 - mergeLogs.sh, averageResultsNew.C: analyze the output of dleGetSignificanceCombine.sh
 - plotNorm.C: analyze the output of gcRunNormTest.sh
+
+Paths are currently absolute and point to my local areas. Please check the scripts before submission, e.g.
+grep cerati *.*
