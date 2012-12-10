@@ -1,4 +1,5 @@
 #include "TH1F.h"
+#include <iostream>
 
 void printBins(TH1F* h) {
   cout << h->GetName() << endl;
