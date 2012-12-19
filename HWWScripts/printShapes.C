@@ -18,7 +18,7 @@ void printShapes(int nj,int mass, TString nameN, TString nameA, TString nameF){
   up->SetLineColor(kRed);
   down->SetLineColor(kBlue);
 
-  nominal->GetYaxis()->SetRangeUser(-2,1.4*max);
+  nominal->GetYaxis()->SetRangeUser(0,1.2*max);
 
   nominal->SetLineWidth(2.);
   up->SetLineWidth(2.);

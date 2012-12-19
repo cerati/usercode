@@ -3,11 +3,12 @@
   gROOT->Reset();
   gStyle->SetOptStat(0);
 
-  TString dirtest = "cards_inj_nuout";
+  TString dirtest = "cards_inj_stat_ww_alter";
+  int nj = 0;
 
   TCanvas c1;
 
-  TFile *_file_ref = TFile::Open("cards_def/125/hwwof_0j.input_8TeV.root");
+  TFile *_file_ref = TFile::Open(Form("cards_def/125/hwwof_%ij.input_8TeV.root",nj));
   THStack hs("hs","processes");
   TH1F* ZH = (TH1F*) _file_ref->Get("histo_ZH");
   TH1F* WH = (TH1F*) _file_ref->Get("histo_WH");
@@ -68,8 +69,8 @@
 
   TH1F* hinj = new TH1F("hinj","hinj",80,-1.,1.);
   for (int i=0;i<1000;++i) {
-    TFile *_file_inj = TFile::Open(dirtest+"/125/hwwof_0j_shape_8TeV_PseudoData_sb.root");
-    TH1F* h = (TH1F*) _file_inj->Get(Form("j0of_%i",i));
+    TFile *_file_inj = TFile::Open(dirtest+Form("/125/hwwof_%ij_shape_8TeV_PseudoData_sb.root",nj));
+    TH1F* h = (TH1F*) _file_inj->Get(Form("j%iof_%i",nj,i));
     hinj->Add(h);
     _file_inj->Close();
   }
@@ -78,12 +79,13 @@
   hinj->SetTitle();
   hinj->GetXaxis()->SetTitle("unrolled");
   hinj->GetYaxis()->SetTitle("events");
+  hinj->GetYaxis()->SetRangeUser(0.,1.1*TMath::Max(hinj->GetMaximum(),hs.GetMaximum()));
   hinj->Draw();
 
   hs.Draw("hist,same");
   hinj->Draw("same");
 
-  c1.SaveAs("toys_"+dirtest+".png");
+  c1.SaveAs("toys_"+dirtest+Form("_%i.png",nj));
 
 //   TH1F* hnew = new TH1F("hnew","hnew",80,-1.,1.);
 //   for (int i=0;i<100;++i) {    
