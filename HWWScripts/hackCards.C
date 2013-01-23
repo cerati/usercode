@@ -102,7 +102,7 @@ void alterShapeToCentral(TString card, TString alter, TString central){
 
 }
 
-
+/*
 //void hackCards(TString card, TString alter, TString central){
 void alterShapeToCentralWithSyst(TString card, TString alter, TString central){
 
@@ -162,6 +162,7 @@ void alterShapeToCentralWithSyst(TString card, TString alter, TString central){
   gSystem->Exec("rm tmp.root");
 
 }
+*/
 
 //void scaleProcess(TString cardtxt, TString process, float scale) {
 void hackCards(TString cardtxt, TString process, float scale) {
