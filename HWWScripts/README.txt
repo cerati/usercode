@@ -15,7 +15,7 @@ export SCRAM_ARCH=slc5_amd64_gcc462
 cmsrel CMSSW_5_2_5
 cd CMSSW_5_2_5/src 
 eval `scramv1 runtime -sh`
-addpkg HiggsAnalysis/CombinedLimit V02-02-03 
+addpkg HiggsAnalysis/CombinedLimit V02-06-00 
 scramv1 b -j 4
 cd ../..
 make
