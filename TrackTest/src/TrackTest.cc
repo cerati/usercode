@@ -13,7 +13,7 @@
 //
 // Original Author:  Giuseppe Cerati,28 S-012,+41227678302,
 //         Created:  Thu Dec 13 12:06:32 CET 2012
-// $Id: TrackTest.cc,v 1.1 2012/12/13 17:11:28 cerati Exp $
+// $Id: TrackTest.cc,v 1.2 2013/03/06 15:07:01 cerati Exp $
 //
 //
 
@@ -132,7 +132,7 @@ void TrackTest::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       //track basic plots
       makeFillHisto1D<TH1F,int>("algo","algo",20,0,20,itTrack->algo());
       makeFillHisto1D<TH1F,int>("isHighPurity","isHighPurity",3,0,3,itTrack->quality(TrackBase::highPurity));      
-      makeFillHisto1D<TH1F,float>("pT","p_{T}",100,0,100,itTrack->pt());
+      makeFillHisto1D<TH1F,float>("pT","p_{T}",100,0,10,itTrack->pt());
       makeFillHisto1D<TH1F,float>("eta","#eta",60,-3,3,itTrack->eta());
       makeFillHisto1D<TH1F,float>("phi","#phi",64,-M_PI,M_PI,itTrack->phi());
       makeFillHisto1D<TH1F,float>("dxy","dxy",100,-50,50,itTrack->dxy(beamSpot->position()));

@@ -34,12 +34,12 @@ process.source = cms.Source("PoolSource",
 
 process.select = cms.EDFilter('TrackSelector',
         src = cms.InputTag('TrackRefitter'),
-        #cut = cms.string("(algo=9 | algo=9) & abs(eta)<0.9")
-        #cut = cms.string("(algo=10 | algo=10) & abs(eta)<0.9")
-        #cut = cms.string("(algo=9 | algo=9) & abs(eta)>0.9 & abs(eta)<1.6")
-        #cut = cms.string("(algo=10 | algo=10) & abs(eta)>0.9 & abs(eta)<1.6")
-        #cut = cms.string("(algo=9 | algo=9) & abs(eta)>1.6 & abs(eta)<2.5")
-        cut = cms.string("(algo=10 | algo=10) & abs(eta)>1.6 & abs(eta)<2.5")
+        #cut = cms.string("quality('highPurity') & (algo=9 ) & abs(eta)<0.9")
+        #cut = cms.string("quality('highPurity') & (algo=10) & abs(eta)<0.9")
+        #cut = cms.string("quality('highPurity') & (algo=9 ) & abs(eta)>0.9 & abs(eta)<1.6")
+        #cut = cms.string("quality('highPurity') & (algo=10) & abs(eta)>0.9 & abs(eta)<1.6")
+        #cut = cms.string("quality('highPurity') & (algo=9 ) & abs(eta)>1.6 & abs(eta)<2.5")
+        cut = cms.string("quality('highPurity') & (algo=10) & abs(eta)>1.6 & abs(eta)<2.5")
 )
 
 process.demo = cms.EDAnalyzer('TrackTest',
@@ -50,6 +50,11 @@ process.demo = cms.EDAnalyzer('TrackTest',
 )
 
 process.TFileService = cms.Service("TFileService", 
+        #fileName = cms.string("histo_algo09_00eta09.root"),
+        #fileName = cms.string("histo_algo10_00eta09.root"),
+        #fileName = cms.string("histo_algo09_09eta16.root"),
+        #fileName = cms.string("histo_algo10_09eta16.root"),
+        #fileName = cms.string("histo_algo09_16eta25.root"),
         fileName = cms.string("histo_algo10_16eta25.root"),
         closeFileFast = cms.untracked.bool(True)
 )
