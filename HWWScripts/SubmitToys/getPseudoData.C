@@ -9,10 +9,20 @@
 
 using namespace std;
 
-TString dir_cards = "/afs/cern.ch/user/c/cerati/scratch0/HCP_Injection/cards_def";
-TString dir_toys  = "/afs/cern.ch/user/c/cerati/scratch0/HCP_Injection/cards_inj_stat_wj_altsc2";
+// ----------------------------
+// First specify these inputs!
+// ----------------------------
 
-void getPseudoData(int mass, TString cms, TString mode, int njets, TString fs, int min=0, int max=1) {
+// directory of the cards where you have the original cards 
+// make sure there is no hard coded locations of the input root files since we will use combine
+TString dir_cards = "/afs/cern.ch/user/c/cerati/scratch0/Moriond_Injection/cards_def/";
+// location of the histograms from the toy creation 
+// from this command done with lands
+// lands.exe -d card.txt -M Hybrid  -m 125 --minuitSTRATEGY 0 --bWriteToys 1 -n Name --nToysForCLsb 1000 --nToysForCLb 1 --singlePoint 1 --seed 12344  -rMin 0 -rMax 5
+  
+// ----------------------------
+
+void getPseudoData(TString dir_toys, int mass, TString cms, TString mode, int njets, TString fs, TString ana,int min=0, int max=1) {
 
   bool noinjection = false;
   TString injmh = "125";
@@ -28,8 +38,8 @@ void getPseudoData(int mass, TString cms, TString mode, int njets, TString fs, i
     TFile* inf = 0;
     if (mode=="shape") {
       //first copy the input histo except histo_Data
-      outf = TFile::Open(Form("%s_N%i/%i/hww%s_%ij.input_%s.root",path.Data(),i,mass,fs.Data(),njets,cms.Data()),"RECREATE");
-      inf = TFile::Open(Form("%s/%i/hww%s_%ij.input_%s.root",dir_cards.Data(),mass,fs.Data(),njets,cms.Data()));
+      outf = TFile::Open(Form("%s_N%i/%i/%s%s_%ij.input_%s.root",path.Data(),i,mass,ana.Data(),fs.Data(),njets,cms.Data()),"RECREATE");
+      inf = TFile::Open(Form("%s/%i/%s%s_%ij.input_%s.root",dir_cards.Data(),mass,ana.Data(),fs.Data(),njets,cms.Data()));
       TIter next(inf->GetListOfKeys());
       TKey *key;
       while ((key = (TKey*)next())) {
@@ -46,17 +56,17 @@ void getPseudoData(int mass, TString cms, TString mode, int njets, TString fs, i
     }
 
     //now get the data from mingshui's toys    
-    TFile* msf = TFile::Open(Form("%s/%i/hww%s_%ij_%s_%s_PseudoData_sb.root",dir_toys.Data(),mass,fs.Data(),njets,mode.Data(),cms.Data()));
+    TFile* msf = TFile::Open(Form("%s/%i/%s%s_%ij_%s_%s_PseudoData_sb.root",dir_toys.Data(),mass,ana.Data(),fs.Data(),njets,mode.Data(),cms.Data()));
     TH1F* msh = (TH1F*) msf->Get(Form("j%i%s_%i",njets,fs=="" ? "ll" : fs.Data(),i));
 
     if (mode=="shape") {
-      outf = TFile::Open(Form("%s_N%i/%i/hww%s_%ij.input_%s.root",path.Data(),i,mass,fs.Data(),njets,cms.Data()),"UPDATE");
+      outf = TFile::Open(Form("%s_N%i/%i/%s%s_%ij.input_%s.root",path.Data(),i,mass,ana.Data(),fs.Data(),njets,cms.Data()),"UPDATE");
     }
     TH1F* data =  (TH1F*) msh->Clone("histo_Data");
 
     ofstream outcard;
-    outcard.open(Form("%s_N%i/%i/hww%s_%ij_%s_%s.txt",path.Data(),i,mass,fs.Data(),njets,mode.Data(),cms.Data()));
-    ifstream incard (Form("%s/%i/hww%s_%ij_%s_%s.txt",dir_cards.Data(),mass,fs.Data(),njets,mode.Data(),cms.Data()));
+    outcard.open(Form("%s_N%i/%i/%s%s_%ij_%s_%s.txt",path.Data(),i,mass,ana.Data(),fs.Data(),njets,mode.Data(),cms.Data()));
+    ifstream incard (Form("%s/%i/%s%s_%ij_%s_%s.txt",dir_cards.Data(),mass,ana.Data(),fs.Data(),njets,mode.Data(),cms.Data()));
     string line;
     if (incard.is_open()) {
       while ( incard.good() ) {

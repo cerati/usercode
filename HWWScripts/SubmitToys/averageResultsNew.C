@@ -43,6 +43,7 @@ void averageResultsNew(int mass,TString mode,TString inj,TString dir) {
   vector<float> med_strh;
   vector<float> med_sigo;
   vector<float> med_sige;
+  //cout << Form("%s/logs/%i/log_%s_%s_%i.log",dir.Data(),mass,mode.Data(),inj.Data(),mass) << endl;
   ifstream indump(Form("%s/logs/%i/log_%s_%s_%i.log",dir.Data(),mass,mode.Data(),inj.Data(),mass));
   string line;
   if (indump.is_open()) {
@@ -107,22 +108,32 @@ void averageResultsNew(int mass,TString mode,TString inj,TString dir) {
   const float* sigv = &med_sigo[0];
   TMath::Sort(ng,sigv,&idx_sig[0],0);
 
-  cout << Form("%i  %4.2f - %4.2f + %4.2f  %4.2f  [%4.2f,  %4.2f]  [%4.2f,  %4.2f] --- %4.2f - %4.2f + %4.2f  %4.2f  %4.2f  ---  %4.2f - %4.2f + %4.2f  %4.2f ",
+  /*
+  if (mass==200) {
+    for (int i=0;i<ng;++i) {
+      cout << i << " " << med_sigo[idx_sig[i]]-med_sigo[idx_sig[int(0.5*ng)]] << endl;
+    }
+    cout << (med_sigo[idx_sig[int(0.975*ng)]]-med_sigo[idx_sig[int(0.5*ng)]]) << endl;
+  }
+  */
+
+  cout << Form("%i  %4.2f - %4.2f + %4.2f  %4.2f  [%4.2f,  %4.2f]  [%4.2f,  %4.2f] --- %4.2f - %4.2f + %4.2f  %4.2f  %4.2f  ---  %4.1f - %4.1f + %4.1f - %4.1f + %4.1f  %4.1f ",
 	       mass,
-	       TMath::Median(ng,&med_obs[0]), (med_obs[idx_lim[int(0.5*ng)]]-med_obs[idx_lim[int(0.16*ng)]]), (med_obs[idx_lim[int(0.84*ng)]]-med_obs[idx_lim[int(0.5*ng)]]),
+	       TMath::Median(ng,&med_obs[0]), (med_obs[idx_lim[int(0.5*ng)]]-med_obs[idx_lim[int(0.160*ng)]]), (med_obs[idx_lim[int(0.840*ng)]]-med_obs[idx_lim[int(0.5*ng)]]),
 	       TMath::Median(ng,&med_exp[0]),
 	       TMath::Median(ng,&med_l1s[0]),
 	       TMath::Median(ng,&med_h1s[0]),
 	       TMath::Median(ng,&med_l2s[0]),
 	       TMath::Median(ng,&med_h2s[0]),
-	       TMath::Median(ng,&med_stro[0]), (med_stro[idx_str[int(0.5*ng)]]-med_stro[idx_str[int(0.16*ng)]]), (med_stro[idx_str[int(0.84*ng)]]-med_stro[idx_str[int(0.5*ng)]]),
+	       TMath::Median(ng,&med_stro[0]), (med_stro[idx_str[int(0.5*ng)]]-med_stro[idx_str[int(0.160*ng)]]), (med_stro[idx_str[int(0.840*ng)]]-med_stro[idx_str[int(0.5*ng)]]),
 	       TMath::Median(ng,&med_strl[0]),
 	       TMath::Median(ng,&med_strh[0]),
-	       TMath::Median(ng,&med_sigo[0]), (med_sigo[idx_sig[int(0.5*ng)]]-med_sigo[idx_sig[int(0.16*ng)]]), (med_sigo[idx_sig[int(0.84*ng)]]-med_sigo[idx_sig[int(0.5*ng)]]),
+	       TMath::Median(ng,&med_sigo[0]), (med_sigo[idx_sig[int(0.5*ng)]]-med_sigo[idx_sig[int(0.160*ng)]]), (med_sigo[idx_sig[int(0.840*ng)]]-med_sigo[idx_sig[int(0.5*ng)]]),
+	                                       (med_sigo[idx_sig[int(0.5*ng)]]-med_sigo[idx_sig[int(0.025*ng)]]), (med_sigo[idx_sig[int(0.975*ng)]]-med_sigo[idx_sig[int(0.5*ng)]]),
 	       TMath::Median(ng,&med_sige[0])
 	       ) 
        << endl;
-
+  //cout<< ng << endl;
 }
 
 

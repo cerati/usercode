@@ -6,9 +6,10 @@ CARD=$1
 MASS=$2
 
 IT=1
+#echo 'processing mass='${MASS}
 #get limits
-#echo combine -M Asymptotic ${CARD}  --newExpected -m ${MASS}
-combine -M Asymptotic ${CARD}  --newExpected -m ${MASS} >& logLim
+#echo combine -M Asymptotic ${CARD}  --newExpected 1 -m ${MASS}
+combine -M Asymptotic ${CARD}  --newExpected 1 -m ${MASS} >& logLim
 OBS=`tail logLim | grep "Observed Li" | awk '{printf ("%5.2f\n", $5)}'`
 S2D=`tail logLim | grep "Expected  2" | awk '{printf ("%5.2f\n", $5)}'`
 S1D=`tail logLim | grep "Expected 16" | awk '{printf ("%5.2f\n", $5)}'`
@@ -31,6 +32,12 @@ SIG=`tail logSig | grep "Significance" | awk '{printf ("%5.3f\n", $2)}'`
 #echo combine ${CARD} -M ProfileLikelihood -v 1 --significance -m ${MASS} --expectSignal=1 -t -1 -n Expected
 combine ${CARD} -M ProfileLikelihood -v 1 --significance -m ${MASS} --expectSignal=1 -t -1 -n Expected >& logSig
 EXS=`tail logSig | grep "Significance" | awk '{printf ("%5.3f\n", $2)}'`
+if [ ${IT} == 1 ] ; then  
+    if [ -f logAll_${CARD}.txt ]; then
+	  rm logAll_${CARD}.txt       
+    fi
+    IT=0
+fi
 echo 'limit: '$MASS $NEXP $OBS $EXP '['$S1D','$S1U']' '['$S2D','$S2U'] --- strength: '$MU $EM $EP' --- significance: '$SIG $EXS
 rm logLim
 rm higgsCombineTest.Asymptotic.mH${MASS}.root
