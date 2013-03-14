@@ -1,4 +1,5 @@
 #include "TH1F.h"
+#include "TH2F.h"
 #include <iostream>
 
 void printBins(TH1F* h) {
@@ -86,4 +87,29 @@ void makeVetoEfficHisto(TH1F* h, TH1F* i) {
     i->SetBinError(bin,efficiencyErr(integ/tot_integ,tot_integ));
     i->SetBinContent(bin,1.-integ/tot_integ);
   }
+}
+
+TH1F* unrollHisto2DTo1D(TH2F* h2, const char* hname) {
+
+  unsigned int nbinsX = h2->GetXaxis()->GetNbins();  	
+  unsigned int nbinsY = h2->GetYaxis()->GetNbins();  	
+  unsigned int nbins = nbinsX*nbinsY;  	
+
+  TH1F* histo = new TH1F(hname, hname, nbins, -1, 1);
+  
+  for(unsigned int x=1; x <= nbinsX; ++x) {
+    for(unsigned int y=1; y <= nbinsY; ++y) {
+      histo->SetBinContent( (x-1)*nbinsY + y, h2->GetBinContent(x, y) );
+      histo->SetBinError( (x-1)*nbinsY + y, h2->GetBinError(x, y) );
+    }
+  }
+  
+  // storing entries is needed to calculate stat up bounding for empty bins 
+  histo->SetEntries(h2->GetEntries());    
+  
+  //FIXME  
+  //cout << "UnrollHisto2DTo1D[2D]: " << h2->Integral(0, h2->GetXaxis()->GetNbins()+1, 0, h2->GetYaxis()->GetNbins()+1) << endl;
+  //cout << "UnrollHisto2DTo1D[1D]: " << histo->Integral(0, histo->GetXaxis()->GetNbins()+1) << endl; 
+  
+  return histo;
 }

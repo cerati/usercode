@@ -4,13 +4,13 @@
 CARD=$1
 
 IT=1
-#for MASS in {110,125,160,250,300,600}
+#for MASS in 125
 for MASS in {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350,400,450,500,550,600}
   do
   echo 'processing mass='${MASS}
   #get limits
-  echo combine -M Asymptotic cards/${MASS}/${CARD}.txt  --newExpected -m ${MASS}
-  combine -M Asymptotic cards/${MASS}/${CARD}.txt  --newExpected -m ${MASS} >& logLim
+  echo combine -M Asymptotic cards/${MASS}/${CARD}.txt  --newExpected 1 -m ${MASS}
+  combine -M Asymptotic cards/${MASS}/${CARD}.txt  --newExpected 1 -m ${MASS} >& logLim
   OBS=`tail logLim | grep "Observed Li" | awk '{printf ("%5.2f\n", $5)}'`
   S2D=`tail logLim | grep "Expected  2" | awk '{printf ("%5.2f\n", $5)}'`
   S1D=`tail logLim | grep "Expected 16" | awk '{printf ("%5.2f\n", $5)}'`
@@ -48,9 +48,9 @@ for MASS in {110,115,120,125,130,135,140,145,150,160,170,180,190,200,250,300,350
   rm logSig
   rm higgsCombineTest.ProfileLikelihood.mH${MASS}.root
   rm higgsCombineExpected.ProfileLikelihood.mH${MASS}.root
-  nrootstats=$(ls roostats-*.root 2> /dev/null | wc -l)
+  nrootstats=$(ls roostats-* 2> /dev/null | wc -l)
   if [ "$nrootstats" != "0" ]; then
-      rm roostats-*.root
+      rm roostats-*
   fi
 done
 

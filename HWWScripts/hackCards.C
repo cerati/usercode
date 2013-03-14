@@ -12,19 +12,20 @@
 #include <fstream>
 #include <sstream>
 
-void mixCards(){
+void hackCards(){
+//void mixCards(){
 
   gStyle->SetOptStat(0);
 
   TCanvas c1;
 
-  TFile *_file_G = TFile::Open("hwwof_0j.input_8TeV.root");
-  TFile *_file_g = TFile::Open("hwwof_0j.input.root");
+  TFile *_file_G = TFile::Open("cards_def_jae/125/hwwof_1j.input_8TeV.root");
+  TFile *_file_g = TFile::Open("cards/125/hwwof_1j.input_8TeV.root");
 
-  TFile *_file_new = TFile::Open("hwwof_0j.input_mixtest.root","RECREATE");
+  TFile *_file_new = TFile::Open("cards_def_mix/125/hwwof_1j.input_8TeV.root","RECREATE");
   _file_new->cd();
 
-  TString discriminator = "MVAMETResBounding";
+  TString discriminator = "histo_WjetsM";
 
   TIter next_G(_file_G->GetListOfKeys());
   TKey *key_G;
@@ -164,8 +165,8 @@ void alterShapeToCentralWithSyst(TString card, TString alter, TString central){
 }
 */
 
-//void scaleProcess(TString cardtxt, TString process, float scale) {
-void hackCards(TString cardtxt, TString process, float scale) {
+void scaleProcess(TString cardtxt, TString process, float scale) {
+//void hackCards(TString cardtxt, TString process, float scale) {
 
   //scale the yield
   gSystem->Exec("mv "+cardtxt+" tmp.txt");

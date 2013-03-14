@@ -194,9 +194,7 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
       if ((cuts_ & wwSelNoMetNoTV) != wwSelNoMetNoTV) continue;
       if (min(pmet_,pTrackMet_)<20.0) continue;
       if ( (type_==0||type_==3) ) {
-	if (njets_==0 && dymva_<0.88 ) continue;
-	if (njets_==1 && dymva_<0.84 ) continue;
-	if (njets_>=2 && met_<45.) continue;
+	if (min(pmet_,pTrackMet_)<(37.+nvtx_/2.)) continue;
       }
     }
 
@@ -213,9 +211,7 @@ void skim(TString smurfFDir, TString fileName, TString outputDir, TString cutstr
 	//
       }
       if ( (type_==0||type_==3) ) {
-      	if (njets_==0 && dymva_<0.88 ) continue;
-      	if (njets_==1 && dymva_<0.84 ) continue;
-      	if (njets_>=2 && met_<45.) continue;
+	if (min(pmet_,pTrackMet_)<(37.+nvtx_/2.)) continue;
       }
       if (dstype_==0) {
 	scale1fb_ = 1.;
@@ -245,16 +241,21 @@ void skim(TString smurfFDir = "/smurf/data/Run2011_Summer12_SmurfV9_53X/mitf-all
   else if (cut=="wj" && !outputDir.Contains("skim_wj") ) outputDir+="/skim_wj/";
   gSystem->Exec("mkdir -p "+outputDir);
   skim(smurfFDir,"data.root",outputDir,cut);
-  skim(smurfFDir,"dyll.root",outputDir,cut);
+  skim(smurfFDir,"dyee.root",outputDir,cut);
+  skim(smurfFDir,"dymm.root",outputDir,cut);
+  skim(smurfFDir,"dytt.root",outputDir,cut);
   skim(smurfFDir,"ggww.root",outputDir,cut);
   skim(smurfFDir,"hww110.root",outputDir,cut);
   skim(smurfFDir,"hww115.root",outputDir,cut);
+  skim(smurfFDir,"hww118.root",outputDir,cut);
   skim(smurfFDir,"hww120.root",outputDir,cut);
-  skim(smurfFDir,"hww125.root",outputDir,cut);
+  skim(smurfFDir,"hww122.root",outputDir,cut);
+  skim(smurfFDir,"hww124.root",outputDir,cut);
+  skim(smurfFDir,"hww126.root",outputDir,cut);
+  skim(smurfFDir,"hww128.root",outputDir,cut);
   skim(smurfFDir,"hww130.root",outputDir,cut);
   skim(smurfFDir,"hww135.root",outputDir,cut);
   skim(smurfFDir,"hww140.root",outputDir,cut);
-  skim(smurfFDir,"hww145.root",outputDir,cut);
   skim(smurfFDir,"hww150.root",outputDir,cut);
   skim(smurfFDir,"hww160.root",outputDir,cut);
   skim(smurfFDir,"hww170.root",outputDir,cut);
@@ -269,24 +270,23 @@ void skim(TString smurfFDir = "/smurf/data/Run2011_Summer12_SmurfV9_53X/mitf-all
   skim(smurfFDir,"hww500.root",outputDir,cut);
   skim(smurfFDir,"hww550.root",outputDir,cut);
   skim(smurfFDir,"hww600.root",outputDir,cut);
-  skim(smurfFDir,"qqww_py.root",outputDir,cut);
   skim(smurfFDir,"qqww.root",outputDir,cut);
+  skim(smurfFDir,"ttbar_mg.root",outputDir,cut);
   skim(smurfFDir,"ttbar.root",outputDir,cut);
+  skim(smurfFDir,"tw_ds.root",outputDir,cut);
   skim(smurfFDir,"tw.root",outputDir,cut);
-  skim(smurfFDir,"wjets.root",outputDir,cut);
-  skim(smurfFDir,"wz.root",outputDir,cut);
-  skim(smurfFDir,"zz.root",outputDir,cut);
-  skim(smurfFDir,"www.root",outputDir,cut);
+  skim(smurfFDir,"wg3l.root",outputDir,cut);
+  skim(smurfFDir,"wgamma_lgamma.root",outputDir,cut);
   skim(smurfFDir,"wgamma.root",outputDir,cut);
-  skim(smurfFDir,"wgammafo.root",outputDir,cut);
-  skim(smurfFDir,"zgamma.root",outputDir,cut);
-  skim(smurfFDir,"wglll.root",outputDir,cut);
-  skim(smurfFDir,"ttbar_powheg.root",outputDir,cut);
-  skim(smurfFDir,"wwmcnlodown.root",outputDir,cut);
-  skim(smurfFDir,"wwmcnlo.root",outputDir,cut);
-  skim(smurfFDir,"wwmcnloup.root",outputDir,cut);
-  skim(smurfFDir,"qqww_powheg.root",outputDir,cut);
-  skim(smurfFDir,"data_ztt.root",outputDir,cut);
+  skim(smurfFDir,"wjets.root",outputDir,cut);
+  skim(smurfFDir,"ww_mcnlo_down.root",outputDir,cut);
+  skim(smurfFDir,"ww_mcnlo.root",outputDir,cut);
+  skim(smurfFDir,"ww_mcnlo_up.root",outputDir,cut);
+  skim(smurfFDir,"www.root",outputDir,cut);
+  skim(smurfFDir,"wz_py.root",outputDir,cut);
+  skim(smurfFDir,"wz.root",outputDir,cut);
+  skim(smurfFDir,"zz_mg.root",outputDir,cut);
+  skim(smurfFDir,"zz_py.root",outputDir,cut);
   return;
 }
 

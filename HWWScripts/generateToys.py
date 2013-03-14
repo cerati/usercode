@@ -10,9 +10,11 @@ fstates = ['of','sf','']
 cmss = ['7TeV','8TeV']
 types = ['cut','shape']
 
-#masses = [110]
-#jetbins = [0]
-#fstates = ['sffs']
+#masses = [125]
+jetbins = [0,1]
+#fstates = ['of']
+#cmss = ['8TeV']
+#types = ['shape']
 
 if len(sys.argv)!=2: sys.exit('plese specify the card directory')
 dir = sys.argv[1]
@@ -26,12 +28,13 @@ for mass in masses:
         for njets in jetbins:
             for fs in fstates:
                 for type in types:
-                    if cms=='8TeV' and type=='shape' and fs!='of': continue
+                    #if cms=='8TeV' and type=='shape' and fs!='of': continue
+                    if type=='shape' and fs!='of': continue
                     if type=='shape' and njets==2: continue
                     if fs=='' and (cms!='7TeV' or type!='cut' or njets!=2): continue
                     if cms=='7TeV' and njets==2 and fs!='': continue
                     card = 'hww'+fs+'_'+str(njets)+'j_'+type+'_'+cms
-                    os.system('../../LandS/test/lands.exe -d '+card+'.txt -M Hybrid  -m '+str(mass)+' --minuitSTRATEGY 0  --bWriteToys 1 -n \"'+card+'\" --nToysForCLsb 1000 --nToysForCLb 1 --singlePoint 1 --seed '+str(seed)+'  -rMin 0 -rMax 5 >& toy_'+card+'.log') # --freq
+                    os.system('../../LandS/test/lands.exe -d '+card+'.txt -M Hybrid  -m '+str(mass)+' --minuitSTRATEGY 0  --bWriteToys 1 -n \"'+card+'\" --nToysForCLsb 5000 --nToysForCLb 1 --singlePoint 1 --seed '+str(seed)+'  -rMin 0 -rMax 5 >& toy_'+card+'.log') # --freq
                     os.system('mv '+card+'_PseudoData_sb_seed'+str(seed)+'.root '+card+'_PseudoData_sb.root')
                     os.system('mv '+card+'_PseudoData_b_seed'+str(seed)+'.root '+card+'_PseudoData_b.root')
                     seed=seed+1

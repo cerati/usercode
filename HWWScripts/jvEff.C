@@ -16,7 +16,7 @@
 
 #include "histTools.C"
 
-void jvEff() {
+void jvEff(float lumi=19.5) {
 
   gROOT->Reset();
   gStyle->SetOptStat(0);
@@ -35,7 +35,7 @@ void jvEff() {
 
   TH1F* nj_dy = new TH1F("nj_dy","nj_dy",6,-0.5,5.5);
   TH1F* nj_da = new TH1F("nj_da","nj_da",6,-0.5,5.5);
-  dy->Draw("njets>>nj_dy",Form("12.1*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",cut.Data()),"g");
+  dy->Draw("njets>>nj_dy",Form("%f*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",lumi,cut.Data()),"g");
   da->Draw("njets>>nj_da",Form("(%s)",cut.Data()),"g");
   nj_dy->SetLineColor(kBlack);
   nj_dy->SetLineWidth(2);
@@ -66,10 +66,10 @@ void jvEff() {
   leg_nj->Draw();
   c1->RedrawAxis();
   c1->SaveAs("Znjets.pdf");
- 
+
   TH1F* pt_dy = new TH1F("pt_dy","pt_dy",12,0,180);
   TH1F* pt_da = new TH1F("pt_da","pt_da",12,0,180);
-  dy->Draw("jet1.pt()>>pt_dy",Form("12.1*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",cut.Data()),"g");
+  dy->Draw("jet1.pt()>>pt_dy",Form("%f*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",lumi,cut.Data()),"g");
   da->Draw("jet1.pt()>>pt_da",Form("(%s)",cut.Data()),"g");
   overFlowInLastBin(pt_dy);
   overFlowInLastBin(pt_da);
@@ -78,7 +78,7 @@ void jvEff() {
   pt_dy->SetMarkerColor(kBlack);
   pt_dy->SetMarkerStyle(21);
   pt_dy->SetTitle("");
-  pt_dy->GetYaxis()->SetTitle("Fraction Of Events");
+  pt_dy->GetYaxis()->SetTitle("Events/15 GeV");
   pt_dy->GetXaxis()->SetTitle("Leading Jet p_{T} [GeV]");
   pt_dy->GetYaxis()->SetNdivisions(505);
   pt_dy->GetXaxis()->SetNdivisions(505);
@@ -100,6 +100,7 @@ void jvEff() {
   leg_pt->AddEntry(pt_dy,"Z MC","L");
   leg_pt->AddEntry(pt_da,"Z Data","P");
   leg_pt->Draw();
+  //c1->SetLogy();
   c1->RedrawAxis();
   c1->SaveAs("ZjetpT.pdf");
 
@@ -138,7 +139,7 @@ void jvEff() {
 
   TH1F* nv_dy = new TH1F("nv_dy","nv_dy",9,-0.5,44.5);
   TH1F* nv_da = new TH1F("nv_da","nv_da",9,-0.5,44.5);
-  dy->Draw("nvtx>>nv_dy",Form("12.1*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",cut.Data()),"g");
+  dy->Draw("nvtx>>nv_dy",Form("%f*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s)",lumi,cut.Data()),"g");
   da->Draw("nvtx>>nv_da",Form("(%s)",cut.Data()),"g");
   overFlowInLastBin(nv_dy);
   overFlowInLastBin(nv_da);
@@ -174,7 +175,7 @@ void jvEff() {
  
   TH1F* nv0_dy = new TH1F("nv0_dy","nv0_dy",9,-0.5,44.5);
   TH1F* nv0_da = new TH1F("nv0_da","nv0_da",9,-0.5,44.5);
-  dy->Draw("nvtx>>nv0_dy",Form("12.1*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s && njets==0)",cut.Data()),"g");
+  dy->Draw("nvtx>>nv0_dy",Form("%f*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s && njets==0)",lumi,cut.Data()),"g");
   da->Draw("nvtx>>nv0_da",Form("(%s && njets==0)",cut.Data()),"g");
   overFlowInLastBin(nv0_dy);
   overFlowInLastBin(nv0_da);
@@ -211,7 +212,7 @@ void jvEff() {
 
   TH1F* nv1_dy = new TH1F("nv1_dy","nv1_dy",9,-0.5,44.5);
   TH1F* nv1_da = new TH1F("nv1_da","nv1_da",9,-0.5,44.5);
-  dy->Draw("nvtx>>nv1_dy",Form("12.1*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s && njets==1)",cut.Data()),"g");
+  dy->Draw("nvtx>>nv1_dy",Form("%f*scale1fb*sfWeightTrig*sfWeightEff*sfWeightPU*(%s && njets==1)",lumi,cut.Data()),"g");
   da->Draw("nvtx>>nv1_da",Form("(%s && njets==1)",cut.Data()),"g");
   overFlowInLastBin(nv1_dy);
   overFlowInLastBin(nv1_da);

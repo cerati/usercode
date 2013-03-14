@@ -33,10 +33,10 @@
 #include "../histTools.C"
 
 //CERN, 2011
-TString  main_dir    = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/";//old3553ipb/
-TString  topww_dir   = "./wwSelNoLepNoTV/";
-TString  dy_dir      = "./wwSelNoMetNoZVminMET20/";
-TString  wj_dir      = "./wwSelNoLepNoTV/";
+TString  main_dir    = "/smurf/cerati/skims/Run2011_Fall11_SmurfV9_42X/";
+TString topww_dir   = "./skim_topww/";
+TString wj_dir      = "./skim_wj/";
+TString dy_dir      = "./skim_dy/";
 
 TString  fr_file     = "/smurf/data/Winter11_4700ipb/auxiliar/FakeRates_CutBasedMuon_BDTGWithIPInfoElectron.root";
 TString  eff_file    = "/smurf/data/Winter11_4700ipb/auxiliar/efficiency_results_v7_42x_Full2011_4700ipb.root";
@@ -365,7 +365,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
     lep1pt = 20.;
     lep2pt = 10.;
     dPhi   = 180.;
-    mtL    = 80.;
+    mtL    = 60.;
     if (mass==0 || mass==1) {
       mll    = 9999.;
       mtH    = 9999.;
@@ -377,18 +377,13 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       mll    = 600.;
       mtH    = 600.;            
     }
+    if (mass>=300) mtL = 80.;
     //avoid overlap between WW sideband and signal region
     himass = 100;//max((float) 100.,mll);
-  }
-  
-  //old approach
-  if (do7TeV) {
-    if (doMVA || doVBF) {
-      lep1pt = 20.;
-      lep2pt = 10.;
-      dPhi   = 180.;
-      mtL    = 80.;
-      if (mass==0) {
+
+    //old approach
+    if (0) {
+      if (mass==0 || mass==1) {
 	mll    = 9999.;
 	mtH    = 9999.;
       } else if (mass==110||mass==115||mass==118||mass==120||mass==122||mass==124 ) {
@@ -400,7 +395,7 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       } else if (mass==135||mass==140) {
 	mll    = 90.;
 	mtH    = ((float) mass);
-      } else if (mass==150) {
+      } else if (mass==145||mass==150) {
 	mll    = 100.;
 	mtH    = ((float) mass);
       } else if (mass==160) {
@@ -424,15 +419,14 @@ void getCutValues(int mass, float& lep1pt,float& lep2pt,float& dPhi,float& mll,f
       } else {
 	cout << "MASS POINT NOT SUPPORTED!!!!!! mH=" << mass << endl;
       }
-      //avoid overlap between WW sideband and signal region
-      himass = max((float) 100.,mll);
       if (doVBF) {
-	mtL    = 0.;
-	mtH    = 9999.;
+        mtL    = 0.;
+        mtH    = 9999.;
       }
     }
-  }
 
+  }
+  
 }
 
 void getCutMasks(unsigned int njets, unsigned int& baseline_toptag, unsigned int& control_top, unsigned int& control_toptag, unsigned int& veto, unsigned int& nj_top){
@@ -607,6 +601,7 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
        return 0;
     }
     if ( region.Contains("=ptll45=") && ( dataEvent->dilep_.pt()<45.) ) return 0;
+    if ( region.Contains("=ptll3045=") && ( doMVA ? dataEvent->dilep_.pt()<30. : dataEvent->dilep_.pt()<45.) ) return 0;
     //cuts for Rout/in
     if ( region.Contains("=met2025=") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<20.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>25.0) ) return 0;
     if ( region.Contains("=met2530=") && (min(dataEvent->pmet_,dataEvent->pTrackMet_)<25.0||min(dataEvent->pmet_,dataEvent->pTrackMet_)>30.0) ) return 0;
@@ -629,7 +624,7 @@ bool passEvent(SmurfTree *dataEvent, int mass, unsigned int njets, unsigned int 
     if ( region.Contains("=fromZ=") && isMC && (dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
     if ( region.Contains("=notZ=") && isMC && !(dataEvent->lep1MotherMcId_!=23 || dataEvent->lep2MotherMcId_!=23) ) return 0;
     //spillage
-    if ( region.Contains("=spill=") && dataEvent->dstype_!=SmurfTree::wgamma //&& dataEvent->dstype_!=SmurfTree::wgstar
+    if ( region.Contains("=spill=") && dataEvent->dstype_!=SmurfTree::wgamma && dataEvent->dstype_!=SmurfTree::wgstar
 	 && ( !( abs(dataEvent->lep1McId_)==11 || abs(dataEvent->lep1McId_)==13 ) || !( abs(dataEvent->lep2McId_)==11 || abs(dataEvent->lep2McId_)==13 ) ) ) return 0;
 
 
@@ -868,9 +863,10 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
       //       }
     }
     if (region.Contains("embed")) {
-      weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2,dataEvent->scale1fb_);//fixme period
+      weight=lumi*ZttScaleFactor(2,dataEvent->scale1fb_,1.,1.);//fixme period
     }
- 
+    if (dataEvent->dstype_==SmurfTree::wgstar) weight*=WGstarScaleFactor(dataEvent->type_,dataEvent->met_); 
+
     if (!passEvent(dataEvent, mass, njets, cut, veto, region,lep1pt,lep2pt,dPhi,mll,mtL,mtH,himass,isMC, useJson)) continue;
 
 //     cout << "run, lumi, evt: " << dataEvent->run_ << " " << dataEvent->lumi_ << " " << dataEvent->event_;
@@ -889,51 +885,69 @@ pair<float, float> getYield(TString sample, unsigned int cut, unsigned int veto,
       //cout << puw << " " << dataEvent->sfWeightPU_ << endl;
     }
 
-    if (!doFake) {
-      float effSF=1.;
-      if (isMC&&applyEff) {
-	if (redoWeights) {
-	  float pt1 = min(dataEvent->lep1_.pt(),49.);
-	  float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
-	  float pt2 = min(dataEvent->lep2_.pt(),49.);
-	  float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
-	  LeptonScaleLookup lsl(&*eff_file);
-	  float effSelSF = lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)*lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_);
-	  float effTrgSF = lsl.GetExpectedTriggerEfficiency(eta1,pt1,eta2,pt2,dataEvent->lid1_,dataEvent->lid2_);
-	  effSF = effSelSF*effTrgSF;
-	  if (checkWeights) {
-	    if (dataEvent->sfWeightEff_>0) assert(fabs((effSelSF-dataEvent->sfWeightEff_)/dataEvent->sfWeightEff_)<0.0001);
-	    assert(fabs((effTrgSF-dataEvent->sfWeightTrig_)/dataEvent->sfWeightTrig_)<0.0001);
-	  }
-	} else {
-	  effSF = dataEvent->sfWeightEff_ * dataEvent->sfWeightTrig_;
+    float effSF=1.;
+    if (isMC&&applyEff) {
+      if (redoWeights) {
+	float pt1 = min(dataEvent->lep1_.pt(),49.);
+	float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
+	float pt2 = min(dataEvent->lep2_.pt(),49.);
+	float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
+	LeptonScaleLookup lsl(&*eff_file);
+	float effSelSF = lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)*lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_);
+	float effTrgSF = lsl.GetExpectedTriggerEfficiency(eta1,pt1,eta2,pt2,dataEvent->lid1_,dataEvent->lid2_);
+	effSF = effSelSF*effTrgSF;
+	if (checkWeights) {
+	  if (dataEvent->sfWeightEff_>0) assert(fabs((effSelSF-dataEvent->sfWeightEff_)/dataEvent->sfWeightEff_)<0.0001);
+	  assert(fabs((effTrgSF-dataEvent->sfWeightTrig_)/dataEvent->sfWeightTrig_)<0.0001);
 	}
+      } else {
+	effSF = dataEvent->sfWeightEff_ * dataEvent->sfWeightTrig_;
       }
+    }
+
+    if (!doFake) {
       yield = yield + weight*effSF*puw;
       //fixme: should consider the error of effSF
       error = error + pow(weight*effSF*puw,2);
     } 
     else {//DO FAKES!!!      
-      if ( ( (dataEvent->cuts_ & Lep1LooseEleV4)    == Lep1LooseEleV4    &&
-	     (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection && 
-	     (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
-	   ( (dataEvent->cuts_ & Lep2LooseEleV4)    == Lep2LooseEleV4    &&
-	     (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection && 
-	     (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ||
-	   ( (dataEvent->cuts_ & Lep1LooseMuV2)     == Lep1LooseMuV2     &&
-	     (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection &&
-	     (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
-	   ( (dataEvent->cuts_ & Lep2LooseMuV2)     == Lep2LooseMuV2     &&
-	     (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
-	     (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ) {
+      if ( 
+          ( (region.Contains("elfake")&&region.Contains("mufake")==0) &&
+            ( ( (dataEvent->cuts_ & Lep1LooseEleV4)    == Lep1LooseEleV4    &&
+                (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection && 
+                (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep2LooseEleV4)    == Lep2LooseEleV4    &&
+                (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection && 
+                (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ) ) ||
+          ( (region.Contains("mufake")&&region.Contains("elfake")==0) && 
+            ( ( (dataEvent->cuts_ & Lep1LooseMuV2)     == Lep1LooseMuV2     &&
+                (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection &&
+                (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep2LooseMuV2)     == Lep2LooseMuV2     &&
+                (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
+                (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ) ) ||
+          ( ( (region.Contains("mufake")==0&&region.Contains("elfake")==0) || (region.Contains("mufake")&&region.Contains("elfake") ) ) &&
+            ( ( (dataEvent->cuts_ & Lep1LooseEleV4)    == Lep1LooseEleV4    &&
+                (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection && 
+                (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep2LooseEleV4)    == Lep2LooseEleV4    &&
+                (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection && 
+                (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep1LooseMuV2)     == Lep1LooseMuV2     &&
+                (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection &&
+                (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep2LooseMuV2)     == Lep2LooseMuV2     &&
+                (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
+                (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ) )
+          ) {
 	float frW = 1;
 	if (redoWeights || region.Contains("=alternativeFR=")) {
 	  float fr = getFR(dataEvent,eFR,mFR);
 	  frW = fr/(1.-fr);
 	  if (checkWeights) assert((fabs(fr/(1.-fr))-fabs(dataEvent->sfWeightFR_))/fabs(dataEvent->sfWeightFR_)<0.0001);
 	} else frW = fabs(dataEvent->sfWeightFR_);//warning, using fabs, does not work with mixed samples!!!!!
-	yield += weight*puw*frW;
-	error += pow(weight*puw*frW,2);//warning! not including error on FR here...
+	yield += weight*effSF*puw*frW;
+	error += pow(weight*effSF*puw*frW,2);//warning! not including error on FR here...
       } 
     }
   }
@@ -1042,8 +1056,9 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
       }
     }
     if (region.Contains("embed")) {
-      weight=lumi*ZttScaleFactor(dataEvent->nvtx_,2,dataEvent->scale1fb_);//fixme period
+      weight=lumi*ZttScaleFactor(2,dataEvent->scale1fb_,1.,1.);//fixme period
     }
+    if (dataEvent->dstype_==SmurfTree::wgstar) weight*=WGstarScaleFactor(dataEvent->type_,dataEvent->met_); 
 
     if (syst.Contains("jes")) {
       float jesK = 1.;
@@ -1201,47 +1216,47 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
       //cout << puw << " " << dataEvent->sfWeightPU_ << endl;
     }
 
-    if (!doFake) {
-      float effSF=1.;
-      float zetaW = 1.;
-      if (isMC&&applyEff) {
-	if (redoWeights) {
-	  float pt1 = min(dataEvent->lep1_.pt(),49.);
-	  float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
-	  float pt2 = min(dataEvent->lep2_.pt(),49.);
-	  float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
-	  LeptonScaleLookup lsl(&*eff_file);
-	  float effSelSF = lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)*lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_);
-	  float effTrgSF = lsl.GetExpectedTriggerEfficiency(eta1,pt1,eta2,pt2,dataEvent->lid1_,dataEvent->lid2_);
-	  effSF = effSelSF*effTrgSF;
-	  if (checkWeights) {
-	    if (dataEvent->sfWeightEff_>0) assert(fabs((effSelSF-dataEvent->sfWeightEff_)/dataEvent->sfWeightEff_)<0.0001);
-	    assert(fabs((effTrgSF-dataEvent->sfWeightTrig_)/dataEvent->sfWeightTrig_)<0.0001);
-	  }
-	} else {
-	  effSF = dataEvent->sfWeightEff_ * dataEvent->sfWeightTrig_;
+    float effSF=1.;
+    float zetaW = 1.;
+    if (isMC&&applyEff) {
+      if (redoWeights) {
+	float pt1 = min(dataEvent->lep1_.pt(),49.);
+	float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
+	float pt2 = min(dataEvent->lep2_.pt(),49.);
+	float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
+	LeptonScaleLookup lsl(&*eff_file);
+	float effSelSF = lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)*lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_);
+	float effTrgSF = lsl.GetExpectedTriggerEfficiency(eta1,pt1,eta2,pt2,dataEvent->lid1_,dataEvent->lid2_);
+	effSF = effSelSF*effTrgSF;
+	if (checkWeights) {
+	  if (dataEvent->sfWeightEff_>0) assert(fabs((effSelSF-dataEvent->sfWeightEff_)/dataEvent->sfWeightEff_)<0.0001);
+	  assert(fabs((effTrgSF-dataEvent->sfWeightTrig_)/dataEvent->sfWeightTrig_)<0.0001);
 	}
-
-	if (syst.Contains("lepeff")){
-	  float pt1 = min(dataEvent->lep1_.pt(),49.);
-	  float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
-	  float pt2 = min(dataEvent->lep2_.pt(),49.);
-	  float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
-	  LeptonScaleLookup lsl(&*eff_file);
-	  float neweffsel = 1.;
-	  if (syst.Contains("Up")) {
-	    neweffsel = (lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)+lsl.GetExpectedLeptonSFErr(eta1,pt1,dataEvent->lid1_)+0.01)*(lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_)+lsl.GetExpectedLeptonSFErr(eta2,pt2,dataEvent->lid2_)+0.01);
-	  } else if (syst.Contains("Down")) {
-	    neweffsel = (lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)-lsl.GetExpectedLeptonSFErr(eta1,pt1,dataEvent->lid1_)-0.01)*(lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_)-lsl.GetExpectedLeptonSFErr(eta2,pt2,dataEvent->lid2_)-0.01);
-	  }
-	  float oldeffsel = dataEvent->sfWeightEff_;
-	  if (redoWeights) {
-	    oldeffsel = lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)*lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_);
-	  }
-	  effSF=effSF*neweffsel/oldeffsel;
-	}
-
+      } else {
+	effSF = dataEvent->sfWeightEff_ * dataEvent->sfWeightTrig_;
       }
+      
+      if (syst.Contains("lepeff")){
+	float pt1 = min(dataEvent->lep1_.pt(),49.);
+	float eta1 = min(fabs(dataEvent->lep1_.eta()),2.4);
+	float pt2 = min(dataEvent->lep2_.pt(),49.);
+	float eta2 = min(fabs(dataEvent->lep2_.eta()),2.4);
+	LeptonScaleLookup lsl(&*eff_file);
+	float neweffsel = 1.;
+	if (syst.Contains("Up")) {
+	  neweffsel = (lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)+lsl.GetExpectedLeptonSFErr(eta1,pt1,dataEvent->lid1_)+0.01)*(lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_)+lsl.GetExpectedLeptonSFErr(eta2,pt2,dataEvent->lid2_)+0.01);
+	} else if (syst.Contains("Down")) {
+	  neweffsel = (lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)-lsl.GetExpectedLeptonSFErr(eta1,pt1,dataEvent->lid1_)-0.01)*(lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_)-lsl.GetExpectedLeptonSFErr(eta2,pt2,dataEvent->lid2_)-0.01);
+	}
+	float oldeffsel = dataEvent->sfWeightEff_;
+	if (redoWeights) {
+	  oldeffsel = lsl.GetExpectedLeptonSF(eta1,pt1,dataEvent->lid1_)*lsl.GetExpectedLeptonSF(eta2,pt2,dataEvent->lid2_);
+	}
+	effSF=effSF*neweffsel/oldeffsel;
+      }
+    }
+
+    if (!doFake) {
       //h->Fill(dataEvent->dilep_.mass(),weight*effSF*puw);
       if (var=="bdtg") {
 	std::vector<double> theInputVals;
@@ -1289,18 +1304,35 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	return;
       }
     } else {//DO FAKES!!!      
-      if ( ( (dataEvent->cuts_ & Lep1LooseEleV4)    == Lep1LooseEleV4    &&
-	     (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection && 
-	     (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
-	   ( (dataEvent->cuts_ & Lep2LooseEleV4)    == Lep2LooseEleV4    &&
-	     (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection && 
-	     (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ||
-	   ( (dataEvent->cuts_ & Lep1LooseMuV2)     == Lep1LooseMuV2     &&
-	     (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection &&
-	     (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
-	   ( (dataEvent->cuts_ & Lep2LooseMuV2)     == Lep2LooseMuV2     &&
-	     (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
-	     (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ) {
+      if ( 
+          ( (region.Contains("elfake")&&region.Contains("mufake")==0) &&
+            ( ( (dataEvent->cuts_ & Lep1LooseEleV4)    == Lep1LooseEleV4    &&
+                (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection && 
+                (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep2LooseEleV4)    == Lep2LooseEleV4    &&
+                (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection && 
+                (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ) ) ||
+          ( (region.Contains("mufake")&&region.Contains("elfake")==0) && 
+            ( ( (dataEvent->cuts_ & Lep1LooseMuV2)     == Lep1LooseMuV2     &&
+                (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection &&
+                (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep2LooseMuV2)     == Lep2LooseMuV2     &&
+                (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
+                (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ) ) ||
+          ( ( (region.Contains("mufake")==0&&region.Contains("elfake")==0) || (region.Contains("mufake")&&region.Contains("elfake") ) ) &&
+            ( ( (dataEvent->cuts_ & Lep1LooseEleV4)    == Lep1LooseEleV4    &&
+                (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection && 
+                (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep2LooseEleV4)    == Lep2LooseEleV4    &&
+                (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection && 
+                (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep1LooseMuV2)     == Lep1LooseMuV2     &&
+                (dataEvent->cuts_ & Lep1FullSelection) != Lep1FullSelection &&
+                (dataEvent->cuts_ & Lep2FullSelection) == Lep2FullSelection ) ||
+              ( (dataEvent->cuts_ & Lep2LooseMuV2)     == Lep2LooseMuV2     &&
+                (dataEvent->cuts_ & Lep2FullSelection) != Lep2FullSelection &&
+                (dataEvent->cuts_ & Lep1FullSelection) == Lep1FullSelection ) ) )
+          ) {
 	const double inputVals[] = { dataEvent->lep1_.pt(), dataEvent->lep2_.pt(), dataEvent->dPhi_, dataEvent->dR_, dataEvent->dilep_.mass(), dataEvent->type_, dataEvent->mt_};
 	std::vector<double> theInputVals;
 	for (int i=0;i<7;++i) theInputVals.push_back(inputVals[i]);
@@ -1310,16 +1342,16 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	  frW = fr/(1.-fr);
 	} else frW = fabs(dataEvent->sfWeightFR_);//warning, using fabs, does not work with mixed samples!!!!!
 	if (var=="bdtg") {
-	  h->Fill(rbdtg->GetMvaValue(theInputVals),weight*puw*frW);
+	  h->Fill(rbdtg->GetMvaValue(theInputVals),weight*effSF*puw*frW);
 	} else if (var=="mtmll2D") {
 	  //test 2D
 	  TH2F* h2 = mass<300 ? mtmll2d_lom : mtmll2d_him;
 	  int binx = h2->GetXaxis()->FindBin(dataEvent->mt_);
 	  int biny = h2->GetYaxis()->FindBin(dataEvent->dilep_.mass());
 	  int bin2d = (binx-1)*h2->GetNbinsY()+biny;
-	  h->Fill( h->GetBinCenter(bin2d) ,weight*puw*frW);
+	  h->Fill( h->GetBinCenter(bin2d) ,weight*effSF*puw*frW);
 	} else if (var=="mll") {
-	  h->Fill(dataEvent->dilep_.mass(),weight*puw*frW);
+	  h->Fill(dataEvent->dilep_.mass(),weight*effSF*puw*frW);
 	} else if (var=="ctrjetetapt") {
 	  TH2* h2 = dynamic_cast<TH2*>(h);
 	  assert(h2);
@@ -1328,7 +1360,7 @@ void fillPlot(TString var, TH1* h, TString sample, unsigned int cut, unsigned in
 	  double ptCtr = dataEvent->jet1_.pt();
 	  if ( fabs(dataEvent->jet2_.eta())<fabs(dataEvent->jet1_.eta()) ) ptCtr = dataEvent->jet2_.pt();;
 	  //if ( dataEvent->jet3_.pt()>15 && fabs(dataEvent->jet3_.eta())<min(fabs(dataEvent->jet1_.eta()),fabs(dataEvent->jet2_.eta())) ) ptCtr = dataEvent->jet3_.pt();;
-	  h2->Fill(min(etaCtr,2.499),min(ptCtr,199.9),weight*puw*frW);//overflow in last bin
+	  h2->Fill(min(etaCtr,2.499),min(ptCtr,199.9),weight*effSF*puw*frW);//overflow in last bin
 	} else {
 	  cout << "WRONG VAR TO PLOT: " << var << endl;
 	  return;

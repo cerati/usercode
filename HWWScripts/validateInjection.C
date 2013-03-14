@@ -1,14 +1,11 @@
-{
+void validateInjection(TString dirtest, int nj){
 
   gROOT->Reset();
   gStyle->SetOptStat(0);
 
-  TString dirtest = "cards_inj_stat_ww_alter";
-  int nj = 0;
-
   TCanvas c1;
 
-  TFile *_file_ref = TFile::Open(Form("cards_def/125/hwwof_%ij.input_8TeV.root",nj));
+  TFile *_file_ref = TFile::Open(Form("cards/125/hwwof_%ij.input_8TeV.root",nj));
   THStack hs("hs","processes");
   TH1F* ZH = (TH1F*) _file_ref->Get("histo_ZH");
   TH1F* WH = (TH1F*) _file_ref->Get("histo_WH");
@@ -18,9 +15,12 @@
   TH1F* qqWW = (TH1F*) _file_ref->Get("histo_qqWW");
   TH1F* VV = (TH1F*) _file_ref->Get("histo_VV");
   TH1F* Top = (TH1F*) _file_ref->Get("histo_Top");
-  TH1F* Wjets = (TH1F*) _file_ref->Get("histo_Wjets");
+  TH1F* WjetsE = (TH1F*) _file_ref->Get("histo_WjetsE");
+  TH1F* WjetsM = (TH1F*) _file_ref->Get("histo_WjetsM");
   TH1F* Zjets = (TH1F*) _file_ref->Get("histo_Zjets");
   TH1F* Wgamma = (TH1F*) _file_ref->Get("histo_Wgamma");
+  TH1F* Wg3l = (TH1F*) _file_ref->Get("histo_Wg3l");
+  TH1F* Ztt = (TH1F*) _file_ref->Get("histo_Ztt");
   ZH->SetLineColor(kRed);
   WH->SetLineColor(kRed);
   ggH->SetLineColor(kRed);
@@ -29,9 +29,12 @@
   qqWW->SetLineColor(kAzure-9);
   VV->SetLineColor(kAzure-2);
   Top->SetLineColor(kYellow);
-  Wjets->SetLineColor(kGray+1);
+  WjetsE->SetLineColor(kGray+1);
+  WjetsM->SetLineColor(kGray+1);
   Zjets->SetLineColor(kGreen+2);
+  Ztt->SetLineColor(kGreen+2);
   Wgamma->SetLineColor(kGray+1);
+  Wg3l->SetLineColor(kGray+1);
   ZH->SetFillColor(kRed);
   WH->SetFillColor(kRed);
   ggH->SetFillColor(kRed);
@@ -40,9 +43,12 @@
   qqWW->SetFillColor(kAzure-9);
   VV->SetFillColor(kAzure-2);
   Top->SetFillColor(kYellow);
-  Wjets->SetFillColor(kGray+1);
+  WjetsE->SetFillColor(kGray+1);
+  WjetsM->SetFillColor(kGray+1);
   Zjets->SetFillColor(kGreen+2);
+  Ztt->SetFillColor(kGreen+2);
   Wgamma->SetFillColor(kGray+1);
+  Wg3l->SetFillColor(kGray+1);
   ZH->SetFillStyle(1001);
   WH->SetFillStyle(1001);
   ggH->SetFillStyle(1001);
@@ -51,28 +57,33 @@
   qqWW->SetFillStyle(1001);
   VV->SetFillStyle(1001);
   Top->SetFillStyle(1001);
-  Wjets->SetFillStyle(1001);
+  WjetsE->SetFillStyle(1001);
+  WjetsM->SetFillStyle(1001);
   Zjets->SetFillStyle(1001);
+  Ztt->SetFillStyle(1001);
   Wgamma->SetFillStyle(1001);
+  Wg3l->SetFillStyle(1001);
   hs.Add(ggWW);
   hs.Add(qqWW);
   hs.Add(VV);
   hs.Add(Top);
-  hs.Add(Wjets);
+  hs.Add(WjetsE);
+  hs.Add(WjetsM);
   hs.Add(Wgamma);
+  hs.Add(Wg3l);
   hs.Add(Zjets);
+  hs.Add(Ztt);
   hs.Add(ZH);
   hs.Add(WH);
   hs.Add(ggH);
   hs.Add(qqH);
   hs.Draw("hist");
 
-  TH1F* hinj = new TH1F("hinj","hinj",80,-1.,1.);
-  for (int i=0;i<1000;++i) {
-    TFile *_file_inj = TFile::Open(dirtest+Form("/125/hwwof_%ij_shape_8TeV_PseudoData_sb.root",nj));
+  TFile *_file_inj = TFile::Open(dirtest+Form("/125/hwwof_%ij_shape_8TeV_PseudoData_sb.root",nj));
+  TH1F* hinj = (TH1F*) _file_inj->Get(Form("j%iof_%i",nj,0));
+  for (int i=1;i<1000;++i) {
     TH1F* h = (TH1F*) _file_inj->Get(Form("j%iof_%i",nj,i));
     hinj->Add(h);
-    _file_inj->Close();
   }
   hinj->Scale(1./1000.);
   hinj->SetLineWidth(2);
@@ -85,7 +96,9 @@
   hs.Draw("hist,same");
   hinj->Draw("same");
 
-  c1.SaveAs("toys_"+dirtest+Form("_%i.png",nj));
+  gSystem->Exec("mkdir -p "+dirtest+"/plots");
+  c1.SaveAs(dirtest+"/plots/toys_"+dirtest+Form("_%ij.png",nj));
+  _file_inj->Close();
 
 //   TH1F* hnew = new TH1F("hnew","hnew",80,-1.,1.);
 //   for (int i=0;i<100;++i) {    
@@ -110,3 +123,7 @@
   c1.SaveAs("inj125_bdt160.png");
   */
 }
+
+/*
+root -b -q validateInjection.C\(\"cards_inj_stat\",0\)
+*/

@@ -116,6 +116,8 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
   if (getIndexForProcess(mcs,nMC,"hww125")>=0) colors[getIndexForProcess(mcs,nMC,"hww125")] = kRed;
 
   TCut runrange("run>0");//Full dataset
+  if (fabs(lumi-12.1)<0.01) runrange = TCut("run<=203202");//HCP
+  if (fabs(lumi-7.367)<0.01) runrange = TCut("run>203202");//post-HCP
 
   TString dir = "/smurf/cerati/skims/Run2012_Summer12_SmurfV9_53X/skim_topww/";
   if (withZpeak) dir+="../skim_dy/";
@@ -133,7 +135,7 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
     if (getIndexForProcess(mcs,nMC,"dyll")>=0)  sfs[getIndexForProcess(mcs,nMC,"dyll")]  = DYBkgScaleFactor(mass,njets);
     if (getIndexForProcess(mcs,nMC,"ttbar_powheg")>=0) sfs[getIndexForProcess(mcs,nMC,"ttbar_powheg")] = TopBkgScaleFactor(njets);
     if (getIndexForProcess(mcs,nMC,"tw")>=0)    sfs[getIndexForProcess(mcs,nMC,"tw")]    = TopBkgScaleFactor(njets);
-    if (getIndexForProcess(mcs,nMC,"wglll")>=0) sfs[getIndexForProcess(mcs,nMC,"wglll")] = WGstarScaleFactor();
+    if (getIndexForProcess(mcs,nMC,"wglll")>=0) sfs[getIndexForProcess(mcs,nMC,"wglll")] = WGstarScaleFactor(0,0);
     if (wjetsFromData==0 && getIndexForProcess(mcs,nMC,"wjets")>=0) sfs[getIndexForProcess(mcs,nMC,"wjets")] = WJetsMCScaleFactor();
     
     if (getIndexForProcess(mcs,nMC,"qqww")>=0)  ks[getIndexForProcess(mcs,nMC,"qqww")]  = WWBkgScaleFactorKappaCutBased(max(115,mass),min(njets,1));
@@ -225,7 +227,7 @@ void plotBaby(float lumi=3.553, int njets=0, int mass=0, TString fs="", bool dod
   TCut njcut(Form("njets==%i",njets));
   if (njets==2) njcut = "(njets==2 || (njets==3 && !((jet1.eta()-jet3.eta() > 0 && jet2.eta()-jet3.eta() < 0) || (jet2.eta()-jet3.eta() > 0 && jet1.eta()-jet3.eta() < 0)) ))&&!(TMath::Abs(jet1.eta())>= 4.7||TMath::Abs(jet2.eta()) >= 4.7)";
   if (njets==-1) njcut = "njets==0 || njets==1 || (njets==2 || (njets==3 && !((jet1.eta()-jet3.eta() > 0 && jet2.eta()-jet3.eta() < 0) || (jet2.eta()-jet3.eta() > 0 && jet1.eta()-jet3.eta() < 0)) ))&&!(TMath::Abs(jet1.eta())>= 4.5||TMath::Abs(jet2.eta()) >= 4.5)";
-  TCut kincuts = "dilep.pt()>45.";
+  TCut kincuts = "dilep.pt()>30.";
   if (njets==2 && mass>0) kincuts = "dilep.pt()>45. && TMath::Abs(jet1.eta()-jet2.eta())>3.5 && (((jet1.eta()-lep1.eta() > 0 && jet2.eta()-lep1.eta() < 0) || (jet2.eta()-lep1.eta() > 0 && jet1.eta()-lep1.eta() < 0)) && ((jet1.eta()-lep2.eta() > 0 && jet2.eta()-lep2.eta() < 0) || (jet2.eta()-lep2.eta() > 0 && jet1.eta()-lep2.eta() < 0))) && sqrt(2*jet1.pt()*jet2.pt()*(TMath::CosH(jet1.eta()-jet2.eta())-TMath::Cos(jet1.phi()-jet2.phi())))>500.";
   TCut blindDataCut = "(dstype!=0 || dilep.mass()>70)";
   if (blindData) kincuts = kincuts&&blindDataCut;

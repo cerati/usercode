@@ -40,6 +40,4 @@ void removeSyst(TString fname) {
 
 }
 
-
-
 // for file in cards_inj_stat/*/*.txt; do root -b -q removeSyst.C+\(\"${file}\"\); done

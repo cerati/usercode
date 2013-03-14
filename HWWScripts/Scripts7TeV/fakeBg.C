@@ -15,23 +15,21 @@ pair<float, float> getSpillage(TString dir, unsigned int cut_nolep, unsigned int
   pair<float, float> twFake    = getYield(dir+"tw",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> dymmFake  = getYield(dir+"dymm",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> dyeeFake  = getYield(dir+"dyee",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> dyllFake = make_pair<float, float>(dymmFake.first+dyeeFake.first,sqrt(pow(dymmFake.second,2)+pow(dyeeFake.second,2)));
+  pair<float, float> dyllFake  = make_pair<float, float>(dymmFake.first+dyeeFake.first,sqrt(pow(dymmFake.second,2)+pow(dyeeFake.second,2)));
+  pair<float, float> dyttFake  = getYield(dir+"dytt",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> wzFake    = getYield(dir+"wz",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> zzFake    = getYield(dir+"zz_py",    cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> zzFake    = getYield(dir+"zz_py", cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   pair<float, float> wgFake    = getYield(dir+"wgamma",cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
-  pair<float, float> wg3lFake  ;//= getYield(dir+"wglll",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
+  pair<float, float> wg3lFake  = getYield(dir+"wg3l",  cut_nolep, veto, mass, njets, region, lumi, false, applyEff, true, doPUw);
   float spillYield = qqwwFake.first+ggwwFake.first+ttbarFake.first+twFake.first+wzFake.first+zzFake.first+
-                     //dySF*dymmFake.first+dySF*dyeeFake.first+
-                     dySF*dyllFake.first+
+                     dySF*dyllFake.first+dyttFake.first+
                      wgFake.first+wg3lFake.first;
   float spillError = sqrt(pow(qqwwFake.second,2)+pow(ggwwFake.second,2)+pow(ttbarFake.second,2)+pow(twFake.second,2)+
 			  pow(wzFake.second,2)+pow(zzFake.second,2)+
-			  //pow(dySF*dymmFake.second,2)+pow(dySF*dyeeFake.second,2)+
 			  pow(dySF*dyllFake.second,2)+
 			  pow(wgFake.second,2)+pow(wg3lFake.second,2));
   if (debug) {
     cout << "qqww: " << qqwwFake.first << " ggww: " << ggwwFake.first << " ttbar: " << ttbarFake.first << " tw: " << twFake.first 
-         //<< " dymm: " << dySF*dymmFake.first << " dyee: " << dySF*dyeeFake.first 
 	 << " dyll: " << dySF*dyllFake.first
 	 << " wz: " << wzFake.first << " zz: " << zzFake.first 
 	 << " wgamma: " << wgFake.first << " wg3l: " << wg3lFake.first << endl;
@@ -164,7 +162,7 @@ void makeSSTable(float lumi) {
     cout << "SS wgamma: " << ssWgamma.first << " +/- " << ssWgamma.second << endl;
 
     pair<float, float> ssWglll = getYield(main_dir+wj_dir+"wglll",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);
-    ssWglll = make_pair<float, float>(WGstarScaleFactor()*ssWglll.first,WGstarScaleFactor()*ssWglll.second);
+    ssWglll = make_pair<float, float>(ssWglll.first,ssWglll.second);
     cout << "SS wglll: " << ssWglll.first << " +/- " << ssWglll.second << endl;
 
     pair<float, float> ssWz = getYield(main_dir+wj_dir+"wz",  wwSel_noq, ChargeMatch, mass, njets, region, lumi, useJson, applyTnPSF, false, doPUw);

@@ -1,4 +1,4 @@
-void plotBaby_PU(float lumi=1.6, int njets=0, int mass=0, TString fs="", bool dodata=1, bool useSF=true, bool logy=0){
+void plotBaby_PU(float lumi=19.5, int njets=-1, int mass=0, TString fs="sf", bool dodata=1, bool useSF=false, bool logy=0){
   //lumi is in /fb
 
   gROOT->Reset();
@@ -14,14 +14,13 @@ void plotBaby_PU(float lumi=1.6, int njets=0, int mass=0, TString fs="", bool do
 
   bool doRatio = false;
 
-  TString extension = ".eps";
+  TString extension = ".root";
 
   TString mcs[] = {"qqww","ggww","dyll","ttbar_powheg","tw","wz","zz","wjets"};
   int  colors[] = {kAzure-9,kAzure-9,kGreen+2,kYellow,kYellow,kAzure-2,kAzure-2,kGray+1};
 
   TCut runrange("run>0");//Full2011
-  TString dir = "/smurf/cerati/skims/Run2011_Summer11_SmurfV7_42X/4700ipbWeights/wwSelNoLepNoTV/";//wwSelNoMetNoZVminMET20
-  dir = "/smurf/data/Run2012_Summer12_SmurfV9_52X/mitf-alljets/";
+  TString dir = "/smurf/data/Run2012_Summer12_SmurfV9_53X/mitf-alljets/";
   float sfs0j[] = { 1.37,  1.37,   4.8,   0.9,   0.9,   1.0,    1.0, 1.0};
   float sfs1j[] = { 1.26,  1.26,   4.3,   0.9,   0.9,   1.0,    1.0, 1.0};
   float sfs2j[] = { 1.0,   1.0,    1.9,   1.5,   1.5,   1.0,    1.0, 1.0};
@@ -67,10 +66,10 @@ void plotBaby_PU(float lumi=1.6, int njets=0, int mass=0, TString fs="", bool do
   TCut lep1pt,lep2pt,dPhi,mll,mt,himass;
   if (mass==0) {
     lep1pt = "lep1.pt()>20.";
-    lep2pt = "lep2.pt()>10.";
+    lep2pt = "lep2.pt()>20.";
     dPhi = "dPhi<TMath::Pi()*180./180.";
     mll = "dilep.mass()<999";
-    mt = "mt>0&&mt<999";
+    mt = "mt>0&&mt<99999.";
     himass = "dilep.mass()>100.";
   } else if (mass==115) {
     lep1pt = "lep1.pt()>20.";
@@ -161,15 +160,15 @@ void plotBaby_PU(float lumi=1.6, int njets=0, int mass=0, TString fs="", bool do
   TCut trig(Form("dstype!=0 || (cuts & %i)==%i",Trigger,Trigger));
 
   TCut newcuts = "";
-  TCut kincuts = "abs(dilep.mass()-91.2)<7.5";
+  TCut kincuts = "abs(dilep.mass()-91.2)<15.";
 
   TCut njcut(Form("njets==%i",njets));
   if (njets==-1) njcut = "";
 
   TCut flav = "";
   TString flavstr = "";
-  //TCut sf = "type!=1 && type!=2";
-  TCut sf = "type==0";
+  TCut sf = "type!=1 && type!=2";
+  //TCut sf = "type==0";
   TCut of = "type!=0 && type!=3";
   if (fs=="of") {
     flav = of;
@@ -184,6 +183,8 @@ void plotBaby_PU(float lumi=1.6, int njets=0, int mass=0, TString fs="", bool do
 
   TCut cut = base&&njcut&&newcuts&&sigreg&&trig&&kincuts&&flav;
   cut.SetName("mh"+mh+"_nj"+nj+flavstr);
+
+  cout << cut.GetTitle() << endl;
 
   TString plot[]    = {
 //     "dilep.mass()",
@@ -210,7 +211,7 @@ void plotBaby_PU(float lumi=1.6, int njets=0, int mass=0, TString fs="", bool do
 //     "40,0.,200.",
 //     "20,0.,4",
 //     "20,0,2",
-    "25,0,50",
+    "40,0,40",
     "21,-1,1.1"
   };
   TString xtitle[]  = {
@@ -268,6 +269,7 @@ void plotBaby_PU(float lumi=1.6, int njets=0, int mass=0, TString fs="", bool do
     minbin.Remove(lastc-firstc-1,bin.Sizeof()-lastc);
 
     TCanvas c;
+    gPad->SetLeftMargin(0.125);
     THStack* hs = new THStack("hs",plot[pl]);
     TLegend* leg = new TLegend(0.15,0.84,0.48,0.94);
     leg->SetTextFont(42);
