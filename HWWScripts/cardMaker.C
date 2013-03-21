@@ -255,8 +255,8 @@ void cardMaker(float lumi, int mass, unsigned int njets, TString fs, TString mod
       if (njets==2) out << Form("%-40s %5s   1.100   1.100   1.100   1.100   1.100   1.100   1.100     -       -       -     1.100   1.100   1.100     -  \n","CMS_scale_j","lnN");
     }
     if (mode=="shape") {
-      out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -     1.360     -       -       -       -  \n","FakeRate_e","lnU");
-      out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -       -       -       -       -     1.360\n","FakeRate_m","lnU");
+      out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -     1.360     -       -       -       -  \n","FakeRate_e","lnN");
+      out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -       -       -       -       -     1.360\n","FakeRate_m","lnN");
     } else {
       out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -     1.360     -       -       -       -  \n","FakeRate_cut_e","lnN");
       out << Form("%-40s %5s     -       -       -       -       -       -       -       -       -       -       -       -       -     1.360\n","FakeRate_cut_m","lnN");
