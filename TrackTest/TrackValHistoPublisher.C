@@ -133,10 +133,10 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    rh3->GetYaxis()->SetTitle("efficiency vs p_{t}");
    rh3->GetYaxis()->SetTitleSize(0.05);
    rh3->GetYaxis()->SetTitleOffset(1.2);
-   rh3->SetTitle("");
+   //rh3->SetTitle("");
    rh4 = getEfficiency((TH1*)rdir->Get(collname1+"/num_assoc(recoToSim)_pT"), (TH1*)rdir->Get(collname1+"/num_duplicate_pT"), (TH1*)rdir->Get(collname1+"/num_reco_pT"), "fakerate_vs_pT_r", "fake+duplicates vs p_{t}", false);    
    sh4 = getEfficiency((TH1*)sdir->Get(collname2+"/num_assoc(recoToSim)_pT"), (TH1*)sdir->Get(collname2+"/num_duplicate_pT"), (TH1*)sdir->Get(collname2+"/num_reco_pT"), "fakerate_vs_pT_s", "fake+duplicates vs p_{t}", false);    
-   rh4->SetTitle("");
+   //rh4->SetTitle("");
    rh4->GetXaxis()->SetTitle("p_{t}");
    rh4->GetYaxis()->SetTitle("fake+duplicates rate vs p_{t}");
    rh4->GetYaxis()->SetTitleSize(0.05);
@@ -203,14 +203,25 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/effandfake1.pdf");   
-   for (int ip=1;ip<=6;++ip) {
-     canvas->cd(ip);
-     gPad->Print(dir+Form("/singleplots/effandfake1_%02d.pdf",ip));
-   }
+   canvas->Print(dir+"/effandfake1.png");   
    delete l;
-
-
+   for (int ip=1;ip<=6;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     if(ip==3||ip==4) c->SetLogx();
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/effandfake1_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
    //===== fakes and duplicates
    //rdir->GetObject(collname1+"/fakerate",rh1);
@@ -249,10 +260,10 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    rh3->GetYaxis()->SetTitle("fakerate vs p_{t}");
    rh3->GetYaxis()->SetTitleSize(0.05);
    rh3->GetYaxis()->SetTitleOffset(1.2);
-   rh3->SetTitle("");
+   //rh3->SetTitle("");
    rdir->GetObject(collname1+"/duplicatesRate_Pt",rh4);
    sdir->GetObject(collname2+"/duplicatesRate_Pt",sh4);
-   rh4->SetTitle("");
+   //rh4->SetTitle("");
    rh4->GetXaxis()->SetTitle("p_{t}");
    rh4->GetYaxis()->SetTitle("duplicates rate vs p_{t}");
    rh4->GetYaxis()->SetTitleSize(0.05);
@@ -321,12 +332,25 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/dupandfake1.pdf");
-   for (int ip=1;ip<=6;++ip) {
-     canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/dupandfake1_%02d.pdf",ip));
-   }
+   canvas->Print(dir+"/dupandfake1.png");
    delete l;
+   for (int ip=1;ip<=6;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     if(ip==3||ip==4) c->SetLogx();
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/dupandfake1_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
 
    // Charge Mid-Id (1)
@@ -349,7 +373,7 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    rh2->GetYaxis()->SetTitleOffset(1.2);
    rh2->GetYaxis()->SetRangeUser(0.,0.1);
    sh2->GetYaxis()->SetRangeUser(0.,0.1);
-   rh2->SetTitle("");
+   //rh2->SetTitle("");
 
    rdir->GetObject(collname1+"/chargeMisIdRate_hit",rh3);
    sdir->GetObject(collname2+"/chargeMisIdRate_hit",sh3);
@@ -369,7 +393,7 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    
    rdir->GetObject(collname1+"/chargeMisIdRate_dxy",rh5);
    sdir->GetObject(collname2+"/chargeMisIdRate_dxy",sh5);
-   rh5->SetTitle("");
+   //rh5->SetTitle("");
    rh5->GetXaxis()->SetTitle("dxy");
    rh5->GetYaxis()->SetTitle("charge mis-id rate vs dxy");
    rh5->GetYaxis()->SetTitleSize(0.05);
@@ -406,12 +430,25 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/chargemisid.pdf");
-   for (int ip=1;ip<=6;++ip) {
-     canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/chargemisid_%02d.pdf",ip));
-   }
+   canvas->Print(dir+"/chargemisid.png");
    delete l;
+   for (int ip=1;ip<=6;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     if(ip==3||ip==4) c->SetLogx();
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/chargemisid_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
    // ====== hits and pt
 
@@ -452,6 +489,9 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    //NormalizeHistograms(rh3,sh3);
    //NormalizeHistograms(rh4,sh4);
    
+   TH1 * r[4]={rh1,rh2,rh3,rh4};
+   TH1 * s[4]={sh1,sh2,sh3,sh4};
+
    plot4histos(canvas,
 	      sh1,rh1,sh2,rh2,
 	      sh3,rh3,sh4,rh4,
@@ -469,12 +509,25 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/hitsAndPt.pdf");
-   for (int ip=1;ip<=4;++ip) {
-     canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/hitsAndPt_%02d.pdf",ip));
-   }
+   canvas->Print(dir+"/hitsAndPt.png");
    delete l;
+   for (int ip=1;ip<=4;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     if(ip==3||ip==4) c->SetLogx();
+     TLegend* l1 = new TLegend(0.10,0.94,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/hitsAndPt_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
 
    //===== tuning
@@ -512,7 +565,7 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    sh3->GetYaxis()->SetRangeUser(0,2.5);
 
 
-   rh3->SetTitle("");
+   //rh3->SetTitle("");
    rh3->GetYaxis()->SetTitleSize(0.05);
    rh3->GetYaxis()->SetTitleOffset(1.2);
    rh3->GetYaxis()->SetTitle("<  #chi^{2} / ndf >");
@@ -524,7 +577,7 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    sh4->Scale(100.);
    rh4->GetYaxis()->SetRangeUser(-1.5,1.5);
    sh4->GetYaxis()->SetRangeUser(-1.5,1.5);
-   rh4->SetTitle("");
+   //rh4->SetTitle("");
    rh4->GetYaxis()->SetTitleSize(0.05);
    rh4->GetYaxis()->SetTitleOffset(1.2);
    rh4->GetYaxis()->SetTitle("< #delta p_{t} / p_{t} > [%]");
@@ -532,6 +585,8 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    rh4->GetXaxis()->SetTitleOffset(0.6);
    rh4->GetXaxis()->SetTitle("#eta");
 
+   TH1 * r[4]={rh1,rh2,rh3,rh4};
+   TH1 * s[4]={sh1,sh2,sh3,sh4};
      
    plot4histos(canvas,
 	       sh1,rh1,sh2,rh2,
@@ -549,12 +604,28 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/tuning.pdf");
+   canvas->Print(dir+"/tuning.png");
    for (int ip=1;ip<=4;++ip) {
      canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/tuning_%02d.pdf",ip));
+     gPad->SaveAs(dir+Form("/singleplots/tuning_%02d.png",ip));
    }
    delete l;
+   for (int ip=1;ip<=4;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/tuning_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
    
 
    //===== pulls
@@ -600,6 +671,8 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    rh6->GetXaxis()->SetRangeUser(-10,10);
    sh6->GetXaxis()->SetRangeUser(-10,10);
 
+   TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
+   TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
 
    plotPulls(canvas,
 	     sh1,rh1,sh2,rh2,
@@ -619,13 +692,24 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/pulls.pdf");
-   for (int ip=1;ip<=6;++ip) {
-     //if (ip>1) continue;
-     canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/pulls_%02d.pdf",ip));
-   }
+   canvas->Print(dir+"/pulls.png");
    delete l;
+   for (int ip=1;ip<=6;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/pulls_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
 
 
@@ -750,12 +834,30 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/resolutionsEta.pdf");
+   canvas->Print(dir+"/resolutionsEta.png");
    for (int ip=1;ip<=6;++ip) {
      canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/resolutionsEta_%02d.pdf",ip));
+     gPad->SaveAs(dir+Form("/singleplots/resolutionsEta_%02d.png",ip));
    }
    delete l;
+   TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
+   TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
+   for (int ip=1;ip<=6;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/resolutionsEta_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
    //===== resolutions vs pt
    xstr  = "p_{t}"; 
@@ -861,12 +963,26 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/resolutionsPt.pdf");
-   for (int ip=1;ip<=6;++ip) {
-     canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/resolutionsPt_%02d.pdf",ip));
-   }
+   canvas->Print(dir+"/resolutionsPt.png");
    delete l;
+   TH1 * r[6]={rh1,rh2,rh3,rh4,rh5,rh6};
+   TH1 * s[6]={sh1,sh2,sh3,sh4,sh5,sh6};
+   for (int ip=1;ip<=6;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/resolutionsPt_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
     //===== building 2
    rdir->GetObject(collname1+"/effic_vs_phi",rh1);
@@ -896,10 +1012,10 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    sh3->GetYaxis()->SetRangeUser(MINEFF,MAXEFF);
    rh3->GetYaxis()->SetTitleSize(0.05);
    rh3->GetYaxis()->SetTitleOffset(1.2);
-  rh3->SetTitle("");
+   //rh3->SetTitle("");
    rh4 = getEfficiency((TH1*)rdir->Get(collname1+"/num_assoc(recoToSim)_dxy"), (TH1*)rdir->Get(collname1+"/num_duplicate_dxy"), (TH1*)rdir->Get(collname1+"/num_reco_dxy"), "fakerate_vs_dxy_r", "fake+duplicates vs dxy", false);    
    sh4 = getEfficiency((TH1*)sdir->Get(collname2+"/num_assoc(recoToSim)_dxy"), (TH1*)sdir->Get(collname2+"/num_duplicate_dxy"), (TH1*)sdir->Get(collname2+"/num_reco_dxy"), "fakerate_vs_dxy_s", "fake+duplicates vs dxy", false);    
-   rh4->SetTitle("");
+   //rh4->SetTitle("");
    rh4->GetXaxis()->SetTitle("dxy");
    rh4->GetYaxis()->SetTitle("fake+duplicates rate vs dxy");
    rh4->GetYaxis()->SetTitleSize(0.05);
@@ -943,12 +1059,25 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/effandfake2.pdf");   
-   for (int ip=1;ip<=6;++ip) {
-     canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/effandfake2_%02d.pdf",ip));
-   }
+   canvas->Print(dir+"/effandfake2.png");   
    delete l;
+   for (int ip=1;ip<=6;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     if(ip==3||ip==4) c->SetLogx();
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/effandfake2_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
 
 
@@ -986,10 +1115,10 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    sh3->GetYaxis()->SetRangeUser(0.,MAXFAKE);
    rh3->GetYaxis()->SetTitleSize(0.05);
    rh3->GetYaxis()->SetTitleOffset(1.2);
-   rh3->SetTitle("");
+   //rh3->SetTitle("");
    rh4 = ((TH1*)rdir->Get(collname1+"/duplicatesRate_dxy"));
    sh4 = ((TH1*)sdir->Get(collname2+"/duplicatesRate_dxy"));
-   rh4->SetTitle("");
+   //rh4->SetTitle("");
    rh4->GetXaxis()->SetTitle("dxy");
    rh4->GetYaxis()->SetTitle("duplicates rate vs dxy");
    rh4->GetYaxis()->SetTitleSize(0.05);
@@ -1036,12 +1165,25 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/dupandfake2.pdf");
-   for (int ip=1;ip<=6;++ip) {
-     canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/dupandfake2_%02d.pdf",ip));
-   }
+   canvas->Print(dir+"/dupandfake2.png");
    delete l;
+   for (int ip=1;ip<=6;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     if(ip==3||ip==4) c->SetLogx();
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/dupandfake2_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
 
     /*
@@ -1121,7 +1263,7 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/duplicatesAndChargeMisId2.pdf");
+   canvas->Print(dir+"/duplicatesAndChargeMisId2.png");
    delete l;
    */
 
@@ -1168,13 +1310,27 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/effvspos.pdf");   
-   for (int ip=1;ip<=6;++ip) {
-     canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/effvspos_%02d.pdf",ip));
-   }
+   canvas->Print(dir+"/effvspos.png");   
    delete l;
+   for (int ip=1;ip<=2;++ip) {
+     TCanvas * c = new TCanvas("c","c",450,432);
+     r[ip-1]->SetTitle("");
+     r[ip-1]->Draw();
+     s[ip-1]->Draw("same");
+     if(ip==3||ip==4) c->SetLogx();
+     TLegend* l1 = new TLegend(0.10,0.92,0.90,0.99);
+     l1->SetNColumns(2);
+     l1->SetFillColor(0);
+     l1->SetLineColor(0);
+     l1->AddEntry(r[ip-1],refLabel,"LPF");
+     l1->AddEntry(s[ip-1],newLabel,"LPF");     
+     l1->Draw();
+     gPad->Print(dir+Form("/singleplots/effvspos_%02d.png",ip));
+     delete l1;
+     delete c;
+   }
 
+   /*
    //===== dE/dx
    rdir->GetObject(collname1+"/h_dedx_estim1",rh1);
    sdir->GetObject(collname2+"/h_dedx_estim1",sh1);
@@ -1211,12 +1367,13 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/dedx.pdf");   
+   canvas->Print(dir+"/dedx.png");   
    for (int ip=1;ip<=4;++ip) {
      canvas->cd(ip);
-     gPad->SaveAs(dir+Form("/singleplots/dedx_%02d.pdf",ip));
+     gPad->SaveAs(dir+Form("/singleplots/dedx_%02d.png",ip));
    }
    delete l;
+   */
 
     /*
    //===== Pileup 1
@@ -1278,7 +1435,7 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/pileup1.pdf");
+   canvas->Print(dir+"/pileup1.png");
    delete l;
 
    //===== Pileup 2
@@ -1324,7 +1481,7 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/pileup2.pdf");
+   canvas->Print(dir+"/pileup2.png");
    delete l;
 
    //===== Pileup 3
@@ -1369,7 +1526,7 @@ void TrackValHistoPublisher(char* newFile="trackValid.root",char* newLabel="stri
    l->AddEntry(rh1,refLabel,"LPF");
    l->AddEntry(sh1,newLabel,"LPF");
    l->Draw();
-   canvas->Print(dir+"/pileup3.pdf");
+   canvas->Print(dir+"/pileup3.png");
    delete l;
     */
 
