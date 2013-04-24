@@ -1,0 +1,7 @@
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="RecoTracker/TransientTrackingRecHit"/>
+<use name="TrackingTools/Records"/>
+<flags EDM_PLUGIN="1"/>
+<use name="DataFormats/TrackReco"/>
